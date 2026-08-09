@@ -1,0 +1,126 @@
+# Planoscript ::: Menu général de l'application
+
+
+menu:
+  name: Menu général
+  items:
+    - name: Fichiers
+      items:
+        - name: Nouveau projet...
+          feature: FN005
+          shortcut: "Ctrl+N"
+        - name: Ouvrir...
+          feature: FN006
+          shortcut: "Ctrl+O"
+        - name: Fermer
+          feature: FN010
+          shortcut: "Ctrl+W"
+        - name: Enregistrer
+          feature: FN008
+          shortcut: "Ctrl+S"
+        - name: Enregistrer sous...
+          feature: FN009
+          shortcut: "Ctrl+Shift+S"
+        - type: separator
+        - name: Exporter carte
+          feature: À définir
+        - name: Importer carte
+          feature: À définir
+        - type: separator
+        - name: Projets récents...
+          dynamic: true
+          description: Liste dynamique des derniers projets ouverts
+          feature: FN007
+        - type: separator
+        - name: Quitter
+          feature: À définir
+          shortcut: "Ctrl+Q"
+
+    - name: Édition
+      items:
+        - name: Annuler
+          feature: À définir
+          shortcut: "Ctrl+Z"
+        - name: Rétablir
+          feature: À définir
+          shortcut: "Ctrl+Y"
+        - name: Historique
+          feature: À définir
+        - type: separator
+        - name: Couper
+          feature: À définir
+          shortcut: "Ctrl+X"
+        - name: Copier
+          feature: À définir
+          shortcut: "Ctrl+C"
+        - name: Coller
+          feature: À définir
+          shortcut: "Ctrl+V"
+        - name: Supprimer
+          feature: À définir
+          shortcut: "Suppr"
+
+    - name: Affichage
+      items:
+        - name: Parcours
+          items:
+            - name: ListeParcours
+              dynamic: true
+              description: Liste dynamique des parcours de la carte narrative
+              behavior:
+                user_editable: true
+                checked_field: "checked"
+                default_checked: true
+              feature: À définir
+        - name: Zoom
+          items:
+            - name: Zoom avant
+              feature: À définir
+              shortcut: "Ctrl+="
+            - name: Zoom arrière
+              feature: À définir
+              shortcut: "Ctrl+-"
+            - name: Restaurer zoom
+              feature: À définir
+              shortcut: "Ctrl+0"
+
+    - name: Projet
+      items:
+        - name: Vue
+          items:
+            - name: Parcours
+              feature: À définir
+            - name: Relations
+              feature: À définir
+            - name: Chapitres
+              feature: À définir
+        - name: Composants...
+          items:
+            - name: Réf. temporelle
+              feature: À définir
+            - name: Réf. spatiale
+              feature: À définir
+            - name: Agent
+              feature: À définir
+            - name: État
+              feature: À définir
+            - name: Évènement
+              feature: À définir
+        - name: Relations...
+          items:
+            - name: Relation agent à agent
+              feature: À définir
+            - name: Relation agent à état
+              feature: À définir
+            - name: Relation état à évènement
+              feature: À définir
+
+    - name: À propos
+      items:
+        - name: Journal des changements
+          feature: FN003
+        - name: À propos de Planoscript
+          feature: FN004
+
+  legend:
+    description: Les éléments marqués 'dynamic: true' sont générés dynamiquement à partir des données d'application.

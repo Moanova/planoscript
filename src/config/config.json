@@ -1,0 +1,5 @@
+{
+  "recent_projects_path": "./config/recent_projects.json",
+  "recent_projects_limit": 10,
+  "change_log_path": "./config/change_log.json"
+}
