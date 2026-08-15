@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsItem, QFrame,
     QVBoxLayout, QPushButton
 )
-from PySide6.QtCore import Qt, QSize, QSizeF, QPointF
+from PySide6.QtCore import Qt, QSize, QSizeF, QPointF, QRectF
 from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
 import os
 
@@ -24,7 +24,7 @@ from ui.nodes.space_ref_node import SpaceRefNode
 from core.models.view_model import NodeType
 
 class JourneyWorkspace(QGraphicsView):
-    """Central workspace with dynamic grid resizing and scrollbar management"""
+    """Central workspace with infinite scrolling and dynamic grid"""
     
     def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None):
         super().__init__()
@@ -35,6 +35,9 @@ class JourneyWorkspace(QGraphicsView):
         self.initial_height = initial_height
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
+        
+        # Store grid lines for selective removal
+        self.grid_lines = []
 
         self.setStyleSheet("""
             /* Barres de défilement */
@@ -111,13 +114,21 @@ class JourneyWorkspace(QGraphicsView):
         """)
 
 
-        # Initial scene size (fixed at startup)
-        self.setSceneRect(0, 0, initial_width, initial_height)
+        # Initial scene size - fixed to 4000x4000 to ensure scrollbars are active by default
+        self.scene_rect_margin = 200  # Margin around items when expanding scene
+        self.setSceneRect(0, 0, 4000, 4000)
         self._draw_grid()
 
-        # Disable scrollbars initially
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # Always show scrollbars
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        
+        # Center the view on the initial workspace
+        self.centerOn(2000, 2000)
+        
+        # Connect scroll events to redraw grid
+        self.horizontalScrollBar().valueChanged.connect(self._draw_grid)
+        self.verticalScrollBar().valueChanged.connect(self._draw_grid)
 
         # Enable drag-and-drop for items
         self.setAcceptDrops(True)
@@ -125,122 +136,133 @@ class JourneyWorkspace(QGraphicsView):
         self.setDragMode(QGraphicsView.NoDrag)
 
         # Track scene boundaries
-        self.min_scene_size = QSizeF(800, 600)  # Minimum size to avoid shrinking
-        self._update_scrollbars()
+        self.min_scene_size = QSizeF(800, 600)
 
         # Style
         self.setRenderHint(QPainter.Antialiasing)
 
 
     def _draw_grid(self):
-        """Draw grid lines based on current scene size"""
-        self.scene.clear()  # Clear existing grid
+        """Draw grid lines only for the visible viewport area"""
+        # Clear only the grid lines, not all scene items
+        for line in self.grid_lines:
+            if self.scene.items().count(line):  # Check if line still exists in scene
+                self.scene.removeItem(line)
+        self.grid_lines.clear()
+        
+        # Get the visible area in scene coordinates
+        viewport_rect = self.viewport().rect()
+        scene_rect = self.mapToScene(viewport_rect).boundingRect()
+        
+        # Add margin to avoid artifacts at edges
+        margin = 100
+        scene_rect.adjust(-margin, -margin, margin, margin)
+        
         grid_size = 20
         subgrid_size = 80
-        scene_rect = self.sceneRect()
-        width = int(scene_rect.width())
-        height = int(scene_rect.height())
 
         # Main grid (20px)
         pen_main = QPen(QColor("#e0e0e0"))
         pen_main.setWidth(1)
-        for x in range(0, width + grid_size, grid_size):
-            self.scene.addLine(x, 0, x, height, pen_main)
-        for y in range(0, height + grid_size, grid_size):
-            self.scene.addLine(0, y, width, y, pen_main)
+        
+        # Vertical lines
+        start_x = int(scene_rect.left() - (scene_rect.left() % grid_size))
+        for x in range(start_x, int(scene_rect.right()) + grid_size, grid_size):
+            line = self.scene.addLine(x, scene_rect.top(), x, scene_rect.bottom(), pen_main)
+            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            self.grid_lines.append(line)
+        
+        # Horizontal lines
+        start_y = int(scene_rect.top() - (scene_rect.top() % grid_size))
+        for y in range(start_y, int(scene_rect.bottom()) + grid_size, grid_size):
+            line = self.scene.addLine(scene_rect.left(), y, scene_rect.right(), y, pen_main)
+            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            self.grid_lines.append(line)
 
         # Subgrid (80px)
         pen_sub = QPen(QColor("#808080"))
         pen_sub.setWidth(1)
-        for x in range(0, width + subgrid_size, subgrid_size):
-            self.scene.addLine(x, 0, x, height, pen_sub)
-        for y in range(0, height + subgrid_size, subgrid_size):
-            self.scene.addLine(0, y, width, y, pen_sub)
-
-
-    def _update_scrollbars(self):
-        """Toggle scrollbars based on scene vs viewport size"""
-        viewport_width = self.viewport().width()
-        viewport_height = self.viewport().height()
-        scene_width = self.sceneRect().width()
-        scene_height = self.sceneRect().height()
-
-        # Enable scrollbars only if scene is larger than viewport
-        self.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarAsNeeded if scene_width > viewport_width else Qt.ScrollBarAlwaysOff
-        )
-        self.setVerticalScrollBarPolicy(
-            Qt.ScrollBarAsNeeded if scene_height > viewport_height else Qt.ScrollBarAlwaysOff
-        )
+        
+        # Vertical subgrid lines
+        start_x = int(scene_rect.left() - (scene_rect.left() % subgrid_size))
+        for x in range(start_x, int(scene_rect.right()) + subgrid_size, subgrid_size):
+            line = self.scene.addLine(x, scene_rect.top(), x, scene_rect.bottom(), pen_sub)
+            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            self.grid_lines.append(line)
+        
+        # Horizontal subgrid lines
+        start_y = int(scene_rect.top() - (scene_rect.top() % subgrid_size))
+        for y in range(start_y, int(scene_rect.bottom()) + subgrid_size, subgrid_size):
+            line = self.scene.addLine(scene_rect.left(), y, scene_rect.right(), y, pen_sub)
+            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            self.grid_lines.append(line)
 
 
     def resizeEvent(self, event):
-        """Handle window resize: redraw grid if needed"""
+        """Handle window resize: redraw grid for new visible area"""
         super().resizeEvent(event)
-        self._update_scrollbars()
+        self._draw_grid()
 
+    def _expand_scene_to_include(self, x: float, y: float, margin: int = None):
+        """
+        Étend dynamiquement sceneRect pour inclure le point (x, y).
+        L'extension se fait UNIQUEMENT dans la/les direction(s) où le point dépasse.
+        
+        Args:
+            x: Coordonnée X du point à inclure
+            y: Coordonnée Y du point à inclure
+            margin: Marge à appliquer (utilise self.scene_rect_margin si None)
+        """
+        if margin is None:
+            margin = self.scene_rect_margin
+            
+        current_rect = self.sceneRect()
+        new_rect = current_rect
+        expanded = False
+        
+        # Étendre à GAUCHE si x - margin < current_rect.left()
+        if x - margin < new_rect.left():
+            new_rect.setLeft(x - margin)
+            expanded = True
+        
+        # Étendre à DROITE si x + margin > current_rect.right()
+        if x + margin > new_rect.right():
+            new_rect.setRight(x + margin)
+            expanded = True
+        
+        # Étendre en HAUT si y - margin < current_rect.top()
+        if y - margin < new_rect.top():
+            new_rect.setTop(y - margin)
+            expanded = True
+        
+        # Étendre en BAS si y + margin > current_rect.bottom()
+        if y + margin > new_rect.bottom():
+            new_rect.setBottom(y + margin)
+            expanded = True
+        
+        # Appliquer la nouvelle taille si nécessaire
+        if expanded:
+            self.setSceneRect(new_rect)
 
     def ensure_visible(self, x: float, y: float, margin: int = 200):
         """
-        RG011: Extend scene to include (x, y) and all selectable items near the edges.
-        `margin` = extra space around the new bounds.
+        Infinite scrolling: simply center the view if (x, y) is outside visible area.
+        Does not modify scene boundaries.
         """
-        scene_rect = self.sceneRect()
-        new_rect = scene_rect
-
-        # 1. Check if (x, y) is outside current bounds + margin
-        if x < new_rect.left() - margin:
-            new_left = x - margin
-            new_rect.setLeft(new_left)
-        elif x > new_rect.right() + margin:
-            new_right = x + margin
-            new_rect.setRight(new_right)
-
-        if y < new_rect.top() - margin:
-            new_top = y - margin
-            new_rect.setTop(new_top)
-        elif y > new_rect.bottom() + margin:
-            new_bottom = y + margin
-            new_rect.setBottom(new_bottom)
-
-        # 2. RG011: Vérifier aussi les composants sélectables près des bords
-        for item in self.scene.items():
-            if item.flags() & QGraphicsItem.ItemIsSelectable:
-                item_rect = item.sceneBoundingRect()
-                # Étendre si le composant dépasse les limites actuelles + marge
-                if item_rect.left() < new_rect.left() - margin:
-                    new_rect.setLeft(item_rect.left() - margin)
-                if item_rect.right() > new_rect.right() + margin:
-                    new_rect.setRight(item_rect.right() + margin)
-                if item_rect.top() < new_rect.top() - margin:
-                    new_rect.setTop(item_rect.top() - margin)
-                if item_rect.bottom() > new_rect.bottom() + margin:
-                    new_rect.setBottom(item_rect.bottom() + margin)
-
-        # Apply new bounds if changed
-        if new_rect != scene_rect:
-            # Ensure minimum size
-            new_width = max(new_rect.width(), self.min_scene_size.width())
-            new_height = max(new_rect.height(), self.min_scene_size.height())
-            new_rect = QRectF(
-                new_rect.left(),
-                new_rect.top(),
-                new_width,
-                new_height
-            )
-            self.setSceneRect(new_rect)
-            self._draw_grid()  # Redraw grid for new size
-            self._update_scrollbars()  # RG012: Update scrollbar visibility
-
-        # Center view on the new position if it was outside
-        if not scene_rect.contains(x, y):
+        # Convert scene coordinates to viewport coordinates
+        viewport_rect = self.viewport().rect()
+        viewport_pos = self.mapFromScene(QPointF(x, y))
+        
+        # If the point is outside the visible viewport, center on it
+        if not viewport_rect.contains(viewport_pos):
             self.centerOn(x, y)
 
 
     def add_item_at(self, x: float, y: float, item: QGraphicsItem):
-        """Add an item to the scene and extend scene if needed"""
+        """Add an item to the scene and expand scene if needed"""
         self.scene.addItem(item)
         item.setPos(x, y)
+        self._expand_scene_to_include(x, y)
         self.ensure_visible(x, y)
 
 
@@ -248,7 +270,7 @@ class JourneyWorkspace(QGraphicsView):
         # 1. Laisser Qt traiter le déplacement du nœud D'ABORD
         super().mouseMoveEvent(event)
 
-        # 2. Auto-scrolling (RG012) + contrainte (RG011)
+        # 2. Auto-scrolling (RG012) + contrainte (RG011) + extension dynamique de la scène
         if event.buttons() == Qt.LeftButton:
             # Auto-scrolling si la souris est près des bords du viewport
             viewport_rect = self.viewport().rect()
@@ -280,15 +302,20 @@ class JourneyWorkspace(QGraphicsView):
                 self.verticalScrollBar().setValue(
                     self.verticalScrollBar().value() + scroll_speed
                 )
-
-            # Mettre à jour les scrollbars
-            self._update_scrollbars()
-
+            
+            # 3. Extension dynamique de la scène si un item dépasse les limites
+            # Pour chaque item sélectionné et déplaçable, vérifier et étendre si nécessaire
+            for item in self.scene.selectedItems():
+                if not (item.flags() & QGraphicsItem.ItemIsMovable):
+                    continue
+                
+                # Position actuelle de l'item dans les coordonnées de la scène
+                item_pos = item.scenePos()
+                # _expand_scene_to_include utilise self.sceneRect() en temps réel
+                # et vérifie elle-même si une extension est nécessaire
+                self._expand_scene_to_include(item_pos.x(), item_pos.y())
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            scene_pos = self.mapToScene(event.position().toPoint())
-            self.ensure_visible(scene_pos.x(), scene_pos.y())
         super().mouseReleaseEvent(event)
 
     def mousePressEvent(self, event):
@@ -366,7 +393,6 @@ class JourneyWorkspace(QGraphicsView):
                 - 'target_entity': entité cible
         """
         from ui.nodes.connection import Connection  # À vérifier si cette classe existe
-        from PySide6.QtCore import QPointF
 
         connection_layout = connection_data['connection_layout']
         source_entity = connection_data['source_entity']

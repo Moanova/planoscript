@@ -46,8 +46,9 @@ class ComponentsToolbar(QWidget):
             ("Relation", "relation.svg", "#AABBCC"),
         ]
 
-        self.button_group = QButtonGroup(self)
-        self.button_group.setExclusive(True)
+        # Factory pour capturer correctement btn dans la closure
+        def make_click_handler(button):
+            return lambda: self.on_button_clicked(button)
 
         for name, icon_file, color in component_types:
             btn = QPushButton()
@@ -56,9 +57,8 @@ class ComponentsToolbar(QWidget):
             btn.setIconSize(QSize(24, 24))
             btn.setFixedSize(30, 30)
             btn.setToolTip(name)
-            btn.setCheckable(True)
-            btn.toggled.connect(lambda checked, b=btn: self.on_button_toggled(b, checked))
-            self.button_group.addButton(btn)
+            btn.setCheckable(False)
+            btn.clicked.connect(make_click_handler(btn))
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #ffffff;
@@ -85,23 +85,14 @@ class ComponentsToolbar(QWidget):
 
         layout.addStretch()
 
-    def on_button_toggled(self, button, checked):
-        if checked:
-            component_type = button.toolTip()
-            print(f"Sélectionné: {component_type}")
-            
-            # Émettre le signal approprié
-            if component_type == "Relation":
-                self.relation_selected.emit()
-            else:
-                self.component_selected.emit(component_type)
-            
-            # Désactiver le bouton après émission
-            button.setChecked(False)
+    def on_button_clicked(self, button):
+        component_type = button.toolTip()
+        print(f"Sélectionné: {component_type}")
+        
+        # Émettre le signal approprié
+        if component_type == "Relation":
+            self.relation_selected.emit()
+        else:
+            self.component_selected.emit(component_type)
 
-    def set_relation_enabled(self, enabled: bool):
-        """Active ou désactive le bouton Relation."""
-        for btn in self.findChildren(QPushButton):
-            if btn.toolTip() == "Relation":
-                btn.setEnabled(enabled)
-                break
+

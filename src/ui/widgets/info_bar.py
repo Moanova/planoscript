@@ -31,3 +31,7 @@ class InfoBar(QWidget):
         self.info_label = QLabel()
         self.info_label.setStyleSheet("font-size: 10pt; color: #666;")
         layout.addWidget(self.info_label)
+
+    def show_message(self, message: str):
+        """Affiche un message dans la barre d'information."""
+        self.info_label.setText(message)

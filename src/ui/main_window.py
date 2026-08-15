@@ -287,7 +287,7 @@ class MainWindow(QMainWindow):
         self.components_toolbar.component_selected.connect(self._on_component_selected)
         self.components_toolbar.relation_selected.connect(self._on_relation_selected)
         # Désactiver le bouton Relation par défaut (pas assez de nœuds)
-        self.components_toolbar.set_relation_enabled(False)
+        self._update_relation_button(False)
         self.middle_layout.addWidget(self.components_toolbar, 1, 0)
 
         self.stacked_workspaces = QStackedWidget()
@@ -458,8 +458,7 @@ class MainWindow(QMainWindow):
 
 
     def _on_quit(self):
-        if self._handle_quit():
-            self.close()
+        self.close()
 
 
     def _handle_quit(self) -> bool:
@@ -491,6 +490,14 @@ class MainWindow(QMainWindow):
         # Pour l'instant, seul workspace_0 est utilisé
         # Quand workspace_1 et workspace_2 seront implémentés, cette méthode sera complétée
         pass
+
+    def _update_relation_button(self, enabled: bool):
+        """Active ou désactive le bouton Relation dans la toolbar."""
+        if hasattr(self, 'components_toolbar') and self.components_toolbar:
+            for btn in self.components_toolbar.findChildren(QPushButton):
+                if btn.toolTip() == "Relation":
+                    btn.setEnabled(enabled)
+                    break
 
     def _on_component_selected(self, component_type: str):
         """
@@ -533,7 +540,7 @@ class MainWindow(QMainWindow):
             
             # Incrémenter le compteur de nœuds et mettre à jour le bouton Relation
             self.node_count += 1
-            self.components_toolbar.set_relation_enabled(self.node_count >= 2)
+            self._update_relation_button(self.node_count >= 2)
 
     def on_narrative_map_selected(self, index: int):
         self.current_narrative_map_index = index
@@ -558,7 +565,8 @@ class MainWindow(QMainWindow):
             return
 
         # Créer un menu contextuel pour choisir le type de relation
-        from PySide6.QtWidgets import QMenu, QCursor
+        from PySide6.QtWidgets import QMenu
+        from PySide6.QtGui import QCursor
 
         menu = QMenu(self)
 
