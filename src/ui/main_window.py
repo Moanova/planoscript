@@ -310,6 +310,10 @@ class MainWindow(QMainWindow):
 
     def _create_project(self):
         """Crée un nouveau projet"""
+        # Fermer le projet actuel avec confirmation si nécessaire
+        if not self._close_project():
+            return
+
         self.create_project_usecase.execute()
         self._init_workspace()
         self.project_opened = True
