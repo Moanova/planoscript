@@ -30,8 +30,8 @@ class TabBar(QWidget):
         self.tabs = {}
         tab_configs = [
             ("Parcours", 0),
-            ("Relations", 1),
-            ("Chapitres", 2)
+        #    ("Relations", 1),
+        #    ("Chapitres", 2)
         ]
 
         for name, is_active in tab_configs:
