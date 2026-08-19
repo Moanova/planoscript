@@ -59,3 +59,24 @@
 - **Description** : Fermer le projet.
 - **Comportement attendu** :
     - [ CM010 ] : Comportement attendu pour FN010.
+
+
+## FN011 : Supprimer un projet
+- **Description** :
+  Supprimer un projet enregistré et ses fichiers auxiliaires associés depuis
+  l’application.
+
+  La suppression s’applique uniquement à un projet associé à un fichier.
+  Un projet non enregistré ne peut pas être supprimé : il peut seulement être
+  fermé sans être enregistré.
+
+  Le projet à supprimer ne doit pas être ouvert. S’il est ouvert, il doit être
+  fermé avant de pouvoir être supprimé.
+
+- **Comportement attendu** :
+  - [ CM011 ] : Comportement attendu pour FN011.
+
+- **Règles de gestion associées** :
+  - [ RG002 ] : Remplacement du projet courant.
+  - [ RG005 ] : Projets récents.
+  - [ RG018 ] : Suppression d’un projet.

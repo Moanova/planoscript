@@ -3,27 +3,33 @@
 
 ## RG001
 - **Description** :
-    Un projet d'initialisation est caractérisé par la valorisation des attributs "id", "lb" et "creation_date_time" avec l'attribut narrative_map non renseigné.
-    La valeur de l'attribut "id" est renseignée à la création par l'application.
-    La valeur de l'attribut "lb" est renseignée à "Nouveau projet".
-    La valeur de l'attribut "creation_date_time" est renseignée avec la date et l'heure de création du projet par l'application.
+    Un projet créé par l'utilisateur est un projet non enregistré.
+    Il possède un identifiant, le libellé « Nouveau projet », une date de création et une carte narrative nommée « Carte narrative principale ».
+    Un projet non enregistré n'est associé à aucun fichier sur le système de fichiers.
+    Sa création seule ne le marque pas comme modifié.
 - **Fonctionnalités associées** :
     - [ FN005 ] : Créer un nouveau projet.
 
 
 
 ## RG002
-- **Descrpition** :
-    Lorsque le projet ouvert est le projet d'initialisation et qu'un projet est à créer ou à ouvrir, alors le projet d'initialisation est préalablement fermé.
+- **Description** :
+    L'application ne peut ouvrir qu'un seul projet à la fois.
+    Lorsqu'un utilisateur crée un projet, ouvre un projet ou sélectionne un projet récent alors qu'un autre projet est ouvert, le projet courant doit être fermé avant l'ouverture du nouveau projet.
+    Si le projet courant est modifié, l'utilisateur peut l'enregistrer, fermer sans enregistrer ou annuler l'action.
 - **Fonctionnalités associées** :
     - [ FN005 ] : Créer un nouveau projet.
     - [ FN006 ] : Ouvrir un projet.
     - [ FN007 ] : Ouvrir un projet récent.
+    - [ FN010 ] : Fermer le projet.
+    - [ FN002 ] : Quitter l'application.
 
 
 ## RG003
 - **Description** :
-    Si au moins une modification est apportée à un projet d'initialisation ou s'il a été enregistré sur le système de fichiers par l'utilisateur même sans modification, il n'est plus considéré comme tel.
+    Un projet non enregistré devient un projet enregistré lorsqu'il est sauvegardé avec succès dans un fichier choisi par l'utilisateur.
+    À partir de cette sauvegarde, le projet est associé à ce fichier et peut être enregistré directement à la même adresse.
+    Le chemin du fichier est un état de l'application ; il ne constitue pas une donnée métier portable du projet et ne doit pas être utilisé comme identifiant du projet.
 - **Fonctionnalités associées** :
     - [ FN008 ] : Enregistrer le projet.
     - [ FN009 ] : Enregistrer le projet sous un nom explicite.
@@ -31,24 +37,34 @@
 
 ## RG004
 - **Description** :
-    Un projet est considéré comme modifié lorsque sa structure diffère de celle du projet d'initalisation ou de la version qui est enregistrée sur le système de fichiers.
+    Un projet est considéré comme modifié lorsqu'une donnée persistée diffère de sa dernière version enregistrée.
+    Sont notamment concernés la création, modification ou suppression d'une carte narrative, d'un composant, d'une relation, d'un parcours ou d'un chapitre, ainsi que la modification d'une donnée de présentation persistée telle que la position d'un composant ou la configuration d'une vue.
+    Un projet chargé depuis un fichier ou sauvegardé avec succès n'est pas modifié.
 - **Fonctionnalités associées** :
-    - A définir
+    - À associer à toutes les fonctionnalités modifiant les données du projet.
 
 
 ## RG005
 - **Description** :
-    Les n projets ouverts et enregistrés lors des utilisations précédentes de l'application peuvent être réouverts directement par un raccourci du menu Fichiers.
-    Avec n un paramètre de configuration de l'application.
+    Les projets enregistrés et ouverts avec succès sont ajoutés à la liste des projets récents.
+    La liste est ordonnée du plus récemment ouvert au moins récemment ouvert et ne contient qu'une occurrence de chaque fichier.
+    Son nombre maximal d'entrées est défini par la configuration de l'application.
+    Les entrées correspondant à un fichier inexistant, inaccessible ou invalide sont retirées de la liste.
 - **Fonctionnalités associées** :
+    - [ FN006 ] : Ouvrir un projet.
     - [ FN007 ] : Ouvrir un projet récent.
+    - [ FN008 ] : Enregistrer le projet.
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
 
 
 ## RG006
 - **Description** :
-    Si le projet n'a pas été modifié, l'option "Enregistrer" du menu Fichiers est désactivée. Sinon, elle est activée.
+    La commande « Enregistrer » est activée uniquement lorsqu'un projet ouvert est modifié.
+    La commande « Enregistrer sous… » est activée lorsqu'un projet est ouvert, qu'il soit modifié ou non.
+    Lorsqu'aucun projet n'est ouvert, ces deux commandes sont désactivées.
 - **Fonctionnalités associées** :
     - [ FN008 ] : Enregistrer le projet.
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
 
 
 ## RG007
@@ -140,3 +156,62 @@
 - **Description** :
     Lorsqu'un composant est déplacé par l'utilisateur et que ses coordonnées dépassent la partie visible de l'espace de travail, alors la barre de défilement correspondante, latérale ou verticale, est activée selon les coordonnées courantes du composant.
 - **Fonctionnalités associées** : indéterminé à date.
+
+
+## RG013
+- **Description** :
+    L'identifiant du projet est stable pendant toute sa durée de vie.
+    Renommer, enregistrer sous un autre nom ou déplacer le fichier d'un projet ne modifie pas son identifiant.
+    Le nom du fichier et le chemin de sauvegarde peuvent différer du libellé affiché du projet.
+- **Fonctionnalités associées** :
+    - [ FN008 ] : Enregistrer le projet.
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
+
+
+## RG014
+- **Description** :
+    L'ouverture d'un projet ne remplace le projet courant qu'après lecture et validation réussies du fichier sélectionné.
+    Si le fichier est inexistant, inaccessible, invalide ou incompatible, une erreur est affichée à l'utilisateur et le projet courant reste inchangé.
+- **Fonctionnalités associées** :
+    - [ FN006 ] : Ouvrir un projet.
+    - [ FN007 ] : Ouvrir un projet récent.
+
+
+## RG015
+- **Description** :
+    Chaque fichier projet comporte une version de format.
+    L'application ouvre un projet uniquement si cette version est supportée ou peut être migrée de manière fiable vers une version supportée.
+    Une migration ne doit jamais écraser le fichier d'origine sans action explicite de l'utilisateur.
+- **Fonctionnalités associées** :
+    - [ FN006 ] : Ouvrir un projet.
+    - [ FN008 ] : Enregistrer le projet.
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
+
+
+## RG016
+- **Description** :
+    Une sauvegarde ne remplace le fichier existant qu'après écriture complète et réussie de la nouvelle version.
+    En cas d'échec de sauvegarde, le fichier précédemment enregistré doit rester exploitable et le projet doit conserver son état modifié.
+    Après une sauvegarde réussie, la date de dernière modification du projet est mise à jour.
+- **Fonctionnalités associées** :
+    - [ FN008 ] : Enregistrer le projet.
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
+
+
+## RG017
+- **Description** :
+    L'action « Enregistrer sous… » crée ou remplace un fichier à l'emplacement choisi par l'utilisateur après confirmation si un fichier existe déjà.
+    Après une sauvegarde réussie, le fichier nouvellement choisi devient le fichier associé au projet ouvert.
+    Le fichier précédemment associé au projet n'est ni renommé ni supprimé.
+- **Fonctionnalités associées** :
+    - [ FN009 ] : Enregistrer le projet sous un nom explicite.
+
+
+## RG018
+- **Description** :
+    La suppression d'un projet est une action distincte de sa fermeture.
+    Elle nécessite une confirmation explicite indiquant le projet et son emplacement. Le projet doit être fermé avant suppression.
+    La suppression retire le fichier projet et ses fichiers auxiliaires associés, puis retire le projet de la liste des projets récents.
+    Lorsque le système d'exploitation le permet, les fichiers sont déplacés vers la corbeille plutôt que supprimés définitivement.
+- **Fonctionnalités associées** :
+    - [ FN011 ] : Supprimer un projet.

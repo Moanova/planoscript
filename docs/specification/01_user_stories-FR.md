@@ -1,22 +1,38 @@
 # Planoscript ::: Scenarii d'utilisation
 
 
-##SU001 : Créer un projet
-- **Description** : En tant qu'auteur, je peux créer, modifier ou supprimer un projet afin de construire un réçit.
+## SU001 : Gérer un projet narratif
+- **Description** : En tant qu'auteur, je peux créer, ouvrir, enregistrer, renommer, fermer ou supprimer un projet narratif afin de regrouper, retrouver et poursuivre le travail sur mes cartes narratives.
 - **Complément** :
-    - Chaque projet est nommé.
-    - Chaque projet peut contenir une ou plusieurs cartes narratives.
+    - Un projet est un document local contenant les métadonnées du projet et une ou plusieurs cartes narratives.
+    - Un seul projet peut être ouvert dans l'application à un instant donné.
+    - Un projet nouvellement créé est un projet non enregistré : il existe en mémoire mais n'est associé à aucun fichier tant que l'utilisateur ne l'a pas sauvegardé.
+    - Chaque projet possède un identifiant stable, un nom, une date de création, une date de dernière modification et une version de format.
+    - Le chemin du fichier est un état de l'application ; il ne constitue pas une donnée métier portable du projet.
+    - Un nouveau projet est nommé « Nouveau projet » et contient une carte narrative nommée « Carte narrative principale ».
 - **Critères d'acceptation** :
-    - Chaque projet peut être sauvegardé dans un dossier utilisateur.
-    - Chaque projet sauvegardé peut être ouvert depuis son dossier utilisateur.
-    - Les derniers projets récemment créés ou modifiés peuvent être ouverts par raccourci.
-- **Fonctionnalitées associées** :
-    - [ FN005 ] : Créer un nouveau projet d'initialisation.
+    - L'utilisateur peut créer un projet depuis le menu, un raccourci clavier ou le message d'accueil.
+    - L'utilisateur peut ouvrir un fichier projet valide depuis le système de fichiers.
+    - En cas de fichier invalide, incompatible ou illisible, l'application affiche une erreur claire et conserve le projet ouvert inchangé.
+    - L'utilisateur peut enregistrer un projet non enregistré en choisissant un nom et un emplacement.
+    - L'utilisateur peut enregistrer les modifications d'un projet déjà associé à un fichier sans nouvelle boîte de dialogue.
+    - L'utilisateur peut enregistrer une copie sous un autre nom ou dans un autre emplacement ; cette copie devient le projet ouvert courant.
+    - L'utilisateur peut fermer un projet.
+    - Si le projet est modifié lors d'une fermeture, d'une ouverture, d'une création ou d'une sortie, l'application propose : Enregistrer, Ne pas enregistrer, Annuler.
+    - Un projet enregistré est ajouté à la liste des projets récents.
+    - La liste des projets récents respecte la limite configurée et retire les fichiers qui n'existent plus.
+    - L'utilisateur peut supprimer un projet depuis l'application après confirmation explicite. Le fichier projet et ses fichiers auxiliaires sont envoyés à la corbeille, puis retirés des projets récents.
+- **Fonctionnalités associées** :
+    - [ FN005 ] : Créer un nouveau projet.
     - [ FN006 ] : Ouvrir un projet depuis le système de fichiers.
     - [ FN007 ] : Ouvrir un projet de la liste des projets récents.
     - [ FN008 ] : Enregistrer le projet.
     - [ FN009 ] : Enregistrer le projet sous un nom explicite.
     - [ FN010 ] : Fermer le projet.
+    - [ FN011 ] : Supprimer un projet.
+- **Règles de gestion associées** :
+    - [ RG001 ] à [ RG006 ]
+    - [ RG013 ] à [ RG018 ]
 
 
 ## SU002 : Gérer une carte narrative.

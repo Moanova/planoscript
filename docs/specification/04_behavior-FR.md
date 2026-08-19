@@ -113,3 +113,40 @@
   6. Le projet est fermé.
 - **Critères d'acceptation** :
   - Le projet est fermé après avoir été enregistré si nécessaire et demandé par l'utilisateur.
+
+
+## CM011 : Comportement attendu pour FN011
+- **Étapes** :
+  1. L'utilisateur sélectionne la commande « Supprimer un projet… ».
+  2. Une boîte de dialogue permet à l'utilisateur de sélectionner le fichier
+     projet à supprimer.
+  3. L'application vérifie que le fichier sélectionné existe et qu'il ne
+     correspond pas au projet actuellement ouvert.
+  4. Si le projet sélectionné est actuellement ouvert, l'application affiche
+     un message demandant à l'utilisateur de le fermer avant de le supprimer,
+     puis interrompt l'action.
+  5. Une boîte de confirmation affiche le nom et l'emplacement du fichier
+     projet, ainsi que l'indication que les fichiers auxiliaires associés
+     seront également supprimés.
+  6. Si l'utilisateur annule, aucune suppression n'est effectuée.
+  7. Si l'utilisateur confirme, le fichier projet et ses fichiers auxiliaires
+     associés sont déplacés vers la corbeille lorsque le système d'exploitation
+     le permet.
+  8. Si la suppression réussit, le projet est retiré de la liste des projets
+     récents et un message de confirmation est affiché.
+  9. Si la suppression échoue, l'application affiche une erreur indiquant les
+     fichiers qui n'ont pas pu être supprimés. Le projet n'est pas présenté
+     comme supprimé.
+
+- **Critères d'acceptation** :
+  - Aucun fichier n'est supprimé sans confirmation explicite de l'utilisateur.
+  - Un projet actuellement ouvert ne peut pas être supprimé.
+  - L'annulation de la boîte de confirmation ne modifie ni les fichiers ni la
+    liste des projets récents.
+  - Après une suppression réussie, le fichier projet et les fichiers
+    auxiliaires associés ne sont plus accessibles depuis leur emplacement
+    initial.
+  - Après une suppression réussie, le projet n'apparaît plus dans la liste des
+    projets récents.
+  - En cas d'erreur, l'utilisateur reçoit un message clair et l'application ne
+    signale pas la suppression comme réussie.
