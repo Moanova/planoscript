@@ -131,33 +131,19 @@
                },
                "description":"Relations d'évènement à état"
             },
-            "state_event_tree":{
+            "state_event_set":{
                "type":"array",
                "items":{
-                  "$ref":"#/$defs/State_event_tree"
+                  "$ref":"#/$defs/State_event_set"
                },
-               "description":"Arbre des relations d'état à évènement"
+               "description":"Ensemble des relations d'état à évènement"
             },
-            "state_event_subtree":{
+            "state_event_subset":{
                "type":"array",
                "items":{
-                  "$ref":"#/$defs/State_event_subtree"
+                  "$ref":"#/$defs/State_event_subset"
                },
-               "description":"Sous-ensemble de l'arbre des relations d'état à évènement"
-            },
-            "journey_tree":{
-              "type":"array",
-              "items":{
-              "$ref":"#/$defs/Journey_tree"
-              },
-              "description":"Arbre des relations de précédence entre parcours"
-            },
-            "journey_subtree":{
-               "type":"array",
-               "items":{
-                  "$ref":"#/$defs/Journey_subtree"
-               },
-               "description":"Sous-ensemble de l'arbre des relations de précédence entre parcours"
+               "description":"Sous-ensemble des relations d'état à évènement"
             }
          },
          "required":[
@@ -189,8 +175,9 @@
             },
             "prev_id":{
                "type":"integer",
-               "description":"Identifiant unique de la référence temporelle précédente (auto-référence à Time_ref.id)",
+               "description":"Identifiant unique de la référence temporelle précédente (auto-référence à Time_ref.id) - Valeur 0 = aucun prédécesseur (premier élément de la séquence)",
                "default":0
+               "minimum":0
             },
             "creation_date_time":{
                "type":"string",
@@ -383,6 +370,10 @@
                "type":"string",
                "description":"Descriptif du parcours"
             },
+            "chapter_id":{
+                "type":"integer",
+                "description":"Identifiant unique du chapitre du parcours (référence à Chapter.id)"
+            },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
@@ -397,6 +388,7 @@
          "required":[
             "id",
             "lb",
+            "chapter_id",
             "creation_date_time"
          ]
       },
@@ -640,13 +632,13 @@
             "creation_date_time"
          ]
       },
-      "State_event_tree":{
+      "State_event_set":{
          "type":"object",
          "category":"relationship",
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique de l'abre des relations d'état à évènement"
+               "description":"Identifiant unique de noeud de l'ensemble des relations d'état à évènement"
             },
             "state_event_id":{
                "type":"integer",
@@ -654,17 +646,18 @@
             },
             "prev_state_event_id":{
                "type":"integer",
-               "description":"Identifiant unique de la précédente relation d'état à évènement (référence à State_event_rel.id et auto-référence à State_event_tree.state_event_id)"
+               "description":"Identifiant unique de la précédente relation d'état à évènement (référence à State_event_rel.id et auto-référence à State_event_set.state_event_id) - Valeur 0 = aucun prédécesseur (nœud racine du graphe)",
+               "minimum": 0
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création de l'arbre des relations d'état à évènement"
+               "description":"Date et heure de création du noeud de l'ensemble des relations d'état à évènement"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification de l'arbre des relations d'état à évènement"
+               "description":"Date et heure de dernière modification du noeud de l'ensemble des relations d'état à évènement"
             }
          },
          "required":[
@@ -674,17 +667,17 @@
             "creation_date_time"
          ]
       },
-      "State_event_subtree":{
+      "State_event_subset":{
          "type":"object",
          "category":"relationship",
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique du sous-ensemble de l'arbre des relations d'état à évènement"
+               "description":"Identifiant unique du noeud du sous-ensemble des relations d'état à évènement"
             },
-            "state_event_tree_id":{
+            "state_event_set_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'arbre des relations d'état à évènement (référence à State_event_tree.id)"
+               "description":"Identifiant unique du noeud de l'ensemble des relations d'état à évènement (référence à State_event_set.id)"
             },
             "journey_id":{
                "type":"integer",
@@ -693,86 +686,18 @@
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création du sous-ensemble de l'arbre des relations d'état à évènementt"
+               "description":"Date et heure de création du noeud du sous-ensemble des relations d'état à évènementt"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification du sous-ensemble de l'arbre des relations d'état à évènement"
+               "description":"Date et heure de dernière modification du noeud du sous-ensemble des relations d'état à évènement"
             }
          },
          "required":[
             "id",
-            "state_event_tree_id",
+            "state_event_set_id",
             "journey_id",
-            "creation_date_time"
-         ]
-      },
-      "Journey_tree":{
-         "type":"object",
-         "category":"relationship",
-         "properties":{
-            "id":{
-               "type":"integer",
-               "description":"Identifiant unique de l'abre des relations de précédence entre parcours"
-            },
-            "journey_id":{
-               "type":"integer",
-               "description":"Identifiant unique du parcours (référence à Journey.id)"
-            },
-            "prev_journey_id":{
-               "type":"integer",
-               "description":"Identifiant unique du parcours précédent (référence à Journey.id et auto-référence à Journey_tree.journey_id)"
-            },
-            "creation_date_time":{
-               "type":"string",
-               "format":"date-time",
-               "description":"Date et heure de création de l'arbre des relations de précédence entre parcours"
-            },
-            "modification_date_time":{
-               "type":"string",
-               "format":"date-time",
-               "description":"Date et heure de dernière modification des l'arbre de relations de précédence entre parcours"
-            }
-         },
-         "required":[
-            "id",
-            "journey_id",
-            "prev_journey_id",
-            "creation_date_time"
-         ]
-      },
-      "Journey_subtree":{
-         "type":"object",
-         "category":"relationship",
-         "properties":{
-            "id":{
-               "type":"integer",
-               "description":"Identifiant unique du sous-ensemble de l'arbre des relations de précédence entre parcours"
-            },
-            "journey_tree_id":{
-               "type":"integer",
-               "description":"Identifiant unique de l'abre des relations de précédence entre parcours (référence à Journey_tree.id)"
-            },
-            "chapter_id":{
-               "type":"integer",
-               "description":"Identifiant unique du chapitre (référence à Chapter.id)"
-            },
-            "creation_date_time":{
-               "type":"string",
-               "format":"date-time",
-               "description":"Date et heure de création du sous-ensemble de l'arbre des relations de précédence entre parcours"
-            },
-            "modification_date_time":{
-               "type":"string",
-               "format":"date-time",
-               "description":"Date et heure de dernière modification du sous-ensemble de l'arbre des relations de précédence entre parcours"
-            }
-         },
-         "required":[
-            "id",
-            "journey_tree_id",
-            "chapter_id",
             "creation_date_time"
          ]
       }
@@ -839,7 +764,7 @@
         "directional_relationship": false
       },
       {
-        "name": "state_of_agent_card",
+        "name": "agent_state_rel_card",
         "description": "0 ou n agents sont liés à 0 ou n états",
         "from": "agent",
         "to": "state",
@@ -851,7 +776,7 @@
         "directional_relationship": false
       },
       {
-        "name": "agent_and_event_card",
+        "name": "agent_event_rel_card",
         "description": "0 ou n agents sont liés à 0 ou n évènements",
         "from": "agent",
         "to": "event",
@@ -863,7 +788,7 @@
         "directional_relationship": false
       },
       {
-        "name": "agent_and_agent_card1",
+        "name": "agent_rel_hist_card",
         "description": "0 ou n agents sont liés à 0 ou n agents",
         "from": "agent",
         "to": "agent",
@@ -875,7 +800,7 @@
         "directional_relationship": false
       },
       {
-        "name": "agent_and_agent_card2",
+        "name": "time_ref_card4",
         "description": "1 référence temporelle est liée à 0 ou n relations entre agents",
         "from": "time_ref",
         "to": "agent_rel_hist",
@@ -887,7 +812,7 @@
         "directional_relationship": false
       },
       {
-        "name": "agent_and_agent_card3",
+        "name": "space_ref_card3",
         "description": "1 référence spatiale est liée à 0 ou n relations entre agents",
         "from": "space_ref",
         "to": "agent_rel_hist",
@@ -899,7 +824,7 @@
         "directional_relationship": false
       },
       {
-        "name": "agent_and_agent_card4",
+        "name": "state_to_agent_rel_hist_card",
         "description": "1 état est lié à 0 ou n relations entre agents",
         "from": "state",
         "to": "agent_rel_hist",
@@ -911,7 +836,7 @@
         "directional_relationship": false
       },
       {
-        "name": "event_to_state_card",
+        "name": "event_state_rel_card",
         "description": "0 ou n évènements sont liés à 0 ou n états",
         "from": "event",
         "to": "state",
@@ -923,7 +848,7 @@
         "directional_relationship": true
       },
       {
-        "name": "state_to_event_card",
+        "name": "state_event_rel_card",
         "description": "0 ou n états sont liés à 0 ou n évènements",
         "from": "state",
         "to": "event",
@@ -935,52 +860,40 @@
         "directional_relationship": true
       },
       {
-        "name": "previous_state_to_event_card",
+        "name": "state_event_set_card",
         "description": "1 relation d'état à évènement est liée à 0 ou n relations précédentes d'état à évènement",
-        "from": "state_event_tree",
+        "from": "state_event_rel",
         "to": "state_event_rel",
+        "relationship": "state_event_set",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": true
+      },
+      {
+        "name": "state_event_subset_card",
+        "description": "0 ou n noeuds d'ensemble des relations d'état à évènement sont liés à 0 ou n parcours",
+        "from": "state_event_set",
+        "to": "journey",
+        "relationship": "state_event_subset",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": false
+      },
+      {
+        "name": "journey_chapter_card",
+        "description": "Un chapitre est lié à 0 ou n parcours",
+        "from": "chapter",
+        "to": "journey",
         "relationship": null,
         "cardinality": {
           "from": "1",
           "to": "0..*"
         },
-        "directional_relationship": true
-      },
-      {
-        "name": "state_to_event_subtree_card",
-        "description": "0 ou n arbres des relations d'état à évènement sont liés à 0 ou n parcours",
-        "from": "state_event_tree",
-        "to": "journey",
-        "relationship": "state_event_tree",
-        "cardinality": {
-          "from": "0..*",
-          "to": "0..*"
-        },
-        "directional_relationship": true
-      },
-      {
-        "name": "previous_journey_card",
-        "description": "Un parcours est liée à 0 ou n parcours précédents",
-        "from": "journey",
-        "to": "journey",
-        "relationship": "journey_tree",
-        "cardinality": {
-          "from": "1",
-          "to": "0..*"
-        },
-        "directional_relationship": true
-      },
-      {
-        "name": "journey_subtree_card",
-        "description": "0 ou n arbres des relations de précédence entre parcours sont liés à 0 ou n chapitres",
-        "from": "journey_tree",
-        "to": "chapter",
-        "relationship": "journey_subtree",
-        "cardinality": {
-          "from": "0..*",
-          "to": "0..*"
-        },
-        "directional_relationship": true
+        "directional_relationship": false
       },
       {
         "name": "previous_chapter_card",
@@ -996,7 +909,8 @@
       }
    ],
     "notes": [
-      "Les cardinalités suivent la notation UML : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou un), 1 (exactement un).",
-      "Les relations directionnelles ont une source et une cible, tandis que les relations non directionnelles n'ont pas de sens."
+      "Les cardinalités suivent cette notation : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou un), 1 (exactement un).",
+      "Les relations directionnelles ont une source et une cible, tandis que les relations non directionnelles n'ont pas de sens.",
+      "Convention : la valeur 0 (zéro) utilisée dans un champ de référence prédecesseur (prev_id, prev_state_event_id) signifie l'absence de prédécesseur. Ce cas correspond au premier élément d'une séquence ou au nœud racine d'un graphe."
     ]
 }

@@ -2,14 +2,14 @@
 
 
 ## SU001 : Gérer un projet narratif
-- **Description** : En tant qu'auteur, je peux créer, ouvrir, enregistrer, renommer, fermer ou supprimer un projet narratif afin de regrouper, retrouver et poursuivre le travail sur mes cartes narratives.
+- **Description** : En tant qu'auteur, je peux créer, ouvrir, enregistrer, renommer et fermer un projet narratif afin de regrouper, retrouver et poursuivre le travail sur mes cartes narratives.
 - **Complément** :
     - Un projet est un document local contenant les métadonnées du projet et une ou plusieurs cartes narratives.
-    - Un seul projet peut être ouvert dans l'application à un instant donné.
+    - Un seul projet peut être ouvert dans l'application à tout moment.
     - Un projet nouvellement créé est un projet non enregistré : il existe en mémoire mais n'est associé à aucun fichier tant que l'utilisateur ne l'a pas sauvegardé.
     - Chaque projet possède un identifiant stable, un nom, une date de création, une date de dernière modification et une version de format.
     - Le chemin du fichier est un état de l'application ; il ne constitue pas une donnée métier portable du projet.
-    - Un nouveau projet est nommé « Nouveau projet » et contient une carte narrative nommée « Carte narrative principale ».
+    - Un nouveau projet est nommé "Nouveau projet" et contient une carte narrative nommée "Carte narrative principale".
 - **Critères d'acceptation** :
     - L'utilisateur peut créer un projet depuis le menu, un raccourci clavier ou le message d'accueil.
     - L'utilisateur peut ouvrir un fichier projet valide depuis le système de fichiers.
@@ -21,7 +21,6 @@
     - Si le projet est modifié lors d'une fermeture, d'une ouverture, d'une création ou d'une sortie, l'application propose : Enregistrer, Ne pas enregistrer, Annuler.
     - Un projet enregistré est ajouté à la liste des projets récents.
     - La liste des projets récents respecte la limite configurée et retire les fichiers qui n'existent plus.
-    - L'utilisateur peut supprimer un projet depuis l'application après confirmation explicite. Le fichier projet et ses fichiers auxiliaires sont envoyés à la corbeille, puis retirés des projets récents.
 - **Fonctionnalités associées** :
     - [ FN005 ] : Créer un nouveau projet.
     - [ FN006 ] : Ouvrir un projet depuis le système de fichiers.
@@ -29,99 +28,177 @@
     - [ FN008 ] : Enregistrer le projet.
     - [ FN009 ] : Enregistrer le projet sous un nom explicite.
     - [ FN010 ] : Fermer le projet.
-    - [ FN011 ] : Supprimer un projet.
 - **Règles de gestion associées** :
     - [ RG001 ] à [ RG006 ]
-    - [ RG013 ] à [ RG018 ]
+    - [ RG013 ] à [ RG017 ]
 
 
-## SU002 : Gérer une carte narrative.
-- **Description** : En tant qu'auteur, je peux créer, modifier ou supprimer une carte narrative afin de structurer mon récit.
+## SU002 : Gérer une carte narrative
+- **Description** : En tant qu'auteur, je peux créer, nommer, dupliquer, supprimer et naviguer entre les cartes narratives d'un projet afin de structurer mon récit en plusieurs niveaux, fils narratifs ou points de vue.
 - **Complément** :
-    - Chaque carte est nommée.
-    - La grille d'alignement des composants dans l'espace de visualisation est toujours visible et active.
+    - Une carte narrative est un élément de données stocké au sein du fichier projet. Elle appartient à un et un seul projet.
+    - Chaque carte possède un identifiant stable, un nom, une date de création et une date de dernière modification.
+    - Un projet contient toujours au moins une carte narrative.
+    - La carte créée par défaut lors de la création d'un projet est nommée "Carte narrative principale".
+    - La suppression d'une carte est irréversible et entraîne la suppression de tous les composants graphiques, relations et parcours qu'elle contient.
+    - Une carte est considérée comme modifiée lorsque l'utilisateur : ajoute ou supprime un composant ou une relation ; modifie les données associées à un composant ou une relation ; modifie la position d'un composant dans l'espace de représentation graphique ; crée, modifie ou supprime un parcours ; modifie le rattachement de composants ou de relations à un parcours.
+    - La modification du niveau de zoom ou de la position des barres de défilement de l'espace de représentation graphique ne constitue pas une modification de la carte.
+    - La grille d'alignement des composants dans l'espace de visualisation est toujours visible et active pour chaque carte.
+    - L'utilisateur peut exporter une carte narrative sous forme de fichier autonome, et importer une carte narrative depuis un fichier autonome dans le projet courant.
 - **Critères d'acceptation** :
-    - la création des composants, leur visualisation et le glisser-déposer fonctionnent sans latence notable (<= 200 ms).
-    - Chaque carte peut être créée, dupliquée, modifiée ou supprimée à partir du menu général et de la barre d'outils, ou bien du menu contextuel lorsqu'aucune carte n'est chargée.
-    - Chaque carte peut être sauvegardée dans un dossier utilisateur.
-    - Chaque carte sauvegardée dans un dossier utilisateur peut être importée dans un projet.
+    - L'utilisateur peut créer une nouvelle carte depuis le menu "Projet".
+    - L'utilisateur peut renommer une carte en éditant directement son libellé ou via une boîte de dialogue dédiée.
+    - L'utilisateur peut dupliquer une carte ; la copie porte automatiquement un nom distinctif (ex. : "Nom (copie)") et un nouvel identifiant stable.
+    - L'utilisateur peut supprimer une carte avec confirmation si elle contient des composants ; la suppression est refusée avec un message explicite si la carte est la dernière du projet.
+    - L'utilisateur peut naviguer entre les cartes du projet depuis le menu "Projet".
+    - L'utilisateur peut exporter une carte narrative dans un emplacement choisi.
+    - L'utilisateur peut importer une carte narrative depuis un fichier valide dans le projet courant ; en cas de fichier invalide, incompatible ou illisible, l'application affiche une erreur claire et conserve le projet ouvert inchangé.
+    - Toute création, renommage, duplication ou suppression de carte marque le projet comme modifié.
+    - Toute modification au sens défini dans le complément met à jour la date de dernière modification de la carte et celle du projet.
+- **Périmètre MVP** :
+    - Dans la version initiale, un projet ne contient qu'une seule carte narrative. Par conséquent, la création, la duplication, la suppression, la navigation entre cartes et la réorganisation de l'ordre des cartes ne sont pas disponibles.
+    - Seuls le renommage de la carte par défaut, la modification de son contenu et l'export/import de carte sont fonctionnels dans le MVP.
 
 
-## SU003 : Gérer un composant de carte narrative.
-- **Description** : En tant qu'auteur, je peux créer, modifier ou supprimer un composant de carte narrative afin de définir le contenu de mon récit.
+## SU003 : Gérer un composant de carte narrative
+- **Description** : En tant qu'auteur, je peux créer, nommer, déplacer, modifier ou supprimer un composant de carte narrative afin de définir le contenu et la structure de mon récit.
 - **Complément** :
-    - Le type des composants est défini par le modèle de données applicatif, i.e
-      - référence temporelle,
-      - référence spatiale,
-      - agent,
-      - état,
-      - évènement.
-    - Chaque composant unitaire est nommé et sa description est en format texte libre.
-    - Chaque composant est représenté par une îcone spécifique à son type.
+    - Les types de composants sont définis par le modèle de données applicatif : référence temporelle, référence spatiale, agent, état, évènement.
+    - Chaque composant possède un identifiant entier unique au sein de la carte narrative à laquelle il appartient. Le même identifiant peut exister dans deux cartes distinctes.
+    - Les attributs éditables d'un composant dépendent de son type selon le modèle de données (par exemple, pour un composant de type « référence temporelle » : identifiant, libellé, description, identifiant de référence temporelle précédente, date de création, date de modification). En règle générale, l'identifiant, le libellé et la date de création sont obligatoires, mais cela peut varier selon le type.
+    - Le libellé d'un composant n'est pas contraint à l'unicité au sein d'une même carte narrative.
+    - Chaque composant est représenté visuellement par une icône spécifique à son type.
     - Chaque composant est déplaçable dans l'espace de visualisation mais non dimensionnable.
-    - Chaque composant est porteur de quatre points d'accroche pour gérer ses relations (gauche, droite, haut, bas), chacun matérialisé par un petit carré actif.
+    - Chaque composant dispose de quatre points d'accroche (gauche, droite, haut, bas), matérialisés par des petits carrés actifs, destinés à la création de relations.
+    - La position d'un composant dans l'espace de visualisation est définie par des coordonnées (x, y) qui sont conservées dans un fichier de métadonnées graphiques associé au fichier de données du projet.
+    - Les composants s'alignent automatiquement sur la grille d'alignement de l'espace de visualisation lors de leur création et de leur déplacement.
+    - À la création d'une carte narrative, un parcours par défaut est automatiquement créé et activé.
+    - Tout composant nouvellement créé est automatiquement rattaché au parcours actuellement activé.
+    - Un composant ne peut jamais exister en dehors d'un parcours. L'utilisateur peut modifier le rattachement d'un composant à un autre parcours existant, mais ne peut le retirer de son dernier parcours.
+    - La suppression d'un composant entraîne la suppression automatique de toutes les relations qui le connectent à d'autres composants.
 - **Critères d'acceptation** :
-    - Chaque composant peut être positionné et repositionné par sélection au moyen d'une souris (sur PC), d'un stylet et de façon tactile (sur tablette).
-    - Chaque composant peut être créé, dupliqué, modifié ou supprimé à partir du menu général, de la barre d'outils ou du menu contextuel.
-    - Chaque composant fait toujours partie d'au moins un parcours.
+    - L'utilisateur peut créer un composant depuis le menu général, la barre d'outils ou le menu contextuel.
+    - Lors de la création, le composant est automatiquement rattaché au parcours activé et positionné sur la grille à l'emplacement désigné par l'utilisateur.
+    - L'utilisateur peut dupliquer un composant ; la copie porte automatiquement un nom distinctif et un nouvel identifiant, et est rattachée au parcours activé.
+    - L'utilisateur peut modifier les attributs éditables d'un composant via une boîte de dialogue ou un panneau de propriétés.
+    - L'utilisateur peut modifier la liste des parcours auxquels un composant est rattaché, parmi les parcours existants de la carte.
+    - L'utilisateur ne peut pas retirer un composant de son parcours s'il n'a qu'un rattachement unique ; l'application empêche cette action ou ne propose pas l'option.
+    - L'utilisateur peut supprimer un composant avec confirmation si des données sont associées ; la suppression entraîne la suppression en cascade des relations concernées.
+    - L'utilisateur peut positionner et repositionner un composant par glisser-déposer au moyen d'une souris (sur PC), d'un stylet ou en mode tactile (sur tablette).
+    - Lors du déplacement, le composant s'aligne automatiquement sur la grille de l'espace de visualisation.
+    - Le composant conserve sa position (coordonnées x, y) entre les sessions via le fichier de métadonnées graphiques associé.
+    - Le composant est représenté par l'icône correspondant à son type et dispose de quatre points d'accroche actifs.
+    - Le composant n'est pas redimensionnable par l'utilisateur.
+    - L'utilisateur peut choisir de visualiser l'ensemble des composants et relations de la carte, ou uniquement ceux appartenant au parcours activé.
+    - Toute création, duplication, modification de données, déplacement ou suppression de composant marque la carte comme modifiée, et par conséquent le projet comme modifié.
 
 
-## SU004 : Gérer une relation entre composants de carte narrative.
-- **Description** : En tant qu'auteur je peux créer, modifier ou supprimer une relation entre composants de carte narrative afin de définir les enchaînements et les relations de mon récit.
+## SU004 : Gérer une relation entre composants de carte narrative
+- **Description** : En tant qu'auteur, je peux créer, annoter, modifier ou supprimer une relation entre deux composants de carte narrative afin de définir les enchaînements et les dépendances de mon récit.
 - **Complément** :
-    - Chaque relation est établie entre les points d'accroche respectifs des composants associés.
-    - Chaque relation peut être annotée par du texte libre.
-    - Les relations des composants entre eux peuvent être directionnelles ou non selon les règles de gestion spécifiques.
+    - Une relation est un élément de données appartenant à une carte narrative. Elle possède un identifiant entier unique au sein de cette carte, selon le même mécanisme que les composants.
+    - Les attributs éditables d'une relation dépendent de son type selon le modèle de données. En règle générale, les attributs obligatoires sont identiques à ceux des composants.
+    - Une relation relie toujours exactement deux composants distincts d'une même carte narrative. Un composant ne peut jamais être en relation avec lui-même.
+    - Entre deux composants donnés, il ne peut exister qu'une seule relation.
+    - La directionnalité d'une relation est définie par le modèle de données applicatif. Aucune distinction visuelle n'est faite entre les types de relation dans l'espace de représentation graphique.
+    - Les relations n'ont pas de lien direct avec les parcours. Elles appartiennent indirectement à un ou plusieurs parcours par le biais des composants source et cible qu'elles relient.
+    - La suppression d'une relation est indépendante de celle des composants, hormis la suppression en cascade définie dans le scénario SU003.
+    - L'étiquette d'une relation (annotation textuelle) est affichée dans une infobulle au survol.
+    - La représentation graphique des relations est assurée par la bibliothèque technique retenue.
 - **Critères d'acceptation** :
-    - La visualisation des relations est optimisée pour maximiser leur lisibilité et minimiser les chevauchements.
-    - Chaque relation peut être créée, modifiée ou supprimée à partir du menu général, de la barre d'outils ou du menu contextuel pour le composant sélectionné.
-    - Chaque relation fait toujours partie d'au moins un parcours.
+    - L'utilisateur peut initier la création d'une relation depuis la barre d'outils, le menu "Projet" ou le menu contextuel.
+    - Lors de la création, l'utilisateur sélectionne un composant source. Si aucun composant n'était actif, il devient actif. Un lien visuel suit alors les mouvements du curseur jusqu'à ce que l'utilisateur clique sur le point d'accroche d'un composant cible.
+    - L'application empêche la création d'une relation dont le composant source et le composant cible sont identiques.
+    - L'application empêche la création d'une relation dupliquée entre deux composants déjà reliés.
+    - L'utilisateur peut annoter une relation par du texte libre via une boîte de dialogue ou un panneau de propriétés.
+    - L'utilisateur peut sélectionner une relation existante et la déplacer dans l'espace de visualisation.
+    - Si le déplacement conserve les mêmes composants source et cible, seuls les points d'accroche et les métadonnées de représentation graphique sont mis à jour.
+    - Si le déplacement entraîne un changement de composant source ou cible, l'application émet une alerte, supprime implicitement la relation existante et en crée une nouvelle avec les nouveaux extrémités.
+    - L'utilisateur peut supprimer une relation avec confirmation préalable.
+    - L'étiquette d'une relation est consultable via une infobulle au survol du trait représentatif.
+    - Toute création, modification d'annotation, déplacement ou suppression de relation marque la carte comme modifiée, et par conséquent le projet comme modifié.
 
 
-## SU005 : Gérer un parcours narratif.
-- **Description** : En tant qu'auteur, je peux créer, modifier ou supprimer un parcours narratif afin de structurer les alternatives de mon récit.
+## SU005 : Gérer un parcours narratif
+- **Description** : En tant qu'auteur, je peux créer, nommer, décrire, dupliquer, activer, modifier ou supprimer un parcours narratif afin de structurer les alternatives, les niveaux ou les points de vue de mon récit au sein d'une carte.
 - **Complément** :
-    - Chaque carte contient toujours au moins un parcours.
-    - Chaque parcours est défini par un sous-ensemble des composants et des relations de la carte auquel il apartient, et qui définissent une version spécifique du réçit.
-    - Chaque composant et chaque relation de la carte peut faire partie de tous les parcours, de plusieurs ou d'un seul.
+    - Un parcours narratif est un élément de données appartenant à une carte narrative. Il possède un identifiant entier unique au sein de cette carte, selon le même mécanisme que les composants et les relations.
+    - Les attributs éditables d'un parcours sont son libellé et sa description.
+    - Chaque carte narrative contient toujours au moins un parcours.
+    - Lors de la création d'une carte narrative, l'application crée automatiquement un parcours initial, l'active et lui attribue un nom par défaut.
+    - Un composant peut être rattaché simultanément à plusieurs parcours. Tout composant doit cependant rester rattaché à au moins un parcours à tout moment.
+    - Les relations entre composants n'ont pas de rattachement direct aux parcours. Une relation est implicite au sein d'un parcours si et seulement si ses deux composants extrémités sont tous deux rattachés à ce parcours.
+    - Lors de la création d'un nouveau parcours, celui-ci devient automatiquement le parcours activé.
+    - Tout composant nouvellement créé est automatiquement rattaché au parcours actuellement activé.
+    - Lorsque l'utilisateur retire un composant d'un parcours, l'application vérifie si ce composant est relié à un autre composant toujours rattaché à ce parcours. Si c'est le cas, l'application lève une alerte : l'utilisateur peut annuler le retrait, ou confirmer la suppression de la relation incohérente.
+    - La suppression d'un parcours est impossible s'il s'agit du dernier parcours de la carte ; l'application affiche un message explicatif.
 - **Critères d'acceptation** :
-    - Chaque composant ou relation créée est automatiquement rattaché au parcours par défaut de la carte narrative.
-    - Le parcours par défaut est initialisé par l'application mais peut être modifié par l'utilisateur.
-    - Chaque parcours peut être créé, modifié ou supprimé à partir du menu général, de la barre des parcours ou du menu contextuel à partir du composant ou de la relation sélectionnée.
-    - En cas de suppression d'un parcours lorsqu'il y en a plusieurs, alors tous les composants et relations associées doivent être réassociées à un nouveau parcours.
-    - En cas de suppression de parcours lorsqu'il n'y en a qu'un seul, alors un nouveau parcours par défaut est automatiquement créé, et tous les composants et toutes les relations y sont rattachés.
-    - La bascule d'un parcours à un autre est possible à partir du menu général, de la barre des parcours ou du menu contextuel.
+    - L'utilisateur peut créer un nouveau parcours depuis la barre d'outils latérale des parcours ou le menu « Projet ». Le nouveau parcours est automatiquement activé et devient le parcours courant.
+    - L'utilisateur peut renommer un parcours et modifier sa description via une boîte de dialogue ou un panneau de propriétés.
+    - L'utilisateur peut dupliquer un parcours ; la copie porte automatiquement un nom distinctif et un nouvel identifiant. Les composants rattachés au parcours source sont également rattachés au parcours dupliqué.
+    - L'utilisateur peut activer un parcours en le sélectionnant dans la liste de la barre d'outils latérale des parcours ou depuis le menu « Projet ». Le parcours activé devient le parcours courant pour l'édition.
+    - L'utilisateur peut supprimer un parcours avec confirmation préalable, sous réserve qu'il ne s'agisse pas du dernier parcours de la carte.
+    - Lors de la suppression d'un parcours, l'application identifie les composants qui lui sont exclusivement rattachés. Pour chacun, l'utilisateur doit obligatoirement choisir un nouveau parcours de rattachement via une fenêtre dédiée.
+    - Lors de la suppression d'un parcours, l'application contrôle la cohérence des relations impliquant les composants concernés. Si une relation implicite devient invalide (ses deux extrémités ne partagent plus aucun parcours commun après la migration), l'application alerte l'utilisateur et propose d'annuler ou de confirmer la suppression de la relation.
+    - L'appartenance d'un composant à un ou plusieurs parcours est gérée via une liste à choix multiples dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
+    - Toute création, renommage, duplication, activation, suppression ou modification des rattachements d'un parcours marque la carte comme modifiée, et par conséquent le projet comme modifié.
 
 
-## SU006 : Visualiser une carte narrative.
-- **Description** : En tant qu'auteur, je peux visualiser une carte narrative afin de valider mon récit.
+## SU006 : Visualiser une carte narrative
+- **Description** : En tant qu'auteur, je peux visualiser et naviguer dans l'espace de représentation graphique d'une carte narrative afin de consulter, structurer et valider mon récit.
 - **Complément** :
-    - La visualisation peut êre orientée parcours ou relations.
-	- Une visualisation additionnelle représente l'enchaînement des chapitres et des parcours constituant un chapitre.
-    - L'espace de visualisation est virtuellement illimité (limité par les capacités du système d'exploitation).
-    - La navigation dans l'espace de visualisation est possible au moyen de barres de défilement horizontal et vertical.
-    - La visualisation peut être réduite ou agrandie au moyen du menu d'affichage, de la barre de zoom, de la molette de la souris (sur PC), ou par mouvement tactile (sur tablette).
-    - Chaque composant de le carte est positionné dans l'espace de visualisation sur une grille d'alignement de 20 pixels sur 20.
-    - En mode parcours, la visualisation de la carte peut être limitée à un, plusieurs ou tous les parcours à partir de la barre des parcours selon le choix de l'utilisateur.
-	- En mode relations, la visualisation de la carte peut être limitée à une, plusieurs ou toutes les relations à partir de la barre des relations selon le choix de l'utilisateur.
+    - L'espace de visualisation est virtuellement illimité dans ses dimensions (limité par les capacités du système d'exploitation).
+    - La navigation s'effectue au moyen de barres de défilement horizontal et vertical.
+    - La grille d'alignement des composants est toujours visible et active.
+    - À tout moment, un seul parcours est visualisé dans l'espace de représentation. Le basculement vers un autre parcours met à jour l'affichage pour ne montrer que les composants rattachés à ce parcours et les relations implicites entre ces composants.
+    - La position des barres de défilement et le niveau de zoom ne constituent pas des données métier ; ils ne sont pas conservés entre les sessions.
+    - Le zoom de l'espace de visualisation sera implémenté dans une version ultérieure (molette de souris, menu d'affichage, barre de zoom, gestes tactiles).
+    - Une visualisation additionnelle par chapitres (séquences de parcours successifs) sera implémentée dans une version ultérieure.
+    - Un mode de visualisation alternatif, orienté vers l'analyse des liens entre agents du récit, sera étudié pour une version ultérieure.
 - **Critères d'acceptation** :
-    - La visualisation s’adapte aux supports et aux tailles d’écran sans perte de fonctionnalité.
-      - PC : 1280x720 (HD), 1920x1080 (Full HD), 2560x1440 (QHD).
-      - Tablette : 1024x768 (iPad), 2048x1536 (iPad Pro), 1200x1920 (Android).
-    - La visualisation passe en mode portrait ou paysage sans perte de fonctionnalité (ex : les barres d’outils restent accessibles).
-    - L'espace de visualisation peut être déployé jusqu’à 10 000 x 10 000 pixels sans crash.
-    - Le temps de réponse est acceptable sur tous les appareils (le chargement d'une séquence de 250 composants prend une seconde au plus sur PC et deux secondes au plus sur tablette).
+    - L'application s'adapte à la taille de la fenêtre sans perte de fonctionnalité ; les barres d'outils, le menu principal et la barre latérale des parcours restent accessibles.
+    - L'utilisateur peut naviguer dans l'espace de visualisation au moyen des barres de défilement horizontal et vertical.
+    - L'espace de visualisation supporte un déploiement étendu sans dégradation de stabilité.
+    - Un seul parcours est affiché à la fois. L'utilisateur bascule vers un autre parcours via la barre latérale des parcours ou le menu « Projet » ; l'affichage se met à jour instantanément.
+    - Les composants et relations du parcours affiché sont rendus selon leurs coordonnées et leur représentation graphique définies dans les métadonnées du projet.
+    - Les composants s'alignent sur la grille d'alignement lors de leur création et de leur déplacement.
+    - Toute modification de la position des barres de défilement ne marque pas la carte comme modifiée.
+    - L'interface reste pleinement fonctionnelle pour une taille de fenêtre minimale de 1280×720.
+    - Le temps de réponse entre une action utilisateur (création, déplacement, suppression d'un composant) et la mise à jour de l'affichage est immédiat (sans latence perceptible) pour une carte contenant jusqu'à 100 composants.
+    - Le basculement entre deux parcours s'effectue en moins d'une seconde.
+    - L'application reste stable lors de la navigation dans un espace de visualisation de 10 000×10 000 pixels.
+- **Périmètre MVP** :
+    - La visualisation se limite au mode parcours avec un seul parcours affiché à la fois.
+    - Le zoom n'est pas disponible.
+    - Les chapitres et le mode de visualisation alternatif (liens entre agents) ne sont pas disponibles.
+    - L'application cible exclusivement les PC sous Windows.
 
 
-## SU007 : Exporter une carte narrative.
-- **Description** : En tant qu'auteur, je peux exporter une carte narrative afin de la lire au format hypertexte.
+## SU007 : Exporter une carte narrative
+- **Description** : En tant qu'auteur, je peux exporter une carte narrative sous la forme d'un document hypertexte autonome lisible dans un navigateur standard.
 - **Complément** :
-    - Le document d'export est autonome et ne nécessite ni serveur ni dépendance externe.
-    - Le document d'export contient les métadonnées de la carte narrative.
-    - Le document d'export est lisible directement dans un navigateur standard.
-    - Le document d'export débute par un sommaire afin de sélectionner le parcours à dérouler.
-	- Le document d'export propose le déroulement des réçits selon la vue parcours ou bien la vue relations.
+    - L'application propose deux exports distincts pour une carte narrative : un export technique (cf. SU002) destiné à la réimportation dans un autre projet, et un export de lecture destiné à la consultation hors application.
+    - Le document d'export de lecture est autonome : il ne nécessite aucun serveur, aucune connexion Internet et aucune dépendance externe.
+    - L'export génère un dossier nommé d'après le nom physique de la carte narrative. Ce dossier contient un fichier d'index et l'ensemble des pages nécessaires à la navigation hypertexte.
+    - Le contenu restitué pour chaque composant est constitué de son libellé (affiché comme titre de paragraphe) et de sa description (corps du texte). Si la description est vide, seul le libellé est affiché.
+    - L'ordre de déroulement est déterminé par la séquence prédécesseur/successeur définie dans le modèle de données applicatif, indépendamment de la position des composants dans l'espace de visualisation graphique.
+    - L'export propose deux modes de lecture dans le MVP :
+        1. **Vue parcours** : le lecteur sélectionne un parcours dans le sommaire et accède à une page affichant l'intégralité de la séquence de ses composants de façon linéaire.
+        2. **Vue événements** : le lecteur accède à une page présentant le premier événement de la carte, puis déroule linéairement la séquence des événements jusqu'au premier embranchement (c'est-à-dire un événement possédant plusieurs successeurs). À cet embranchement, des liens hypertexte permettent de choisir le successeur souhaité ; chaque lien indique le nom du parcours correspondant entre parenthèses. Le choix d'un lien ouvre une nouvelle page reprenant le déroulement linéaire jusqu'au prochain embranchement, et ainsi de suite.
+    - Chaque page de déroulement propose un lien de retour vers le sommaire. Dans la vue événements, chaque page propose également un lien vers la page précédente (celle ayant mené à l'embranchement).
+    - La vue de lecture par relations entre agents (personnages) sera implémentée dans une version ultérieure.
 - **Critères d'acceptation** :
-    - Le document d'export est compatible avec tous les navigateurs courants.
-    - Le document d'export permet de dérouler chaque parcours de façon linéaire.
-    - Le document d'export est nommé d'après le nom physique de la carte narrative.
+    - L'utilisateur peut lancer l'export de la carte narrative courante depuis le menu « Fichier » ou la barre d'outils.
+    - L'application génère un dossier d'export nommé d'après le nom de la carte narrative, contenant un fichier d'index et l'ensemble des pages nécessaires.
+    - Le document s'affiche correctement dans les navigateurs standards (Chrome, Firefox, Edge) sans connexion Internet.
+    - La page d'accueil propose le choix entre la lecture par parcours et la lecture par événements.
+    - En mode **parcours**, une page intermédiaire liste l'ensemble des parcours de la carte ; le clic sur un parcours affiche une page de déroulement linéaire complet de sa séquence de composants.
+    - En mode **événements**, la première page affiche le premier événement déterminé par l'application à partir du modèle de données, puis déroule linéairement les événements jusqu'au premier embranchement.
+    - À chaque embranchement, la page affiche des liens hypertexte vers chaque événement successeur possible, avec le nom du parcours correspondant entre parenthèses.
+    - Le choix d'un lien hypertexte ouvre une nouvelle page poursuivant le déroulement linéaire jusqu'au prochain embranchement.
+    - Chaque page de déroulement dispose d'un lien de retour vers le sommaire. Chaque page de la vue événements dispose d'un lien vers la page précédente.
+    - L'opération d'export ne marque pas la carte narrative ni le projet comme modifiés.
+- **Périmètre MVP** :
+    - L'export de lecture est limité à la carte narrative courante du projet ouvert.
+    - Les deux modes de lecture (parcours et événements) sont fonctionnels.
+    - La notion de chapitre et la vue de lecture par relations entre agents ne sont pas disponibles.

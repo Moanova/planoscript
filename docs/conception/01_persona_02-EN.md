@@ -19,7 +19,7 @@
 - **Frustrations**:
     1. The tools used so far are unsuitable and too basic (Google Docs, Google Sheets).
     2. They do not allow us to easily track how situations develop across episodes (when was a particular piece of information shared with a particular character?)
-    3. Professional tools are beyond our budget and too complex (Final Draft, Arc Studio Pro). They require too long a learning curve and are over-specced for our needs.
+    3. Professional tools are beyond his budget and too complex (Final Draft, Arc Studio Pro). They require too long a learning curve and are over-specced for his needs.
 - **Constraints**:
     1. Time constraints: the time available must be used for the actual writing, not for organising the work using unsuitable tools.
     2. Budget constraints: purchasing an expensive software licence is not currently feasible.

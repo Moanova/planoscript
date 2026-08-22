@@ -205,13 +205,3 @@
     Le fichier précédemment associé au projet n'est ni renommé ni supprimé.
 - **Fonctionnalités associées** :
     - [ FN009 ] : Enregistrer le projet sous un nom explicite.
-
-
-## RG018
-- **Description** :
-    La suppression d'un projet est une action distincte de sa fermeture.
-    Elle nécessite une confirmation explicite indiquant le projet et son emplacement. Le projet doit être fermé avant suppression.
-    La suppression retire le fichier projet et ses fichiers auxiliaires associés, puis retire le projet de la liste des projets récents.
-    Lorsque le système d'exploitation le permet, les fichiers sont déplacés vers la corbeille plutôt que supprimés définitivement.
-- **Fonctionnalités associées** :
-    - [ FN011 ] : Supprimer un projet.

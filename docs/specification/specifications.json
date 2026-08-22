@@ -2,20 +2,21 @@
   "app_name": "Planoscript",
   "version": "0.1.0-alpha",
   "directories": {
-    "general": "C:\Users\thoma\Documents\02_PROJET\02_DEV\Planoscript",
-    "application": "C:\Users\thoma\Documents\02_PROJET\02_DEV\Planoscript\application",
-	"conception": "C:\Users\thoma\Documents\02_PROJET\02_DEV\Planoscript\conception",
-	"specification": "C:\Users\thoma\Documents\02_PROJET\02_DEV\Planoscript\application"
+    "general": "~\02_PROJET\02_DEV\Planoscript",
+    "application": "~\02_PROJET\02_DEV\Planoscript\application",
+	"conception": "~\Documents\02_PROJET\02_DEV\Planoscript\conception",
+	"specification": "~\Documents\02_PROJET\02_DEV\Planoscript\application"
   }
   "docs": {
-    "product_vision": "./00_product-vision-FR.md",
+    "product_vision": "../conception/00_product-vision-EN.md",
     "user_stories": "./01_user_stories-FR.md",
     "gui": "./02_interface-FR.md",
     "gui_menu": "./menu-FR.yaml",
     "features": "./03_features-FR.md",
     "behavior": "./04_behavior-FR.md",
     "business_rules": "./05_business_rules-FR.md",
-    "data_model": "./data_model-FR.json"
+    "data_model": "./data_model-FR.json",
+	"mvp_scope": "./00_mvp_scope-FR.md"
   },
   "technical": {
     "language": "Python 3.11+",
