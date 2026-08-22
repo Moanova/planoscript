@@ -10,7 +10,7 @@
 Tree Layout Model for Planoscript.
 
 This module defines the data structures for visual representation of
-relation trees (e.g., State_event_tree, Journey_tree) in the workspace.
+relation trees (e.g., State_event_set, Journey) in the workspace.
 
 Unlike WorkspaceLayout which represents the layout of individual nodes and
 connections, TreeLayout represents the layout of hierarchical structures
@@ -29,15 +29,15 @@ from typing import Optional, Dict, Any, List
 @dataclass
 class TreeLayout:
     """
-    Represents the visual layout of a relation tree (e.g., State_event_tree, Journey_tree).
+    Represents the visual layout of a relation tree (e.g., State_event_set, Journey).
     
     A TreeLayout contains the visual properties of a tree container, including
     its position, size, and references to the node and connection layouts
     that belong to the tree.
     
     Attributes:
-        tree_id: The ID of the tree entity (e.g., State_event_tree.id)
-        tree_type: The type of the tree ("State_event_tree", "Journey_tree", etc.)
+        tree_id: The ID of the tree entity (e.g., State_event_set.id)
+        tree_type: The type of the tree ("State_event_set", "Journey", etc.)
         x: X position of the tree container in the workspace
         y: Y position of the tree container in the workspace
         width: Width of the tree container

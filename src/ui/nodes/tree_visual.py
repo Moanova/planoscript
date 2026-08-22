@@ -10,7 +10,7 @@
 Tree Visual for Planoscript.
 
 This module provides the TreeVisual class, which represents a visual container
-for relation trees (e.g., State_event_tree, Journey_tree) in the workspace.
+for relation trees (e.g., State_event_set, Journey) in the workspace.
 
 A TreeVisual groups multiple nodes and connections together into a single
 visual container with a title, border, and background. It maintains references
@@ -26,21 +26,21 @@ from PySide6.QtGui import QPen, QBrush, QColor, QFont, QPainterPath
 from typing import Optional, Dict, List, Any
 
 from core.models.tree_layout import TreeLayout
-from core.models.data_model import State_event_tree, Journey_tree
+from core.models.data_model import State_event_set, State_event_subset
 from ui.nodes.base_node import BaseNode
 from ui.nodes.connection import Connection
 
 
 class TreeVisual(QGraphicsRectItem):
     """
-    Visual container for a relation tree (e.g., State_event_tree, Journey_tree).
+    Visual container for a relation tree (e.g., State_event_set, Journey).
     
     This class represents a group of nodes and connections as a single
     visual entity with a title, border, and background. The tree can be
     moved, selected, and collapsed/expanded.
     
     Attributes:
-        tree_entity: The business tree entity (State_event_tree, Journey_tree, etc.)
+        tree_entity: The business tree entity (State_event_set, Journey, etc.)
         layout: The TreeLayout containing visual properties
         title_item: QGraphicsTextItem for the tree title
         nodes: Dictionary of node_id -> BaseNode
@@ -71,7 +71,7 @@ class TreeVisual(QGraphicsRectItem):
         Initialize a TreeVisual with a tree entity and its layout.
         
         Args:
-            tree_entity: The business tree entity (State_event_tree, Journey_tree, etc.)
+            tree_entity: The business tree entity (State_event_set, Journey, etc.)
             layout: The TreeLayout containing visual properties
         """
         # Initialize with default size from layout
@@ -178,9 +178,9 @@ class TreeVisual(QGraphicsRectItem):
     def _update_title(self) -> None:
         """Update the title based on tree entity and type."""
         if self.tree_entity and hasattr(self.tree_entity, 'id'):
-            if isinstance(self.tree_entity, State_event_tree):
+            if isinstance(self.tree_entity, State_event_set):
                 title = f"Arbre État-Événement #{self.tree_entity.id}"
-            elif isinstance(self.tree_entity, Journey_tree):
+            elif isinstance(self.tree_entity, Journey):
                 title = f"Arbre Parcours #{self.tree_entity.id}"
             else:
                 title = f"Arbre {self.layout.tree_type} #{self.tree_entity.id}"

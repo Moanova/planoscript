@@ -10,7 +10,7 @@
 Tree Layout Service for Planoscript.
 
 This module provides services for persisting and loading tree layouts
-(State_event_tree, Journey_tree, etc.) to/from the filesystem.
+(State_event_set, Journey, etc.) to/from the filesystem.
 Tree layouts are stored separately from workspace layouts to allow
 independent management of hierarchical structures.
 
@@ -20,9 +20,9 @@ Directory structure:
         ├── layouts/            # WorkspaceLayout files
         │   └── {narrative_map_id}.json
         └── trees/              # TreeLayout files
-            ├── State_event_tree/
+            ├── State_event_set/
             │   └── {tree_id}.json
-            ├── Journey_tree/
+            ├── Journey/
             │   └── {tree_id}.json
             └── ...
 """
@@ -40,7 +40,7 @@ class TreeLayoutService:
     Service for managing the persistence of tree layouts.
     
     Tree layouts are stored in JSON files in a dedicated 'trees' subdirectory,
-    organized by tree type (State_event_tree, Journey_tree, etc.).
+    organized by tree type (State_event_set, Journey, etc.).
     
     This separation allows for:
     - Independent loading/saving of individual trees
@@ -84,7 +84,7 @@ class TreeLayoutService:
         
         Args:
             project_filepath: Full path to the project JSON file
-            tree_type: Type of the tree (e.g., "State_event_tree")
+            tree_type: Type of the tree (e.g., "State_event_set")
             tree_id: ID of the tree entity
             
         Returns:
@@ -151,7 +151,7 @@ class TreeLayoutService:
         
         Args:
             project_filepath: Full path to the project JSON file
-            tree_type: Type of the tree (e.g., "State_event_tree")
+            tree_type: Type of the tree (e.g., "State_event_set")
             tree_id: ID of the tree entity
             
         Returns:
@@ -232,7 +232,7 @@ class TreeLayoutService:
         
         Args:
             project_filepath: Full path to the project JSON file
-            tree_type: Optional tree type filter (e.g., "State_event_tree")
+            tree_type: Optional tree type filter (e.g., "State_event_set")
             
         Returns:
             List of dictionaries containing tree_type and tree_id for each layout
@@ -326,7 +326,7 @@ class TreeLayoutService:
         
         Args:
             tree_id: ID of the tree entity
-            tree_type: Type of the tree ("State_event_tree", "Journey_tree", etc.)
+            tree_type: Type of the tree ("State_event_set", "Journey", etc.)
             x: X position (default: 0.0)
             y: Y position (default: 0.0)
             

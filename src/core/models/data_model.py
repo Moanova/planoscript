@@ -82,7 +82,7 @@ class Agent(BaseEntity):
     id: int
     lb: str
     desc: Optional[str] = None
-    typ: str = "Sujet"  # Type of agent ("Subject" or "Object")
+    typ: str = "Subject"  # Type of agent ("Subject" or "Object")
     
     def __post_init__(self):
         if not isinstance(self.id, int):
@@ -100,7 +100,7 @@ class State(BaseEntity):
     id: int
     lb: str
     space_ref_id: Optional[int]  # Linked Space_ref Id
-    time_ref_id: int = 0  # Linked Time_ref Id
+    time_ref_id: int  # Linked Time_ref Id
     desc: Optional[str] = None
 
     def __post_init__(self):
@@ -119,7 +119,7 @@ class Event(BaseEntity):
     id: int
     lb: str
     space_ref_id: Optional[int]  # Linked Space_ref Id
-    time_ref_id: int = 0  # Linked Time_ref Id
+    time_ref_id: int  # Linked Time_ref Id
     desc: Optional[str] = None
     
     def __post_init__(self):
@@ -137,11 +137,14 @@ class Journey(BaseEntity):
     """
     id: int
     lb: str
+    chapter_id: int  # Linked Chapter Id
     desc: Optional[str] = None
     
     def __post_init__(self):
         if not isinstance(self.id, int):
             self.id = int(self.id)
+        if not isinstance(self.chapter_id, int):
+            self.chapter_id = int(self.chapter_id)
 
 
 @dataclass
@@ -175,11 +178,12 @@ class Agent_rel_hist(BaseEntity):
     agent_2_id: int
     state_id: Optional[int]  # Linked State Id
     time_ref_id: int = 0  # Linked Time_ref Id
+    space_ref_id: Optional[int] = None  # Linked Space_ref Id
     desc: Optional[str] = None
 
     def __post_init__(self):
-        for attr in ['id', 'agent_1_id', 'agent_2_id', 'time_ref_id', 'state_id']:
-            if not isinstance(getattr(self, attr), int):
+        for attr in ['id', 'agent_1_id', 'agent_2_id', 'time_ref_id', 'state_id', 'space_ref_id']:
+            if getattr(self, attr) is not None and not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
 
 
@@ -248,9 +252,9 @@ class Event_state_rel(BaseEntity):
 
 
 @dataclass
-class State_event_tree(BaseEntity):
+class State_event_set(BaseEntity):
     """
-    Tree of a State-to-event relation.
+    Node of the set of state-to-event relations.
     """
     id: int
     state_event_id: int  # Linked State_event_rel Id
@@ -263,46 +267,16 @@ class State_event_tree(BaseEntity):
 
 
 @dataclass
-class State_event_subtree(BaseEntity):
+class State_event_subset(BaseEntity):
     """
-    Subset of a State_event_tree object.
+    Node of the subset of state-to-event relations.
     """
     id: int
-    state_event_tree_id: int  # Linked State_event_tree Id
+    state_event_set_id: int  # Linked State_event_set Id
     journey_id: int  # Linked Journey Id
     
     def __post_init__(self):
-        for attr in ['id', 'state_event_tree_id', 'journey_id']:
-            if not isinstance(getattr(self, attr), int):
-                setattr(self, attr, int(getattr(self, attr)))
-
-
-@dataclass
-class Journey_tree(BaseEntity):
-    """
-    Tree of journeys.
-    """
-    id: int
-    journey_id: int
-    prev_journey_id: int = 0  # Previous Journey Id
-    
-    def __post_init__(self):
-        for attr in ['id', 'journey_id', 'prev_journey_id']:
-            if not isinstance(getattr(self, attr), int):
-                setattr(self, attr, int(getattr(self, attr)))
-
-
-@dataclass
-class Journey_subtree(BaseEntity):
-    """
-    Relation between a journey and a chapter.
-    """
-    id: int
-    journey_tree_id: int  # Linked Journey_tree Id
-    chapter_id: int  # Linked Chapter Id
-    
-    def __post_init__(self):
-        for attr in ['id', 'journey_tree_id', 'chapter_id']:
+        for attr in ['id', 'state_event_set_id', 'journey_id']:
             if not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
 
@@ -332,10 +306,8 @@ class NarrativeMap(BaseEntity):
     agent_event_rel: List[Agent_event_rel] = field(default_factory=list)
     state_event_rel: List[State_event_rel] = field(default_factory=list)
     event_state_rel: List[Event_state_rel] = field(default_factory=list)
-    state_event_tree: List[State_event_tree] = field(default_factory=list)
-    state_event_subtree: List[State_event_subtree] = field(default_factory=list)
-    journey_tree: List[Journey_tree] = field(default_factory=list)
-    journey_subtree: List[Journey_subtree] = field(default_factory=list)
+    state_event_set: List[State_event_set] = field(default_factory=list)
+    state_event_subset: List[State_event_subset] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -355,10 +327,8 @@ class NarrativeMap(BaseEntity):
             'agent_event_rel': [a.to_dict() for a in self.agent_event_rel],
             'state_event_rel': [s.to_dict() for s in self.state_event_rel],
             'event_state_rel': [e.to_dict() for e in self.event_state_rel],
-            'state_event_tree': [s.to_dict() for s in self.state_event_tree],
-            'state_event_subtree': [s.to_dict() for s in self.state_event_subtree],
-            'journey_tree': [j.to_dict() for j in self.journey_tree],
-            'journey_subtree': [j.to_dict() for j in self.journey_subtree]
+            'state_event_set': [s.to_dict() for s in self.state_event_set],
+            'state_event_subset': [s.to_dict() for s in self.state_event_subset]
         }
 
     @classmethod
@@ -380,10 +350,8 @@ class NarrativeMap(BaseEntity):
             agent_event_rel=[Agent_event_rel.from_dict(a) for a in data.get('agent_event_rel', [])],
             state_event_rel=[State_event_rel.from_dict(s) for s in data.get('state_event_rel', [])],
             event_state_rel=[Event_state_rel.from_dict(e) for e in data.get('event_state_rel', [])],
-            state_event_tree=[State_event_tree.from_dict(s) for s in data.get('state_event_tree', [])],
-            state_event_subtree=[State_event_subtree.from_dict(s) for s in data.get('state_event_subtree', [])],
-            journey_tree=[Journey_tree.from_dict(j) for j in data.get('journey_tree', [])],
-            journey_subtree=[Journey_subtree.from_dict(j) for j in data.get('journey_subtree', [])]
+            state_event_set=[State_event_set.from_dict(s) for s in data.get('state_event_set', [])],
+            state_event_subset=[State_event_subset.from_dict(s) for s in data.get('state_event_subset', [])]
         )
 
     def get_next_id(self, entity_type: str) -> int:
@@ -414,14 +382,10 @@ class NarrativeMap(BaseEntity):
             existing_ids = {s.id for s in self.state_event_rel}
         elif entity_type == 'event_state_rel':
             existing_ids = {e.id for e in self.event_state_rel}
-        elif entity_type == 'state_event_tree':
-            existing_ids = {s.id for s in self.state_event_tree}
-        elif entity_type == 'state_event_subtree':
-            existing_ids = {s.id for s in self.state_event_subtree}
-        elif entity_type == 'journey_tree':
-            existing_ids = {j.id for j in self.journey_tree}
-        elif entity_type == 'journey_subtree':
-            existing_ids = {j.id for j in self.journey_subtree}
+        elif entity_type == 'state_event_set':
+            existing_ids = {s.id for s in self.state_event_set}
+        elif entity_type == 'state_event_subset':
+            existing_ids = {s.id for s in self.state_event_subset}
         
         if existing_ids:
             return max(existing_ids) + 1
