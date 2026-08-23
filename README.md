@@ -1,7 +1,7 @@
 # Planoscript
 
-**Planoscript** is a **visual narrative map editor** designed for modern fiction riters (video game scriptwriters, micro-series creators...etc).
-Structure your stories **without code**, manage branching paths and export your work in readable formats to collaborate easily with your team.
+**Planoscript** is a **visual narrative map editor** designed for modern fiction writers (video game scriptwriters, micro-series creators...etc).
+Structure your stories **without code**, manage branching paths and export your work in a readable format to collaborate easily with your team.
 
 ![Licence: MIT](https://img.shields.io/badge/Licence-MIT-yellow.svg)
 ![Status: In development](https://img.shields.io/badge/Statut-En%20développement-orange)
@@ -23,6 +23,7 @@ Structure your stories **without code**, manage branching paths and export your 
    - Link them and attach them to paths to form narrative arcs.
 2. **Export your work**:
    - Export your project’s narrative maps to read them directly in a browser.
+
 *Further details to follow with the beta version.*
 
 ---
@@ -52,4 +53,4 @@ Likewise, there are no tests... for the time being.
 
 ---
 ## Acknowledgements
-A special thank you to all thecreators who have inspired this project!
+A special thank you to all the creators who have inspired this project!
