@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Dossiers de travail
+ai_sessions/
+
 # Environnements virtuels
 .venv/
 venv/

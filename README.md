@@ -1,7 +1,7 @@
 # Planoscript
 
-**Planoscript** is a **visual narrative map editor** designed for creators of modern narratives (video game scriptwriters or micro-series creators).
-With Planoscript, you can structure your stories **without code**, manage branching paths and export your work in readable formats to collaborate easily with your teams.
+**Planoscript** is a **visual narrative map editor** designed for modern fiction riters (video game scriptwriters, micro-series creators...etc).
+Structure your stories **without code**, manage branching paths and export your work in readable formats to collaborate easily with your team.
 
 ![Licence: MIT](https://img.shields.io/badge/Licence-MIT-yellow.svg)
 ![Status: In development](https://img.shields.io/badge/Statut-En%20développement-orange)
@@ -11,7 +11,7 @@ With Planoscript, you can structure your stories **without code**, manage branch
 ---
 ## Features
 - **Visual authoring**: Create narrative maps using **drag-and-drop**.
-- **Branch management**: Visualise and organise the links between the elements of your narrative.
+- **Branch management**: Visualise and organise the links between all elements of your narrative.
 - **Readable export**: Share your work as hypertext pages to share it with your team (developers, filmmakers, etc.).
 - **Under development**: MVP beta version in progress.
 
@@ -19,15 +19,15 @@ With Planoscript, you can structure your stories **without code**, manage branch
 ## Usage
 ### Example workflow
 1. **Create a new narrative map**:
-   - Add nodes (scenes, events) using drag-and-drop.
+   - Add nodes (states, events) using drag-and-drop.
    - Link them and attach them to paths to form narrative arcs.
 2. **Export your work**:
-   - Export your project’s narrative maps to view them directly in a browser.
+   - Export your project’s narrative maps to read them directly in a browser.
 *Further details to follow with the beta version.*
 
 ---
 ## Installation
-*When the MVP beta will be ready.*
+*When the beta version of the MVP is ready.*
 
 ---
 ## Contributions
@@ -45,9 +45,10 @@ This project is licensed under the **[MIT](LICENSE)** licence.
 ---
 ## Note from the creator
 ### 22 August 2026
-Planoscript is first and foremost a learning project and, in its current state, should be regarded as such.
-Consequently, conception and implementation are evolving in parallel as the project progresses, and as I discover its unforeseen complexities...
-Similarly, there are no tests... for the time being.
+Planoscript is primarily a learning project and, in its current state, should be viewed as such.
+Consequently, its design and implementation are evolving in tandem as the project progresses and unforeseen complexities come to light...
+The project is currently being redesigned; as a result, the code no longer aligns with the data model and the intended application logic.
+Likewise, there are no tests... for the time being.
 
 ---
 ## Acknowledgements
