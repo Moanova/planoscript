@@ -1,0 +1,38 @@
+[project]
+
+name = "planoscript"
+
+version = "1.0.0"
+
+description = "Visual narrative map editor"
+
+readme = "README.md"
+
+requires-python = ">=3.10"
+
+license = {text = "MIT"}
+
+authors = [
+
+    {name = "Thomas Soucheleau"}
+
+]
+
+
+dependencies = [
+
+    "PySide6>=6.4.0",
+
+]
+
+
+[build-system]
+
+requires = ["hatchling"]
+
+build-backend = "hatchling.build"
+
+
+[tool.uv]
+
+dev-dependencies = []
