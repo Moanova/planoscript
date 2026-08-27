@@ -1,35 +1,35 @@
 {
    "$schema":"http://json-schema.org/draft-07/schema#",
-   "name": "Planoscript ::: Modèle de données",
+   "name": "Planoscript ::: Data Model",
    "version": "0.1.0-alpha",
-   "description": "Modèle de données des projets Planoscript : projets, cartes narratives, entités et relations.",
+   "description": "Data model of Planoscript projects: projects, narrative maps, entities, and relationships.",
    "type":"object",
    "properties":{
       "id":{
         "type":"string",
         "format":"uuid",
-        "description":"Identifiant unique du projet"
+        "description":"Unique identifier of the project"
       },
       "lb":{
          "type":"string",
-         "description":"Nom du projet"
+         "description":"Name of the project"
       },
       "creation_date_time":{
          "type":"string",
          "format":"date-time",
-         "description":"Date et heure de création du projet"
+         "description":"Date and time of project creation"
       },
       "modification_date_time":{
          "type":"string",
          "format":"date-time",
-         "description":"Date et heure de dernière modification du projet"
+         "description":"Date and time of last project modification"
       },
       "agent":{
          "type":"array",
          "items":{
             "$ref":"#/$defs/Agent"
          },
-          "description":"Agent de la carte narrative"
+          "description":"Agent of the narrative map"
       },
       "narrative_map":[
         {
@@ -38,63 +38,63 @@
            "id":{
              "type":"string",
              "format":"uuid",
-             "description":"Identifiant unique de la carte narrative"
+             "description":"Unique identifier of the narrative map"
            },
            "lb":{
               "type":"string",
-              "description":"Nom de la carte narrative"
+              "description":"Name of the narrative map"
            },
            "creation_date_time":{
               "type":"string",
               "format":"date-time",
-              "description":"Date et heure de création de la carte narrative"
+              "description":"Date and time of narrative map creation"
            },
            "modification_date_time":{
               "type":"string",
               "format":"date-time",
-              "description":"Date et heure de dernière modification de la carte narrative"
+              "description":"Date and time of last narrative map modification"
            },
             "state":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/State"
                },
-               "description":"Etat de la carte narrative"
+               "description":"State of the narrative map"
             },
             "event":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/Event"
                },
-               "description":"Evènement de la carte narrative"
+               "description":"Event of the narrative map"
             },
             "journey":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/Journey"
                },
-               "description":"Parcours de la carte narrative"
+               "description":"Journey of the narrative map"
             },
             "state_agent_rel":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/State_agent_rel"
                },
-               "description":"Relation entre état et agent"
+               "description":"Relationship between state and agent"
             },
             "state_node":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/State_node"
                },
-               "description":"Noeud des relations d'état à évènement à état"
+               "description":"Node of state-to-event-to-state relationships"
             },
             "Journey_node":{
                "type":"array",
                "items":{
                   "$ref":"#/$defs/Journey_node"
                },
-               "description":"Noeud de parcours"
+               "description":"Journey node"
             }
          },
          "required":[
@@ -114,31 +114,31 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique de l'agent"
+               "description":"Unique identifier of the agent"
             },
             "lb":{
                "type":"string",
-               "description":"Libellé de l'agent"
+               "description":"Label of the agent"
             },
             "note":{
                "type":"string",
-               "description":"Annotation de l'agent"
+               "description":"Annotation of the agent"
             },
             "typ": {
                 "type": "string",
                 "enum": ["Object", "Subject"],
                 "default_value": "Subject",
-                "description": "Type de l'agent"
+                "description": "Type of the agent"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création de l'agent"
+               "description":"Date and time of agent creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification de l'agent"
+               "description":"Date and time of last agent modification"
             }
          },
          "required":[
@@ -154,31 +154,31 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique de l'état"
+               "description":"Unique identifier of the state"
             },
             "lb":{
                "type":"string",
-               "description":"Libellé de l'état"
+               "description":"Label of the state"
             },
             "note":{
                "type":"string",
-               "description":"Annotation de l'état"
+               "description":"Annotation of the state"
             },
             "typ": {
                 "type": "string",
                 "enum": ["Initial", "Action", "Relation", "Final"],
                 "default_value": "Action",
-                "description": "Type de l'état"
+                "description": "Type of the state"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création de l'état"
+               "description":"Date and time of state creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification de l'état"
+               "description":"Date and time of last state modification"
             }
          },
          "required":[
@@ -194,25 +194,25 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique de l'évènement"
+               "description":"Unique identifier of the event"
             },
             "lb":{
                "type":"string",
-               "description":"Libellé de l'évènement"
+               "description":"Label of the event"
             },
             "note":{
                "type":"string",
-               "description":"Annotation de l'évènement"
+               "description":"Annotation of the event"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création de l'évènement"
+               "description":"Date and time of event creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification de l'évènement"
+               "description":"Date and time of last event modification"
             }
          },
          "required":[
@@ -227,30 +227,30 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique du parcours"
+               "description":"Unique identifier of the journey"
             },
             "lb":{
                "type":"string",
-               "description":"Libellé du parcours"
+               "description":"Label of the journey"
             },
             "note":{
                "type":"string",
-               "description":"Annotation du parcours"
+               "description":"Annotation of the journey"
             },
             "default": {
                 "type": "boolean",
-                "default_value": False,
-                "description": "Indicateur de parcours par défaut ou non"
+                "default_value": false,
+                "description": "Indicator of whether the journey is default or not"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création du parcours"
+               "description":"Date and time of journey creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification du parcours"
+               "description":"Date and time of last journey modification"
             }
          },
          "required":[
@@ -266,29 +266,29 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique de la relation d'état à agent"
+               "description":"Unique identifier of the state-to-agent relationship"
             },
             "state_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'état (référence à State.id)"
+               "description":"Unique identifier of the state (reference to State.id)"
             },
             "agent_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'agent (référence à Agent.id)"
+               "description":"Unique identifier of the agent (reference to Agent.id)"
             },
             "note":{
                "type":"string",
-               "description":"Annotation de la relation d'état à agent"
+               "description":"Annotation of the state-to-agent relationship"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création de la relation d'état à agent"
+               "description":"Date and time of state-to-agent relationship creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification de la relation d'état à agent"
+               "description":"Date and time of last state-to-agent relationship modification"
             }
          },
          "required":[
@@ -304,29 +304,29 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique du noeud des relations d'état à évènement à état"
+               "description":"Unique identifier of the state-to-event-to-state relationship node"
             },
             "from_event_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'évènement prédecesseur (référence à Event.id)"
+               "description":"Unique identifier of the predecessor event (reference to Event.id)"
             },
             "state_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'état du noeud (référence à State.id) | Valeur 0 = placeholder sans état (événement isolé en attente de connexion)"
+               "description":"Unique identifier of the node state (reference to State.id) | Value 0 = placeholder without state (isolated event awaiting connection)"
             },
             "to_event_id":{
                "type":"integer",
-               "description":"Identifiant unique de l'évènement sucesseur (référence à Event.id)"
+               "description":"Unique identifier of the successor event (reference to Event.id)"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création du noeud des relations d'état à évènement à état"
+               "description":"Date and time of state-to-event-to-state relationship node creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification du noeud des relations d'état à évènement à état"
+               "description":"Date and time of last state-to-event-to-state relationship node modification"
             }
          },
          "required":[
@@ -341,25 +341,25 @@
          "properties":{
             "id":{
                "type":"integer",
-               "description":"Identifiant unique du noeud du parcours"
+               "description":"Unique identifier of the journey node"
             },
             "state_node_id":{
                "type":"integer",
-               "description":"Identifiant unique du noeud des relations d'état à évènement à état (référence à State_node.id)"
+               "description":"Unique identifier of the state-to-event-to-state relationship node (reference to State_node.id)"
             },
             "journey_id":{
                "type":"integer",
-               "description":"Identifiant unique du parcours (référence à Journey.id)"
+               "description":"Unique identifier of the journey (reference to Journey.id)"
             },
             "creation_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de création du noeud du parcours"
+               "description":"Date and time of journey node creation"
             },
             "modification_date_time":{
                "type":"string",
                "format":"date-time",
-               "description":"Date et heure de dernière modification du noeud du parcours"
+               "description":"Date and time of last journey node modification"
             }
          },
          "required":[
@@ -373,7 +373,7 @@
    "cardinalities": [
       {
         "name": "state_agent_rel_card",
-        "description": "0 ou n états sont liés à 0 ou n agents",
+        "description": "0 or n states are linked to 0 or n agents",
         "from": "State",
         "to": "Agent",
         "relationship": "State_agent_rel",
@@ -385,7 +385,7 @@
       },
       {
         "name": "from_state_card",
-        "description": "0 ou n états sont liés à 0 ou n évènements",
+        "description": "0 or n states are linked to 0 or n events",
         "from": "State",
         "to": "Event",
         "relationship": "State_node",
@@ -397,7 +397,7 @@
       },
       {
         "name": "to_state_card",
-        "description": "0 ou n états sont liés à 0 ou n évènements",
+        "description": "0 or n states are linked to 0 or n events",
         "from": "Event",
         "to": "State",
         "relationship": "State_node",
@@ -409,7 +409,7 @@
       },
       {
         "name": "journey_node_card",
-        "description": "0 ou n noeuds des relations d'état à évènement à état sont liés à 0 ou n parcours",
+        "description": "0 or n state-to-event-to-state relationship nodes are linked to 0 or n journeys",
         "from": "State_node",
         "to": "Journey",
         "relationship": "Journey_node",
@@ -421,8 +421,8 @@
       }
    ],
     "notes": [
-      "Les cardinalités suivent cette notation : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou un), 1 (exactement un).",
-      "Les relations directionnelles ont une source et une cible, tandis que les relations non directionnelles n'ont pas de sens.",
-      "Convention : la valeur 0 (zéro) utilisée dans un champ de référence prédecesseur (from_event_id) signifie l'absence de prédécesseur."
+      "Cardinalities follow this notation: 0..* (zero or more), 1..* (one or more), 0..1 (zero or one), 1 (exactly one).",
+      "Directional relationships have a source and a target, whereas non-directional relationships have no direction.",
+      "Convention: the value 0 (zero) used in a predecessor reference field (from_event_id) signifies the absence of a predecessor."
     ]
 }
