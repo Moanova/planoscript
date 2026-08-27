@@ -1,400 +1,394 @@
-# Planoscript ::: Spécification de l'interface utilisateur
+# Planoscript ::: User Interface Specification
 
-## Version du document
-- **Version** : 2.0
-- **Date** : 27-08-2026
-- **État** : Mise à jour rétrospective pour refléter l'implémentation actuelle
-- **Basé sur** : Code source dans `./src/ui/main_window.py` et modules associés
-
----
-
-## Architecture générale de l'interface
-
-### Mise en page
-- **Type** : Disposition verticale principale (QVBoxLayout) avec sections distinctes.
-- **Structure** :
-  - **Haut** : Barre de menu intégrée (QMenuBar).
-  - **Centre** : Espace de travail principal (JourneyWorkspace).
-  - **Bas** : Barre d'information (75%) + Barre de zoom (25%) - *Barre de zoom actuellement désactivée*.
-
-> **Note** : Les barres latérales (composants à gauche, parcours à droite) sont implémentées mais **non intégrées** dans la fenêtre principale.
+## Document Version
+- **Version**: 2.0
+- **Date**: 27-08-2026
+- **Status**: Retrospective update to reflect the current implementation
 
 ---
 
-## Composants de l'Interface
+## General Interface Architecture
 
-### 1. Barre de menu de la fenêtre applicative
-- **Type** : QMenuBar natif.
-- **Position** : En haut de la fenêtre.
-- **Style** :
-  - Fond : `#ffffff` (blanc).
-  - Police : Arial, 9pt.
-  - Couleur du texte : `#000000` (noir).
-  - Éléments sélectionnés : Fond `#404040`, texte `#ffffff`.
+### Layout
+- **Type**: Main vertical layout (QVBoxLayout) with distinct sections.
+- **Structure**:
+  - **Top**: Integrated menu bar (QMenuBar).
+  - **Center**: Main workspace (JourneyWorkspace).
+  - **Bottom**: Information bar (75%) + Zoom bar (25%) - *Zoom bar currently disabled*.
 
-- **Menus disponibles** :
-  - **Fichiers** :
+> **Note**: The sidebars (components on the left, journeys on the right) are implemented but **not integrated** into the main window.
+
+---
+
+## Interface Components
+
+### 1. Application Window Menu Bar
+- **Type**: Native QMenuBar.
+- **Position**: At the top of the window.
+- **Style**:
+  - Background: `#ffffff` (white).
+  - Font: Arial, 9pt.
+  - Text color: `#000000` (black).
+  - Selected items: Background `#404040`, text `#ffffff`.
+
+- **Available Menus**:
+  - **File**:
     - New Project... (Ctrl+N)
     - Open... (Ctrl+O)
     - Close (Ctrl+W)
-    - Save (Ctrl+S) - Désactivé si projet non modifié
+    - Save (Ctrl+S) - Disabled if project not modified
     - Save as... (Ctrl+Shift+S)
-    - Export Map - Non implémenté
-    - Import Map - Non implémenté
-    - Recent Projects... - Non implémenté
+    - Export Map - Not implemented
+    - Import Map - Not implemented
+    - Recent Projects... - Not implemented
     - Quit (Ctrl+Q)
   
-  - **Edit** :
-    - Undo (Ctrl+Z) - Non implémenté
-    - Redo (Ctrl+Y) - Non implémenté
-    - History - Non implémenté
-    - Cut (Ctrl+X) - Non implémenté
-    - Copy (Ctrl+C) - Non implémenté
-    - Paste (Ctrl+V) - Non implémenté
-    - Delete (Del) - Non implémenté
+  - **Edit**:
+    - Undo (Ctrl+Z) - Not implemented
+    - Redo (Ctrl+Y) - Not implemented
+    - History - Not implemented
+    - Cut (Ctrl+X) - Not implemented
+    - Copy (Ctrl+C) - Not implemented
+    - Paste (Ctrl+V) - Not implemented
+    - Delete (Del) - Not implemented
 
-  - **Display** :
-    - **Journey** :
-      - JourneyList - Non implémenté
-    - **Zoom** :
-      - Zoom in (Ctrl+=) - Non implémenté
-      - Zoom out (Ctrl+-) - Non implémenté
-      - Reset (Ctrl+0) - Non implémenté
+  - **Display**:
+    - **Journey**:
+      - JourneyList - Not implemented
+    - **Zoom**:
+      - Zoom in (Ctrl+=) - Not implemented
+      - Zoom out (Ctrl+-) - Not implemented
+      - Reset (Ctrl+0) - Not implemented
 
-  - **Project** :
-    - **View** :
-      - Journey - Non implémenté
-      - Relations - Non implémenté
-      - Chapters - Non implémenté
-    - **Components...** :
-      - Agent - Fonctionnel
-      - État - Fonctionnel
-      - Event - Fonctionnel
-    - **Relations...** :
-      - Link State and Event - Fonctionnel
+  - **Project**:
+    - **View**:
+      - Journey - Not implemented
+      - Relations - Not implemented
+      - Chapters - Not implemented
+    - **Components...**:
+      - Agent - Functional
+      - State - Functional
+      - Event - Functional
+    - **Relations...**:
+      - Link State and Event - Functional
 
-  - **About** :
-    - Change Log - Fonctionnel
-    - About Planoscript - Fonctionnel
+  - **About**:
+    - Change Log - Functional
+    - About Planoscript - Functional
 
-- **Comportement** :
-  - Les menus sont désactivés quand aucun projet n'est ouvert (RG007).
-  - Le menu "Save" est désactivé si le projet n'est pas modifié.
-
-
-### 2. Barre d'en-tête de la fenêtre
-- **Contenu** :
-  - **Titre** : Format dynamique : `"Planoscript : {nom_projet} ({chemin_fichier})"` ou `"Planoscript : start your new project"` si aucun projet n'est ouvert.
-  - **Style** : Titre de fenêtre natif du système d'exploitation.
+- **Behavior**:
+  - Menus are disabled when no project is open (RG007).
+  - The "Save" menu is disabled if the project is not modified.
 
 
-### 3. Barre des composants (Left) - *Implémentée mais non intégrée*
-- **Fichier** : `./src/ui/widgets/components_toolbar.py`
-- **Description** : Barre latérale pour gérer les types de composants.
-- **Largeur** : 40px.
-- **Style** :
-  - Fond : `#f8f8f8`.
-  - Bordure droite : `1px solid #ddd`.
-
-- **Éléments** : Boutons avec icônes SVG (24x24px) :
-  - "Référence temporelle" (icône : `./src/ui/asset/icon/calendar.svg`)
-  - "Référence spatiale" (icône : `./src/ui/asset/icon/map.svg`)
-  - "Agent" (icône : `./src/ui/asset/icon/agent.svg`)
-  - "État" (icône : `./src/ui/asset/icon/state.svg`)
-  - "Évènement" (icône : `./src/ui/asset/icon/event.svg`)
-  - "Relation" (icône : `./src/ui/asset/icon/relation.svg`)
-
-- **Style des boutons** :
-  - Fond : `#ffffff`.
-  - Bordure : `1px solid #ddd`.
-  - Hover : Fond `#AABBCC`, bordure `#AABBCC`.
-  - Pressed : Fond `#AABBCC`, bordure `2px solid #555555`.
-
-- **Comportement** :
-  - Émet un signal `component_selected` avec le type de composant.
-  - Émet un signal `relation_selected` pour le bouton Relation.
+### 2. Window Title Bar
+- **Content**:
+  - **Title**: Dynamic format: `"Planoscript : {project_name} ({file_path})"` or `"Planoscript : start your new project"` if no project is open.
+  - **Style**: Native operating system window title.
 
 
-### 4. Barre des parcours (Right) - *Implémentée mais non intégrée*
-- **Fichier** : `./src/ui/widgets/journeys_toolbar.py`
-- **Description** : Barre latérale pour gérer les parcours de la carte narrative.
-- **Largeur** : 40px.
-- **Style** :
-  - Fond : `#f8f8f8`.
-  - Bordure gauche : `1px solid #ddd`.
+### 3. Components Bar (Left) - *Implemented but not integrated*
+- **File**: `./src/ui/widgets/components_toolbar.py`
+- **Description**: Sidebar for managing component types.
+- **Width**: 40px.
+- **Style**:
+  - Background: `#f8f8f8`.
+  - Right border: `1px solid #ddd`.
 
-- **Éléments** :
-  - **Boutons d'action** (en haut) :
-    - "Ajouter" (icône : `./src/ui/asset/icon/addJourney.svg`) → Crée un nouveau parcours.
-    - "Supprimer" (icône : `./src/ui/asset/icon/delJourney.svg`) → Supprime le parcours sélectionné.
-      - *Désactivé si un seul parcours reste*.
-  - **Séparateur** : Ligne horizontale (`#ccc`, 1px).
-  - **Liste des parcours** :
-    - Chaque parcours est un bouton avec icône `./src/ui/asset/icon/journey.svg`.
-    - **Nom** : Affiché dans le tooltip.
-    - **État** : Bouton coché si le parcours est actif.
-    - **Couleur** : Fond `#AABBCC` quand sélectionné.
+- **Elements**: Buttons with SVG icons (24x24px):
+  - "Time Reference" (icon: `./src/ui/asset/icon/calendar.svg`)
+  - "Spatial Reference" (icon: `./src/ui/asset/icon/map.svg`)
+  - "Agent" (icon: `./src/ui/asset/icon/agent.svg`)
+  - "State" (icon: `./src/ui/asset/icon/state.svg`)
+  - "Event" (icon: `./src/ui/asset/icon/event.svg`)
+  - "Relation" (icon: `./src/ui/asset/icon/relation.svg`)
 
-- **Comportement** :
-  - Cliquer sur un parcours **affiche** ses composants/relations dans l'espace de travail.
-  - **Par défaut** : Le premier parcours est toujours affiché et ne peut pas être supprimé.
+- **Button Style**:
+  - Background: `#ffffff`.
+  - Border: `1px solid #ddd`.
+  - Hover: Background `#AABBCC`, border `#AABBCC`.
+  - Pressed: Background `#AABBCC`, border `2px solid #555555`.
 
-
-### 5. Barre des onglets (Center) - *Partiellement implémentée*
-- **Fichier** : `./src/ui/widgets/tab_bar.py`
-- **Description** : Barre d'onglets pour basculer entre les vues du projet.
-- **Hauteur** : 40px.
-- **Style** :
-  - Fond : `#f8f8f8`.
-  - Police : Arial, 9pt.
-
-- **Éléments** :
-  - Onglet "Parcours" - **Actif par défaut**
-  - Onglet "Relations" - *Non implémenté*
-  - Onglet "Chapitres" - *Non implémenté*
-
-- **Style des onglets** :
-  - Fond : `#f8f8f8`.
-  - Bordure inférieure : `2px solid transparent` (transparent quand non sélectionné).
-  - Hover : Fond `#e0e0e0`.
-  - Sélectionné : Fond `#ffffff`, texte en **gras**, bordure inférieure visible.
+- **Behavior**:
+  - Emits a `component_selected` signal with the component type.
+  - Emits a `relation_selected` signal for the Relation button.
 
 
-### 6. Espace de travail (Center)
-- **Fichier** : `./src/ui/views/journey_workspace.py`
-- **Description** : Espace de travail principal pour visualiser et éditer la carte narrative.
-- **Classe** : `JourneyWorkspace` (héritant de `QGraphicsView`).
+### 4. Journeys Bar (Right) - *Implemented but not integrated*
+- **File**: `./src/ui/widgets/journeys_toolbar.py`
+- **Description**: Sidebar for managing narrative map journeys.
+- **Width**: 40px.
+- **Style**:
+  - Background: `#f8f8f8`.
+  - Left border: `1px solid #ddd`.
 
-- **Style** :
-  - Fond : `#ffffff`.
-  - Bordure : Aucune (intégré dans QGraphicsView).
+- **Elements**:
+  - **Action Buttons** (at the top):
+    - "Add" (icon: `./src/ui/asset/icon/addJourney.svg`) → Creates a new journey.
+    - "Delete" (icon: `./src/ui/asset/icon/delJourney.svg`) → Deletes the selected journey.
+      - *Disabled if only one journey remains*.
+  - **Separator**: Horizontal line (`#ccc`, 1px).
+  - **Journey List**:
+    - Each journey is a button with icon `./src/ui/asset/icon/journey.svg`.
+    - **Name**: Displayed in the tooltip.
+    - **State**: Button checked if the journey is active.
+    - **Color**: Background `#AABBCC` when selected.
 
-- **Fonctionnalités implémentées** :
+- **Behavior**:
+  - Clicking on a journey **displays** its components/relations in the workspace.
+  - **Default**: The first journey is always displayed and cannot be deleted.
+
+
+### 5. Tab Bar (Center) - *Partially implemented*
+- **File**: `./src/ui/widgets/tab_bar.py`
+- **Description**: Tab bar for switching between project views.
+- **Height**: 40px.
+- **Style**:
+  - Background: `#f8f8f8`.
+  - Font: Arial, 9pt.
+
+- **Elements**:
+  - "Journeys" tab - **Active by default**
+  - "Relations" tab - *Not implemented*
+  - "Chapters" tab - *Not implemented*
+
+- **Tab Style**:
+  - Background: `#f8f8f8`.
+  - Bottom border: `2px solid transparent` (transparent when not selected).
+  - Hover: Background `#e0e0e0`.
+  - Selected: Background `#ffffff`, text in **bold**, bottom border visible.
+
+
+### 6. Workspace (Center)
+- **File**: `./src/ui/views/journey_workspace.py`
+- **Description**: Main workspace for viewing and editing the narrative map.
+- **Class**: `JourneyWorkspace` (inheriting from `QGraphicsView`).
+
+- **Style**:
+  - Background: `#ffffff`.
+  - Border: None (integrated in QGraphicsView).
+
+- **Implemented Features**:
   
-  - **Grille d'alignement** :
-    - **Grille principale** : Pas de 20x20 pixels, couleur `#e0e0e0`.
-    - **Sous-grille** : Carrés de 4x4 pas (80x80 pixels), couleur `#808080`.
-    - **Visibilité** : Toujours visible.
-    - **Magnétisme** : *Non encore implémenté* - les nœuds ne s'accrochent pas automatiquement.
-    - **Optimisation** : La grille est redessinée dynamiquement uniquement pour la zone visible.
+  - **Alignment Grid**:
+    - **Main grid**: 20x20 pixel step, color `#e0e0e0`.
+    - **Sub-grid**: 4x4 step squares (80x80 pixels), color `#808080`.
+    - **Visibility**: Always visible.
+    - **Snap**: *Not yet implemented* - nodes do not automatically snap.
+    - **Optimization**: The grid is dynamically redrawn only for the visible area.
 
-  - **Défilement** :
-    - **Type** : Défilement infini (théoriquement).
-    - **Barres de défilement** : Toujours visibles.
-    - **Style des barres** :
-      - Fond : `#f0f0f0`.
-      - Poignée : `#c0c0c0`.
-      - Boutons : `#e0e0e0`.
-    - **Auto-défilement** : Quand la souris est près des bords (marge de 50px), la vue défile automatiquement.
-    - **Limite de la scène** : 4000x4000 pixels par défaut, s'étend dynamiquement quand les nœuds dépassent.
+  - **Scrolling**:
+    - **Type**: Infinite scrolling (theoretically).
+    - **Scroll bars**: Always visible.
+    - **Scroll bar style**:
+      - Background: `#f0f0f0`.
+      - Handle: `#c0c0c0`.
+      - Buttons: `#e0e0e0`.
+    - **Auto-scroll**: When the mouse is near the edges (50px margin), the view scrolls automatically.
+    - **Scene limit**: 4000x4000 pixels by default, extends dynamically when nodes exceed it.
 
-  - **Zoom** :
-    - **Plage** : 10% à 300% (via `ZoomBar`).
-    - **Comportement** : *Non connecté* - les contrôles de zoom existent mais ne sont pas connectés à la vue.
-    - **Raccourcis** : *Non implémentés* (Ctrl+, Ctrl-, Ctrl+0).
+  - **Zoom**:
+    - **Range**: 10% to 300% (via `ZoomBar`).
+    - **Behavior**: *Not connected* - zoom controls exist but are not connected to the view.
+    - **Shortcuts**: *Not implemented* (Ctrl+, Ctrl-, Ctrl+0).
 
-  - **Glisser-déposer** :
-    - **Activé** pour les nœuds et relations.
-    - **Comportement** :
-      - Les nœuds peuvent être déplacés librement.
-      - *Les nœuds ne s'accrochent pas à la grille* pendant le déplacement.
-      - La scène s'étend automatiquement quand un nœud est déplacé vers les bords.
+  - **Drag and Drop**:
+    - **Enabled** for nodes and relations.
+    - **Behavior**:
+      - Nodes can be moved freely.
+      - *Nodes do not snap to the grid* during movement.
+      - The scene extends automatically when a node is dragged toward the edges.
 
-- **Éléments visuels** :
+- **Visual Elements**:
 
-  - **Nœuds (Composants)** :
-    - **Fichiers** : 
+  - **Nodes (Components)**:
+    - **Files**: 
       - `./src/ui/nodes/base_node.py` (BaseNode)
       - `./src/ui/nodes/agent_node.py` (AgentNode)
       - `./src/ui/nodes/state_node.py` (StateNode)
       - `./src/ui/nodes/event_node.py` (EventNode)
-    - **Types implémentés** : Agent, État, Évènement.
-    - **Types non implémentés** : Référence temporelle, Référence spatiale.
-    - **Forme** : Rectangle (120x80px par défaut).
-    - **Style** :
-      - Fond : `#f0f0f0` (gris clair).
-      - Bordure : `1px solid #808080` (gris moyen).
-      - Ombre : Aucune (à implémenter).
-      - Sélection : Fond `#dce6ff` (bleu très clair), bordure `#0078d7` (bleu).
-    - **Contenu** :
-      - **Nom** : Texte en haut, police Arial 10pt **gras**.
-      - **Description** : *Non affichée* - à implémenter.
-    - **Points d'accroche** :
-      - 4 points (haut, bas, gauche, droite) - *Non encore implémentés visuellement*.
-      - Devraient être visibles au survol (carrés de 8px, couleur `#4CAF50`).
+    - **Implemented types**: Agent, State, Event.
+    - **Not implemented types**: Time Reference, Spatial Reference.
+    - **Shape**: Rectangle (120x80px by default).
+    - **Style**:
+      - Background: `#f0f0f0` (light gray).
+      - Border: `1px solid #808080` (medium gray).
+      - Shadow: None (to be implemented).
+      - Selection: Background `#dce6ff` (very light blue), border `#0078d7` (blue).
+    - **Content**:
+      - **Name**: Text at the top, Arial 10pt **bold**.
+      - **Description**: *Not displayed* - to be implemented.
+    - **Anchor Points**:
+      - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
+      - Should be visible on hover (8px squares, color `#4CAF50`).
 
-  - **Relations (Connexions)** :
-    - **Fichier** : `./src/ui/nodes/connection.py`
-    - **Classe** : `Connection` (héritant de `QGraphicsPathItem`).
-    - **Style** :
-      - **Directionnelle** : Ligne avec flèche, couleur à définir.
-      - **Non directionnelle** : Ligne simple, couleur `#999`.
-      - **Épaisseur** : 2px.
-    - **Annotation** :
-      - *Non implémentée* - texte au milieu de la relation.
-      - Devrait avoir un fond blanc semi-transparent pour la lisibilité.
-
-
-### 7. Barre d'information (Bottom Left)
-- **Fichier** : `./src/ui/widgets/info_bar.py`
-- **Description** : Affiche des informations contextuelles sur l'objet sélectionné.
-- **Largeur** : 80% de la zone bas (4/5 du layout).
-- **Hauteur** : 30px.
-- **Style** :
-  - Fond : `#f0f0f0`.
-  - Bordure supérieure : `1px solid #ddd`.
-
-- **Éléments** :
-  - **Texte** : Label avec style `font-size: 10pt; color: #666;`.
-  - **Contenu** :
-    - Si un **composant** est sélectionné : Affiche un message personnalisé.
-    - Si une **relation** est sélectionnée : Affiche un message personnalisé.
-    - Si **rien n'est sélectionné** : Vide.
+  - **Relations (Connections)**:
+    - **File**: `./src/ui/nodes/connection.py`
+    - **Class**: `Connection` (inheriting from `QGraphicsPathItem`).
+    - **Style**:
+      - **Directional**: Line with arrow, color to be defined.
+      - **Non-directional**: Simple line, color `#999`.
+      - **Thickness**: 2px.
+    - **Annotation**:
+      - *Not implemented* - text in the middle of the relation.
+      - Should have a semi-transparent white background for readability.
 
 
-### 8. Barre de zoom (Bottom Right) - *Désactivée*
-- **Fichier** : `./src/ui/widgets/zoom_bar.py`
-- **Description** : Contrôle du niveau de zoom.
-- **Largeur** : 20% de la zone bas (1/5 du layout).
-- **Hauteur** : 30px.
-- **Style** :
-  - Fond : `#f0f0f0`.
-  - Bordure supérieure : `1px solid #ddd`.
-  - Bordure gauche : `1px solid #ddd`.
+### 7. Information Bar (Bottom Left)
+- **File**: `./src/ui/widgets/info_bar.py`
+- **Description**: Displays contextual information about the selected object.
+- **Width**: 80% of the bottom area (4/5 of the layout).
+- **Height**: 30px.
+- **Style**:
+  - Background: `#f0f0f0`.
+  - Top border: `1px solid #ddd`.
 
-- **Éléments** (de gauche à droite) :
-  - **Bouton "Zoom arrière"** :
-    - Texte : "-"
-    - Action : Réduit le zoom de 10% - *Non connecté*.
-    - Raccourci : Ctrl - - *Non implémenté*.
-  - **Curseur de zoom** :
-    - Type : `QSlider` horizontal.
-    - Plage : 10% à 190% (valeur interne, correspond à 10%-300% après mapping).
-    - Valeur par défaut : 100%.
-    - Incrément : 10%.
-    - Tooltip : Affiche le pourcentage actuel.
-  - **Bouton "Zoom avant"** :
-    - Texte : "+"
-    - Action : Augmente le zoom de 10% - *Non connecté*.
-    - Raccourci : Ctrl + - *Non implémenté*.
-  - **Bouton "Réinitialiser"** :
-    - *Non implémenté* dans l'interface.
-    - Raccourci : Ctrl 0 - *Non implémenté*.
-  - **Affichage du pourcentage** :
-    - *Non implémenté* - remplacé par le tooltip du slider.
+- **Elements**:
+  - **Text**: Label with style `font-size: 10pt; color: #666;`.
+  - **Content**:
+    - If a **component** is selected: Displays a custom message.
+    - If a **relation** is selected: Displays a custom message.
+    - If **nothing is selected**: Empty.
 
 
-### 9. Message de bienvenue
-- **Description** : Affiché quand aucun projet n'est ouvert.
-- **Contenu** :
+### 8. Zoom Bar (Bottom Right) - *Disabled*
+- **File**: `./src/ui/widgets/zoom_bar.py`
+- **Description**: Zoom level control.
+- **Width**: 20% of the bottom area (1/5 of the layout).
+- **Height**: 30px.
+- **Style**:
+  - Background: `#f0f0f0`.
+  - Top border: `1px solid #ddd`.
+  - Left border: `1px solid #ddd`.
+
+- **Elements** (from left to right):
+  - **"Zoom Out" Button**:
+    - Text: "-"
+    - Action: Decreases zoom by 10% - *Not connected*.
+    - Shortcut: Ctrl - - *Not implemented*.
+  - **Zoom Slider**:
+    - Type: Horizontal `QSlider`.
+    - Range: 10% to 190% (internal value, corresponds to 10%-300% after mapping).
+    - Default value: 100%.
+    - Increment: 10%.
+    - Tooltip: Displays the current percentage.
+  - **"Zoom In" Button**:
+    - Text: "+"
+    - Action: Increases zoom by 10% - *Not connected*.
+    - Shortcut: Ctrl + - *Not implemented*.
+  - **"Reset" Button**:
+    - *Not implemented* in the interface.
+    - Shortcut: Ctrl 0 - *Not implemented*.
+  - **Percentage Display**:
+    - *Not implemented* - replaced by the slider tooltip.
+
+
+### 9. Welcome Message
+- **Description**: Displayed when no project is open.
+- **Content**:
   ```html
   <h2>Build the plan of your new script.</h2>
   <p>Start by <a>creating a new project</a> or open an existing project.</p>
   ```
-- **Style** : Texte centré avec padding de 40px.
-- **Comportement** : Le lien "creating a new project" déclenche `_create_project()`.
+- **Style**: Centered text with 40px padding.
+- **Behavior**: The "creating a new project" link triggers `_create_project()`.
 
 
 ---
 
-## Fonctionnalités implémentées
+## Implemented Features
 
-### ✅ Fonctionnel
-- [x] Création d'un nouveau projet
-- [x] Ouverture d'un projet existant
-- [x] Fermeture d'un projet avec confirmation
-- [x] Sauvegarde d'un projet (Ctrl+S)
-- [x] Sauvegarde sous un autre nom (Ctrl+Shift+S)
-- [x] Affichage du message de bienvenue
-- [x] Création de nœuds (Agent, État, Évènement) via menu
-- [x] Création de relations State-Event
-- [x] Sélection simple des nœuds et relations
-- [x] Déplacement des nœuds dans l'espace de travail
-- [x] Défilement automatique quand on déplace vers les bords
-- [x] Extension dynamique de la scène
-- [x] Affichage de la grille (20px + 80px)
-- [x] Barre d'information contextuelle
-- [x] Gestion de l'état modifié du projet
-- [x] Dialogues "About" et "Change Log"
+### Functional
+- [x] Creating a new project
+- [x] Opening an existing project
+- [x] Closing a project with confirmation
+- [x] Saving a project (Ctrl+S)
+- [x] Save as... (Ctrl+Shift+S)
+- [x] Displaying the welcome message
+- [x] Creating nodes (Agent, State, Event) via menu
+- [x] Creating State-Event relations
+- [x] Simple selection of nodes and relations
+- [x] Moving nodes in the workspace
+- [x] Auto-scrolling when moving toward edges
+- [x] Dynamic scene extension
+- [x] Grid display (20px + 80px)
+- [x] Contextual information bar
+- [x] Management of project modified state
+- [x] "About" and "Change Log" dialogs
 
-### ⚠️ Partiellement implémenté
-- [ ] Barre des composants (existe mais non intégrée)
-- [ ] Barre des parcours (existe mais non intégrée)
-- [ ] Barre d'onglets (existe mais seul "Parcours" est actif)
-- [ ] Barre de zoom (existe mais non connectée)
-- [ ] Nœuds Référence temporelle (classe non implémentée)
-- [ ] Nœuds Référence spatiale (classe non implémentée)
+### Partially Implemented
+- [ ] Components bar (exists but not integrated)
+- [ ] Journeys bar (exists but not integrated)
+- [ ] Tab bar (exists but only "Journeys" is active)
+- [ ] Zoom bar (exists but not connected)
+- [ ] Time Reference nodes (class not implemented)
+- [ ] Spatial Reference nodes (class not implemented)
 
-### ❌ Non implémenté
-- [ ] Magnétisme de la grille
-- [ ] Points d'accroche visibles sur les nœuds
-- [ ] Annotation sur les relations
-- [ ] Zoom fonctionnel (raccourcis et contrôles)
-- [ ] Défilement infini complet (limité à 4000x4000)
-- [ ] Sélection multiple
-- [ ] Copier/Coller/Couper
-- [ ] Annuler/Refaire
-- [ ] Historique des modifications
-- [ ] Export/Import de cartes
-- [ ] Projets récents
-- [ ] Vue "Relations"
-- [ ] Vue "Chapitres"
-- [ ] Suppression de nœuds/relations
+### Not Implemented
+- [ ] Grid snap
+- [ ] Visible anchor points on nodes
+- [ ] Annotation on relations
+- [ ] Functional zoom (shortcuts and controls)
+- [ ] Complete infinite scrolling (limited to 4000x4000)
+- [ ] Multiple selection
+- [ ] Copy/Paste/Cut
+- [ ] Undo/Redo
+- [ ] Modification history
+- [ ] Map Export/Import
+- [ ] Recent projects
+- [ ] "Relations" view
+- [ ] "Chapters" view
+- [ ] Deletion of nodes/relations
 
 
 ---
 
-## Structure des fichiers
+## File Structure
 
 ```
 ./src/ui/
-├── main_window.py          # Fenêtre principale
+├── main_window.py          # Main window
 ├── views/
-│   └── journey_workspace.py # Espace de travail
+│   └── journey_workspace.py # Workspace
 ├── widgets/
-│   ├── components_toolbar.py # Barre des composants (non intégrée)
-│   ├── journeys_toolbar.py   # Barre des parcours (non intégrée)
-│   ├── tab_bar.py           # Barre d'onglets (partiellement intégrée)
-│   ├── info_bar.py          # Barre d'information (intégrée)
-│   └── zoom_bar.py          # Barre de zoom (non intégrée)
+│   ├── components_toolbar.py # Components bar (not integrated)
+│   ├── journeys_toolbar.py   # Journeys bar (not integrated)
+│   ├── tab_bar.py           # Tab bar (partially integrated)
+│   ├── info_bar.py          # Information bar (integrated)
+│   └── zoom_bar.py          # Zoom bar (not integrated)
 ├── nodes/
-│   ├── base_node.py         # Classe de base pour les nœuds
-│   ├── agent_node.py        # Nœud Agent
-│   ├── state_node.py        # Nœud État
-│   ├── event_node.py        # Nœud Évènement
-│   └── connection.py         # Connexions entre nœuds
+│   ├── base_node.py         # Base class for nodes
+│   ├── agent_node.py        # Agent node
+│   ├── state_node.py        # State node
+│   ├── event_node.py        # Event node
+│   └── connection.py         # Connections between nodes
 └── dialogs/
-    ├── about_dialog.py       # Dialogue À propos
-    └── change_log_dialog.py  # Dialogue Journal des modifications
+    ├── about_dialog.py       # About dialog
+    └── change_log_dialog.py  # Change Log dialog
 ```
 
 
 ---
 
-## Notes de conception
+## Design Notes
 
-1. **Architecture** : L'application suit une architecture en couches avec séparation entre :
-   - **UI** (`./src/ui/`) : Composants visuels
-   - **Core** (`./src/core/`) : Modèles et services
-   - **Use Cases** (`./src/usecases/`) : Logique applicative
-
-2. **Pattern MVC** : Les classes UI utilisent des services et des cas d'utilisation pour manipuler les données.
-
-3. **Évolutivité** : Les barres latérales et la barre de zoom sont implémentées comme des widgets séparés, prêts à être intégrés.
-
-4. **Style** : L'application utilise des feuilles de style Qt (QSS) pour un rendu cohérent.
-
-5. **Internationalisation** : Les textes sont actuellement en français et en anglais (mélangés). Une refactorisation pour l'i18n est recommandée.
+1. **Architecture**: The application follows a layered architecture with separation between:
+   - **UI** (`./src/ui/`): Visual components
+   - **Core** (`./src/core/`): Models and services
+   - **Use Cases** (`./src/usecases/`): Application logic
+2. **MVC Pattern**: UI classes use services and use cases to manipulate data.
+3. **Scalability**: The sidebars and zoom bar are implemented as separate widgets, ready to be integrated.
+4. **Style**: The application uses Qt Style Sheets (QSS) for consistent rendering.
+5. **Internationalization**: Texts are currently in English only. A refactoring for i18n is recommended.
 
 
 ---
 
-## Prochaines étapes recommandées
+## Recommended Next Steps
 
-1. **Intégrer les barres latérales** dans `main_window.py`
-2. **Connecter le zoom** entre `ZoomBar` et `JourneyWorkspace`
-3. **Implémenter le magnétisme** de la grille
-4. **Ajouter les points d'accroche** sur les nœuds
-5. **Connecter la barre d'onglets** pour changer de vue
-6. **Implémenter les nœuds manquants** (TimeRef, SpaceRef)
-7. **Ajouter les fonctionnalités manquantes** (sélection multiple, copier/coller, etc.)
+1. **Integrate the sidebars** into `main_window.py`
+2. **Connect the zoom** between `ZoomBar` and `JourneyWorkspace`
+3. **Implement grid snap**
+4. **Add anchor points** on nodes
+5. **Connect the tab bar** to switch views
+6. **Add the missing features** (multiple selection, copy/paste, etc.)
