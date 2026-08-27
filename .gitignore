@@ -6,6 +6,7 @@ __pycache__/
 
 # Dossiers de travail
 ai_sessions/
+projects/
 
 # Environnements virtuels
 .venv/

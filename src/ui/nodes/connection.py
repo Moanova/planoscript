@@ -1,10 +1,15 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
 # Script       : connection.py
-# Version      : 3
+# Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 2026-08-27
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : TSC + Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Connection for Planoscript.
@@ -44,25 +49,23 @@ from ui.nodes.base_node import BaseNode
 
 # Types of relations that are separate entities (n-n cardinality)
 ENTITY_RELATION_TYPES = {
-    "Agent_state_rel",
-    "Agent_event_rel", 
-    "State_event_rel",
-    "Event_state_rel",
-    "Agent_rel_hist"
+    "State_agent_rel",
+    "State_node", 
+    "Journey_node"
 }
 
 # Types of relations that are direct fields (1-n cardinality)
 # Format: (source_type, target_type) -> (target_field_name, source_field_name)
 DIRECT_RELATION_FIELDS = {
-    (NodeType.TIME_REF, NodeType.STATE): ("time_ref_id", None),
-    (NodeType.TIME_REF, NodeType.EVENT): ("time_ref_id", None),
-    (NodeType.SPACE_REF, NodeType.STATE): ("space_ref_id", None),
-    (NodeType.SPACE_REF, NodeType.EVENT): ("space_ref_id", None),
+    #(NodeType.TIME_REF, NodeType.STATE): ("time_ref_id", None),
+    #(NodeType.TIME_REF, NodeType.EVENT): ("time_ref_id", None),
+    #(NodeType.SPACE_REF, NodeType.STATE): ("space_ref_id", None),
+    #(NodeType.SPACE_REF, NodeType.EVENT): ("space_ref_id", None),
     # Reverse mappings (for consistency)
-    (NodeType.STATE, NodeType.TIME_REF): (None, "time_ref_id"),
-    (NodeType.EVENT, NodeType.TIME_REF): (None, "time_ref_id"),
-    (NodeType.STATE, NodeType.SPACE_REF): (None, "space_ref_id"),
-    (NodeType.EVENT, NodeType.SPACE_REF): (None, "space_ref_id"),
+    #(NodeType.STATE, NodeType.TIME_REF): (None, "time_ref_id"),
+    #(NodeType.EVENT, NodeType.TIME_REF): (None, "time_ref_id"),
+    #(NodeType.STATE, NodeType.SPACE_REF): (None, "space_ref_id"),
+    #(NodeType.EVENT, NodeType.SPACE_REF): (None, "space_ref_id"),
 }
 
 
@@ -98,16 +101,16 @@ def get_relation_type(source_type: NodeType, target_type: NodeType) -> Optional[
     
     # Check entity relations
     relation_mapping = {
-        (NodeType.AGENT, NodeType.STATE): "Agent_state_rel",
-        (NodeType.AGENT, NodeType.EVENT): "Agent_event_rel",
-        (NodeType.AGENT, NodeType.AGENT): "Agent_rel_hist",
+        #(NodeType.AGENT, NodeType.STATE): "Agent_state_rel",
+        #(NodeType.AGENT, NodeType.EVENT): "Agent_event_rel",
+        #(NodeType.AGENT, NodeType.AGENT): "Agent_rel_hist",
         (NodeType.STATE, NodeType.EVENT): "State_event_rel",
         (NodeType.EVENT, NodeType.STATE): "Event_state_rel",
         # Reverse mappings for consistency
         (NodeType.STATE, NodeType.AGENT): "Agent_state_rel",
         (NodeType.EVENT, NodeType.AGENT): "Agent_event_rel",
-        (NodeType.TIME_REF, NodeType.TIME_REF): None,
-        (NodeType.SPACE_REF, NodeType.SPACE_REF): None,
+        #(NodeType.TIME_REF, NodeType.TIME_REF): None,
+        #(NodeType.SPACE_REF, NodeType.SPACE_REF): None,
     }
     
     return relation_mapping.get((source_type, target_type))

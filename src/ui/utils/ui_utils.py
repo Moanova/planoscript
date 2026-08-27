@@ -3,8 +3,8 @@
 # Script       : ui_utils.py
 # Version      : 1
 # Date         : 13-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPixmap, QPainter, QIcon
@@ -12,16 +12,16 @@ from PySide6.QtSvg import QSvgRenderer
 
 def create_colored_icon(svg_path, color_hex="#000000"):
     """
-    Charge un SVG et applique une couleur de remplissage.
+    Loads an SVG and applies a fill color. 
 
-    Objectif: éviter le problème de transmission de la couleur du widget au fichier SVG.
+    Objective: Avoid the issue of passing the widget's color to the SVG file. 
 
     Args:
-        svg_path (str): Chemin vers le fichier SVG
-        color_hex (str): Couleur au format hex (#RRGGBB)
+        svg_path (str): Path to the SVG file
+        color_hex (str): Color in hex format (#RRGGBB)
 
     Returns:
-        QIcon: Icône colorée
+        QIcon: Colored icon
     """
     renderer = QSvgRenderer(svg_path)
     size = renderer.defaultSize()

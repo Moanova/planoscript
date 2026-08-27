@@ -2,16 +2,21 @@
 # Application  : Planoscript
 # Script       : main_window.py
 # Version      : 1
-# Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Date         : 06-01-2026
+# Design       : TSC
+# Build        : TSC + Mistral Vibe
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 2026-08-27
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : TSC + Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QMenuBar, QMenu, QLabel, QPushButton, QGraphicsView, QGraphicsScene,
     QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsItem, QFrame,
     QMessageBox, QStatusBar, QDialog, QTextEdit, QVBoxLayout, QPushButton,
-    QGridLayout, QStackedWidget, QFileDialog
+    QGridLayout, QFileDialog
 )
 from PySide6.QtCore import Qt, QSize, QSizeF, QPointF
 from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
@@ -20,16 +25,13 @@ import sys
 import os
 
 from ui.views.journey_workspace import JourneyWorkspace
-from ui.widgets.tab_bar import TabBar
-from ui.widgets.components_toolbar import ComponentsToolbar
-from ui.widgets.journeys_toolbar import JourneysToolbar
 from ui.widgets.info_bar import InfoBar
-from ui.widgets.zoom_bar import ZoomBar
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
 from core.services.project_service import ProjectService
 from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
+from core.services.state_node_service import StateNodeService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.file_management.load_project_usecase import LoadProjectUseCase
 from usecases.file_management.save_project_usecase import SaveProjectUseCase
@@ -38,30 +40,30 @@ from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 
 class MainWindow(QMainWindow):
-    """Fenêtre principale de l'application"""
+    """Main Application Window"""
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # ---------------------------------------------------------------------
-    # Création de l'environnement
+    # Environment setup
     # ---------------------------------------------------------------------
     def __init__(self):
         super().__init__()
 
         self.current_narrative_map_index = 0
 
-        # Booléen pour définir si un projet est ouvert ou non
+        # Boolean to define whether a project is opened or not
         self.project_opened = False
 
-        # Compteur de nœuds pour activer ou désactiver le bouton "Relation"
+        # Node counter to enable or disable the "Relation" button
         self.node_count = 0
-        # Variables pour la création des relations
+        # Variables for relation creation
         self.relation_type = None
         self.waiting_for_source = False
         self.waiting_for_target = False
         self.source_node = None
 
-        # Initialisation des dépendances
+        # Dependencies initialization
         self.project_service = ProjectService()
         self.create_project_usecase = CreateProjectUseCase(self.project_service)
         self.load_project_usecase = LoadProjectUseCase(self.project_service)
@@ -74,7 +76,7 @@ class MainWindow(QMainWindow):
 
         self.setGeometry(100, 100, 1280, 720)
 
-        # Création du widget central et du layout
+        # Central widget and layout creation
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
@@ -82,44 +84,43 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Barre de menu
+        # Menu bar
         self._create_menu_bar()
 
-        # Espace central
+        # Central space
         self.middle_section = QWidget()
         self.middle_layout = QGridLayout(self.middle_section)
         self.middle_layout.setContentsMargins(0, 0, 0, 0)
         self.middle_layout.setSpacing(0)
         main_layout.addWidget(self.middle_section, 1)
 
-        # Initialisation différée des éléments de workspace
-        self.tab_bar = None
-        self.stacked_workspaces = None
+        # Deferred initialization of workspace
+        self.workspace = None
         self._show_welcome_message()
 
-        # Section du bas
+        # Bottom section
         bottom_layout = QHBoxLayout()
         bottom_layout.setContentsMargins(0, 0, 0, 0)
         bottom_layout.setSpacing(0)
         
-        # Barre d'information (75%)
+        # Information bar (75%)
         self.info_bar = InfoBar()
         bottom_layout.addWidget(self.info_bar, 4)  # 75%
         
-        # Barre de zoom (25%)
+        # Zoom bar (25%)
         #self.zoom_bar = ZoomBar()
         #bottom_layout.addWidget(self.zoom_bar, 1)  # 25%
         
         main_layout.addLayout(bottom_layout)
         
-        # Barre d'état
+        # Status bar
         #self.status_bar = QStatusBar()
         #self.setStatusBar(self.status_bar)
-        self.setWindowTitle("Planoscript : commencez votre prochain projet")
+        self.setWindowTitle("Planoscript : start your new project")
 
 
     def _create_menu_bar(self):
-        """Créé la barre de menu"""
+        """Creates the menu bar"""
         self.menu_actions = {}
         self.menu_bar = self.menuBar()
         self.menu_bar.setStyleSheet("""
@@ -152,78 +153,74 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # Menu Fichiers
+        # Files menu
         self.file_menu = self.menu_bar.addMenu("Fichiers")
 
-        # RG007: Actions à désactiver sans projet
-        self.menu_actions['new'] = self.file_menu.addAction("Nouveau projet...", self._create_project, "Ctrl+N")
-        self.menu_actions['open'] = self.file_menu.addAction("Ouvrir...", self._open_project, "Ctrl+O")
-        self.menu_actions['close'] = self.file_menu.addAction("Fermer", self._close_project, "Ctrl+W")
-        self.menu_actions['save'] = self.file_menu.addAction("Enregistrer", self._save_project, "Ctrl+S")  # RG006
-        self.menu_actions['save_as'] = self.file_menu.addAction("Enregistrer sous...", self._save_project_as, "Ctrl+Shift+S")
-        self.menu_actions['export_map'] = self.file_menu.addAction("Exporter carte", lambda: None)
+        # Actions to disable without project
+        self.menu_actions['new'] = self.file_menu.addAction("New Project...", self._create_project, "Ctrl+N")
+        self.menu_actions['open'] = self.file_menu.addAction("Open...", self._open_project, "Ctrl+O")
+        self.menu_actions['close'] = self.file_menu.addAction("Close", self._close_project, "Ctrl+W")
+        self.menu_actions['save'] = self.file_menu.addAction("Save", self._save_project, "Ctrl+S")  # RG006
+        self.menu_actions['save_as'] = self.file_menu.addAction("Save as...", self._save_project_as, "Ctrl+Shift+S")
+        self.menu_actions['export_map'] = self.file_menu.addAction("Export Map", lambda: None)
         self.file_menu.addSeparator()
-        self.menu_actions['import_map'] = self.file_menu.addAction("Importer carte", lambda: None)
+        self.menu_actions['import_map'] = self.file_menu.addAction("Import Map", lambda: None)
         self.file_menu.addSeparator()
-        self.file_menu.addAction("Projets récents...", lambda: None)
+        self.file_menu.addAction("Recent Projects...", lambda: None)
         self.file_menu.addSeparator()
-        quit_action = self.file_menu.addAction("Quitter", self._on_quit, "Ctrl+Q")
+        quit_action = self.file_menu.addAction("Quit", self._on_quit, "Ctrl+Q")
 
-        # Menu Edition
-        self.edit_menu = self.menu_bar.addMenu("Édition")
-        self.menu_actions['undo'] = self.edit_menu.addAction("Annuler", lambda: None, "Ctrl+Z")
-        self.menu_actions['redo'] = self.edit_menu.addAction("Rétablir", lambda: None, "Ctrl+Y")
-        self.menu_actions['history'] = self.edit_menu.addAction("Historique", lambda: None)
+        # Edit menu
+        self.edit_menu = self.menu_bar.addMenu("Edit")
+        self.menu_actions['undo'] = self.edit_menu.addAction("Undo", lambda: None, "Ctrl+Z")
+        self.menu_actions['redo'] = self.edit_menu.addAction("Redo", lambda: None, "Ctrl+Y")
+        self.menu_actions['history'] = self.edit_menu.addAction("History", lambda: None)
         self.edit_menu.addSeparator()
-        self.menu_actions['cut'] = self.edit_menu.addAction("Couper", lambda: None, "Ctrl+X")
-        self.menu_actions['copy'] = self.edit_menu.addAction("Copier", lambda: None, "Ctrl+C")
-        self.menu_actions['paste'] = self.edit_menu.addAction("Coller", lambda: None, "Ctrl+V")
-        self.menu_actions['delete'] = self.edit_menu.addAction("Supprimer", lambda: None, "Del")
+        self.menu_actions['cut'] = self.edit_menu.addAction("Cut", lambda: None, "Ctrl+X")
+        self.menu_actions['copy'] = self.edit_menu.addAction("Copy", lambda: None, "Ctrl+C")
+        self.menu_actions['paste'] = self.edit_menu.addAction("Paste", lambda: None, "Ctrl+V")
+        self.menu_actions['delete'] = self.edit_menu.addAction("Delete", lambda: None, "Del")
 
-        # Menu Affichage
-        self.view_menu = self.menu_bar.addMenu("Affichage")
-        self.journey_menu = self.view_menu.addMenu("Parcours")
-        self.menu_actions['list_journeys'] = self.journey_menu.addAction("ListeParcours", lambda: None)
+        # Display menu
+        self.view_menu = self.menu_bar.addMenu("Display")
+        self.journey_menu = self.view_menu.addMenu("Journey")
+        self.menu_actions['list_journeys'] = self.journey_menu.addAction("JounreyList", lambda: None)
         self.zoom_menu = self.view_menu.addMenu("Zoom")
-        self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom avant", lambda: None, "Ctrl+=")
-        self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom arrière", lambda: None, "Ctrl+-")
-        self.menu_actions['zoom_reset'] = self.zoom_menu.addAction("Restaurer zoom", lambda: None, "Ctrl+0")
+        self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
+        self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
+        self.menu_actions['zoom_reset'] = self.zoom_menu.addAction("Reset", lambda: None, "Ctrl+0")
 
-        # Menu Projet
-        self.project_menu = self.menu_bar.addMenu("Projet")
+        # Project menu
+        self.project_menu = self.menu_bar.addMenu("Project")
 
-        self.view_menu = self.project_menu.addMenu("Vue")
-        self.menu_actions['view_journeys'] = self.view_menu.addAction("Parcours", lambda: None)
+        self.view_menu = self.project_menu.addMenu("View")
+        self.menu_actions['view_journeys'] = self.view_menu.addAction("Journey", lambda: None)
         self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
-        self.menu_actions['view_chapters'] = self.view_menu.addAction("Chapitres", lambda: None)
+        self.menu_actions['view_chapters'] = self.view_menu.addAction("Chapters", lambda: None)
 
-        self.components_menu = self.project_menu.addMenu("Composants...")
-        self.menu_actions['edit_time_ref'] = self.components_menu.addAction("Réf. temporelle", lambda: None)
-        self.menu_actions['edit_space_ref'] = self.components_menu.addAction("Réf. spatiale", lambda: None)
-        self.menu_actions['edit_agent'] = self.components_menu.addAction("Agent", lambda: None)
-        self.menu_actions['edit_state'] = self.components_menu.addAction("État", lambda: None)
-        self.menu_actions['edit_event'] = self.components_menu.addAction("Évènement", lambda: None)
+        self.components_menu = self.project_menu.addMenu("Components...")
+        self.components_menu.addAction("Agent", lambda: self._create_node_from_menu("Agent"))
+        self.components_menu.addAction("State", lambda: self._create_node_from_menu("État"))
+        self.components_menu.addAction("Event", lambda: self._create_node_from_menu("Évènement"))
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
-        self.menu_actions['link_agent_agent'] = self.relations_menu.addAction("Agent à agent", lambda: None)
-        self.menu_actions['link_agent_state'] = self.relations_menu.addAction("Agent à état", lambda: None)
-        self.menu_actions['link_state_event'] = self.relations_menu.addAction("État à évènement", lambda: None)
+        self.relations_menu.addAction("Link State and Event", lambda: self._start_state_event_relation_creation())
 
-        # Menu A propos (toujours activé)
-        self.about_menu = self.menu_bar.addMenu("À propos")
-        self.about_menu.addAction("Journal des changements", self._show_changelog)
-        self.about_menu.addAction("À propos de Planoscript", self._show_about)
+        # About menu (always enabled)
+        self.about_menu = self.menu_bar.addMenu("About")
+        self.about_menu.addAction("Change Log", self._show_changelog)
+        self.about_menu.addAction("About Planoscript", self._show_about)
 
-        # Initialise l'état du menu (aucun projet ouvert)
+        # Initialize menu state (no project opened)
         self._update_menu_state()
 
 
     def _update_menu_state(self):
-        """RG006 & RG007: Active ou désactive les actions selon l'état du projet"""
+        """Enable or disable actions based on project state"""
         has_project = self.project_opened
         is_modified = self.project_service.is_modified
 
-        # RG007: Désactive si aucun projet n'est ouvert
+        # RG007: Disable if no project is opened
         rg007_actions = [
             'close', 'save', 'save_as', 'export_map',
             'undo', 'redo', 'history', 'cut', 'copy', 'paste', 'delete',
@@ -240,14 +237,14 @@ class MainWindow(QMainWindow):
             if action_key in self.menu_actions:
                 self.menu_actions[action_key].setEnabled(has_project)
 
-        # RG006: "Enregistrer" désactivé si projet non modifié
+        # "Save" disabled if project not modified
         if 'save' in self.menu_actions:
             self.menu_actions['save'].setEnabled(has_project and is_modified)
 
 
     def _show_welcome_message(self):
-        """Affiche le message d'accueil avec lien cliquable"""
-        # Efface le contenu existant
+        """Display welcome message with clickable link"""
+        # Clear existing content
         while self.middle_layout.count():
             item = self.middle_layout.takeAt(0)
             if item.widget():
@@ -257,8 +254,8 @@ class MainWindow(QMainWindow):
         welcome_layout = QVBoxLayout(welcome_widget)
 
         welcome_label = QLabel("""
-            <h2>Construisez le plan de votre nouveau script.</h2>
-            <p>Commencez par <a href="new" style="color: #0066cc; text-decoration: underline;">créer un nouveau projet</a> ou ouvrez un projet existant.</p>
+            <h2>Build the plan of your new script.</h2>
+            <p>Start by <a href="new" style="color: #0066cc; text-decoration: underline;">creating a new project</a> or open an existing project.</p>
         """)
         welcome_label.setAlignment(Qt.AlignCenter)
         welcome_label.setOpenExternalLinks(False)
@@ -272,11 +269,11 @@ class MainWindow(QMainWindow):
 
 
     # ---------------------------------------------------------------------
-    # Gestion des états des projets et de l'application
+    # Project and application state management
     # ---------------------------------------------------------------------
     def _create_project(self):
-        """Crée un nouveau projet"""
-        # Fermer le projet actuel avec confirmation si nécessaire
+        """Create a new project"""
+        # Close current project with confirmation if needed
         if not self._close_project():
             return
 
@@ -286,22 +283,22 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb}")
         self._update_menu_state()
 
-        # Pour débuggage
+        # For debugging
         print(f"{self.project_service.current_project}")
 
 
     def _open_project(self):
-        """Ouvre un projet depuis le système de fichiers"""
+        """Open a project from the file system"""
         default_dir = os.path.expanduser("~")
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Ouvrir un projet",
+            "Open a Project",
             default_dir,
-            "Fichiers projet Planoscript (*.json);;Tous les fichiers (*)"
+            "Planoscript Project Files (*.json);;All Files (*)"
         )
 
         if not file_path:
-            return  # Annulé par l'utilisateur
+            return  # Cancelled by user
 
         if self.load_project_usecase.execute(file_path):
             self._init_workspace()
@@ -311,16 +308,16 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.critical(
                 self,
-                "Erreur d'ouverture",
-                f"Impossible de charger le fichier : {file_path}"
+                "Error opening File",
+                f"Impossible to open the file : {file_path}"
             )
 
-        # Pour débuggage
+        # For debugging
         print(f"{self.project_service.current_project}")
 
 
     def _init_workspace(self):
-        """Initialise l'espace de travail (appelé à l'ouverture d'un projet)"""
+        """Initialize workspace with a single JourneyWorkspace."""
         # Clear existing layout
         self.middle_layout = self.middle_section.layout()
         while self.middle_layout.count():
@@ -328,36 +325,42 @@ class MainWindow(QMainWindow):
             if item.widget():
                 item.widget().deleteLater()
 
-        # Barre des onglets pour basculer entre les vues "Parcours", "Relations" et "Chapitres"
-        self.tab_bar = TabBar()
-        self.middle_layout.addWidget(self.tab_bar, 0, 1)
-        self.tab_bar.tabChanged.connect(self._on_tab_changed)
-
-        # Toolbars et workspaces
-        self.components_toolbar = ComponentsToolbar()
-        self.components_toolbar.component_selected.connect(self._on_component_selected)
-        self.components_toolbar.relation_selected.connect(self._on_relation_selected)
-        # Désactiver le bouton Relation par défaut (pas assez de nœuds)
-        self._update_relation_button(False)
-        self.middle_layout.addWidget(self.components_toolbar, 1, 0)
-
-        self.stacked_workspaces = QStackedWidget()
-        self.workspace_0 = JourneyWorkspace(
-          narrative_map=self.project_service.current_project.narrative_map[0]
+        # Single workspace
+        self.workspace = JourneyWorkspace(
+            narrative_map=self.project_service.current_project.narrative_map[0]
         )
-        #self.workspace_1 = JourneyWorkspace()
-        #self.workspace_2 = JourneyWorkspace()
-        self.stacked_workspaces.addWidget(self.workspace_0)
-        #self.stacked_workspaces.addWidget(self.workspace_1)
-        #self.stacked_workspaces.addWidget(self.workspace_2)
-        self.middle_layout.addWidget(self.stacked_workspaces, 1, 1)
+        self.middle_layout.addWidget(self.workspace)
 
-        self.journeys_toolbar = JourneysToolbar()
-        self.middle_layout.addWidget(self.journeys_toolbar, 1, 2)
+    def _create_node_from_menu(self, component_type: str):
+        """
+        Create a node from menu selection.
+        Places the node at the center of the workspace.
+        """
+        # Check project and workspace
+        if not self.project_opened or not hasattr(self, 'workspace') or self.workspace is None:
+            return
 
-        self.middle_layout.setColumnStretch(1, 1)
-        self.middle_layout.setRowStretch(1, 1)
+        narrative_map = self.project_service.current_project.narrative_map[0]
 
+        # Calculate center position of the workspace
+        viewport_rect = self.workspace.viewport().rect()
+        scene_pos = self.workspace.mapToScene(
+            viewport_rect.width() / 2,
+            viewport_rect.height() / 2
+        )
+
+        # Execute use case
+        result = self.create_node_usecase.execute(
+            component_type=component_type,
+            x=scene_pos.x(),
+            y=scene_pos.y(),
+            narrative_map=narrative_map
+        )
+
+        if result and result.get('success'):
+            self.workspace.create_node_from_data(result)
+            self._update_menu_state()
+            self.node_count += 1
 
     def _save_project(self):
         current_project = self.project_service.current_project
@@ -373,9 +376,9 @@ class MainWindow(QMainWindow):
         default_dir = os.path.expanduser("~")
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Enregistrer sous...",
+            "Save as...",
             default_dir,
-            "Fichiers projet Planoscript (*.json);;Tous les fichiers (*)"
+            "Planoscript Project Files (*.json);;All Files (*)"
         )
 
         if not file_path:
@@ -388,28 +391,28 @@ class MainWindow(QMainWindow):
 
 
     def _do_save(self, file_path: str) -> bool:
-        """Exécute la sauvegarde et gère le résultat."""
+        """Execute save and handle result."""
         try:
             success = self.save_project_usecase.execute(file_path)
             if success:
                 self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb} ({file_path})")
             return success
         except Exception as e:
-            QMessageBox.critical(self, "Erreur de sauvegarde", str(e))
+            QMessageBox.critical(self, "Error Saving", str(e))
             return False
 
 
     def _close_project(self) -> bool:
-        """Ferme le projet courant avec confirmation s'il n'est pas sauvegardé en l'état"""
+        """Close current project with confirmation if not saved"""
         if not self.project_opened:
             return True
 
-        # Vérifier si le projet est modifié (comme dans _handle_quit)
+        # Check if project is modified (same as in _handle_quit)
         if self.project_service.is_modified:
             reply = QMessageBox.question(
                 self,
-                "Confirmation de sauvegarde",
-                "Le projet a été modifié. Voulez-vous l'enregistrer avant de fermer ?",
+                "Confirmation",
+                "The project has been modified. Do you want to save it before closing?",
                 QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
             )
 
@@ -418,36 +421,33 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes and not self._save_project():
                 return False
 
-        # Fermer le projet
+        # Close the project
         self._clear_project()
         self._show_welcome_message()
         self.project_opened = False
-        self.setWindowTitle("Planoscript : commencez votre prochain projet")
+        self.setWindowTitle("Planoscript : start your new project")
         self._update_menu_state()
         return True
 
 
     def _clear_project(self):
-        """Purge le projet en mémoire et réinitialise l'espace de travail"""
-        # Nettoyer l'espace de travail
+        """Clear project from memory and reset workspace"""
+        # Clean up workspace
         while self.middle_layout.count():
             item = self.middle_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        # Réinitialiser les références
-        self.tab_bar = None
-        self.stacked_workspaces = None
-        self.components_toolbar = None
-        self.journeys_toolbar = None
+        # Reset references
+        self.workspace = None
 
-        # Nettoyer le projet dans le service
+        # Clean up project in service
         self.project_service._current_project = None
         self.project_service.set_modified(False)
 
 
     def closeEvent(self, event: QCloseEvent):
-        """Surcharge de la méthode closeEvent de QWidget."""
+        """Override QWidget's closeEvent method."""
         if self._handle_quit():
             event.accept()
         else:
@@ -455,29 +455,29 @@ class MainWindow(QMainWindow):
 
 
     def _handle_quit(self) -> bool:
-        """Gère l'UI et utilise le use case"""
+        """Handle UI and use the use case"""
         if not self.quit_usecase.should_ask_confirmation():
             return True
 
         reply = QMessageBox.question(
             self,
-            "Confirmation de sauvegarde",
-            "Le projet a été modifié. Voulez-vous l'enregistrer avant de fermer ?",
+            "Confirmation",
+            "The project has been modified. Do you want to save it before closing?",
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
         )
 
         if reply == QMessageBox.Yes:
             return self._save_project()
-        return reply == QMessageBox.No  # True si No, False si Cancel
+        return reply == QMessageBox.No  # True if No, False if Cancel
 
 
     def _on_quit(self):
-        # Méthode héritée de QWidget, émet un signal closeEvent capté par la méthode closeEvent
+        # Method inherited from QWidget, emits closeEvent signal captured by closeEvent method
         self.close()
 
 
     # ---------------------------------------------------------------------
-    # Gestion des interactions
+    # Interaction handling
     # ---------------------------------------------------------------------
     def _show_changelog(self):
         ChangeLogDialog(self.change_log_service, self).exec()
@@ -487,147 +487,113 @@ class MainWindow(QMainWindow):
         AboutDialog(self.about_service, self).exec()
 
 
-    def _on_tab_changed(self, tab_index):
-        """Gère le changement d'onglet"""
-        self.stacked_workspaces.setCurrentIndex(tab_index)
-
-        # Pour débuggage
-        print(f"Onglet sélectionné: {tab_index}")
-
-
-    #def on_narrative_map_selected(self, index: int):
-    #    self.current_narrative_map_index = index
-    #    # Rafraîchir les workspaces pour afficher la bonne carte
-    #    self._refresh_workspaces()
-
-
-    #def _refresh_workspaces(self):
-    #    """Rafraîchit tous les workspaces pour afficher la carte narrative courante."""
-    #    if not hasattr(self, 'stacked_workspaces') or self.stacked_workspaces is None:
-    #        return
-    #    # Pour l'instant, seul workspace_0 est utilisé
-    #    # Quand workspace_1 et workspace_2 seront implémentés, cette méthode sera complétée
-    #    pass
-
-
-    def _on_component_selected(self, component_type: str):
+    def _start_state_event_relation_creation(self):
         """
-        Callback appelé lorsqu'un composant est sélectionné dans la toolbar.
+        Activate State-Event relation creation mode.
+        Wait for user to select source and target nodes.
         """
-        narrative_map = self.project_service.current_project.narrative_map[
-            self.current_narrative_map_index
-        ]
-
-        if not hasattr(self, 'stacked_workspaces') or self.stacked_workspaces is None:
-            print("Aucun workspace initialisé")
-            return
-
-        # Obtenir le workspace actif
-        current_workspace = self.stacked_workspaces.currentWidget()
-        if not isinstance(current_workspace, JourneyWorkspace):
-            print("Le widget actif n'est pas un JourneyWorkspace")
-            return
-
-        # Position par défaut (centre visible de la vue)
-        scene_rect = current_workspace.sceneRect()
-        viewport_rect = current_workspace.viewport().rect()
-        map_to_scene = current_workspace.mapToScene
-
-        # Calculer le centre visible
-        center_x = viewport_rect.width() / 2
-        center_y = viewport_rect.height() / 2
-        scene_pos = current_workspace.mapToScene(center_x, center_y)
-
-        # Créer le nœud au centre visible
-        result = self.create_node_usecase.execute(
-            component_type=component_type,
-            x=scene_pos.x(),
-            y=scene_pos.y(),
-            narrative_map = narrative_map
-        )
-        if result and result.get('success'):
-            current_workspace.create_node_from_data(result)
-            self._update_menu_state()
-            
-            # Incrémenter le compteur de nœuds et mettre à jour le bouton Relation
-            self.node_count += 1
-            self._update_relation_button(self.node_count >= 2)
-
-
-    def _update_relation_button(self, enabled: bool):
-        """Active ou désactive le bouton Relation dans la toolbar."""
-        if hasattr(self, 'components_toolbar') and self.components_toolbar:
-            for btn in self.components_toolbar.findChildren(QPushButton):
-                if btn.toolTip() == "Relation":
-                    btn.setEnabled(enabled)
-                    break
-
-
-    def _on_relation_selected(self):
-        """
-        Callback appelé lorsqu'une relation est sélectionnée dans la toolbar.
-        Affiche un menu pour choisir le type de relation.
-        """
+        # Check minimum node count
         if self.node_count < 2:
-            self.info_bar.show_message("Il faut au moins 2 nœuds pour créer une relation")
+            self.info_bar.show_message("A relation needs at least two nodes in the map")
             return
 
-        # Créer un menu contextuel pour choisir le type de relation
-        from PySide6.QtWidgets import QMenu
-        from PySide6.QtGui import QCursor
-
-        menu = QMenu(self)
-
-        # Ajouter les types de relation
-        menu.addAction("Agent à agent", lambda: self._start_relation_creation("Agent à agent"))
-        menu.addAction("Agent à état", lambda: self._start_relation_creation("Agent à état"))
-        menu.addAction("Agent à évènement", lambda: self._start_relation_creation("Agent à évènement"))
-        menu.addAction("État à évènement", lambda: self._start_relation_creation("État à évènement"))
-        menu.addAction("Évènement à état", lambda: self._start_relation_creation("Évènement à état"))
-
-        menu.exec(QCursor.pos())
-
+        # Set up relation creation mode
+        self.waiting_for_source = True
+        self.waiting_for_target = False
+        self.source_node = None
+        self.info_bar.show_message("Click on the first node (State or Event)")
 
     def _start_relation_creation(self, relation_type: str):
         """
-        Active le mode création de relation.
-        Stocke le type de relation et attend la sélection des nœuds.
+        Activate relation creation mode.
+        Store relation type and wait for node selection.
+        Note: This method is kept for backward compatibility but not used in the new model.
         """
+        # Check minimum node count
+        if self.node_count < 2:
+            self.info_bar.show_message("A relation needs at least two nodes in the map")
+            return
+
         self.relation_type = relation_type
         self.waiting_for_source = True
         self.waiting_for_target = False
         self.source_node = None
-        self.info_bar.show_message(f"Cliquez sur le nœud source pour {relation_type}")
+        self.info_bar.show_message(f"Click on the source node for {relation_type}")
 
 
     def _on_node_selected_for_relation(self, node):
         """
-        Callback appelé lorsqu'un nœud est sélectionné en mode création de relation.
-        Gère la sélection source/cible et crée la relation.
+        Callback called when a node is selected in relation creation mode.
+        Handle source/target selection and create the State-Event relation.
         """
         if self.waiting_for_source:
-            # Premier nœud sélectionné = source
+            # First selected node = source
             self.source_node = node
             self.waiting_for_source = False
             self.waiting_for_target = True
-            self.info_bar.show_message(f"Cliquez sur le nœud cible pour {self.relation_type}")
+            self.info_bar.show_message("Click on the second node (Event or State)")
         elif self.waiting_for_target:
-            # Deuxième nœud sélectionné = cible
+            # Second selected node = target
             self.waiting_for_target = False
-            self._create_relation(self.source_node, node)
+            self._create_state_event_relation(self.source_node, node)
             self.source_node = None
-            self.relation_type = None
 
+
+    def _create_state_event_relation(self, source_node, target_node):
+        """
+        Create a State-Event relation between two nodes using StateNodeService.
+        """
+        from core.models.data_model import State, Event
+        
+        # Extract business entities from visual nodes
+        source_entity = source_node.entity
+        target_entity = target_node.entity
+        
+        # Check if the connection is valid (State <-> Event only)
+        source_type = "State" if isinstance(source_entity, State) else "Event" if isinstance(source_entity, Event) else None
+        target_type = "State" if isinstance(target_entity, State) else "Event" if isinstance(target_entity, Event) else None
+        
+        if not source_type or not target_type:
+            self.info_bar.show_message("Error: Only State and Event can be connected")
+            return
+        
+        if not StateNodeService.can_connect(source_type, target_type):
+            self.info_bar.show_message("Error: Invalid connection (only State <-> Event allowed)")
+            return
+        
+        # Get the current narrative map
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        
+        # Create the State_node using the service
+        state_node = StateNodeService.create_state_node(
+            narrative_map=narrative_map,
+            source_entity=source_entity,
+            target_entity=target_entity
+        )
+        
+        if state_node:
+            # Create visual connection in workspace
+            if isinstance(self.workspace, JourneyWorkspace):
+                self.workspace.create_connection_from_data({
+                    'source': source_node,
+                    'target': target_node,
+                    'relation': state_node
+                })
+            self.info_bar.show_message("State-Event relation created")
+            self.project_service.set_modified(True)
+        else:
+            self.info_bar.show_message("Error: Cannot create State-Event relation")
 
     def _create_relation(self, source_node, target_node):
         """
-        Crée une relation entre deux nœuds via le use case.
+        Create a relation between two nodes via the use case.
+        Note: This method is kept for backward compatibility but not used in the new model.
         """
-        # Extraire les entités métiers des nœuds visuels
+        # Extract business entities from visual nodes
         source_entity = source_node.entity
         target_entity = target_node.entity
 
-        # Exécuter le use case
+        # Execute use case
         result = self.create_relation_usecase.execute(
             source_entity=source_entity,
             target_entity=target_entity,
@@ -635,10 +601,9 @@ class MainWindow(QMainWindow):
         )
 
         if result and result.get('success'):
-            # Créer la connexion visuelle dans le workspace
-            current_workspace = self.stacked_workspaces.currentWidget()
-            if isinstance(current_workspace, JourneyWorkspace):
-                current_workspace.create_connection_from_data(result)
-            self.info_bar.show_message(f"Relation {self.relation_type} créée")
+            # Create visual connection in workspace
+            if isinstance(self.workspace, JourneyWorkspace):
+                self.workspace.create_connection_from_data(result)
+            self.info_bar.show_message(f"Relation {self.relation_type} created")
         else:
-            self.info_bar.show_message("Erreur: impossible de créer la relation")
+            self.info_bar.show_message("Error : the relation cannot be created")

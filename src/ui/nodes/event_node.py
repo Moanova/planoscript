@@ -3,8 +3,13 @@
 # Script       : event_node.py
 # Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 2026-08-27
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : TSC + Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Event Node for Planoscript.
@@ -69,8 +74,8 @@ class EventNode(BaseNode):
         # Store event-specific reference and indicators BEFORE super().__init__()
         # so that update_from_layout() can access them
         self.event = event
-        self.time_ref_indicator = None
-        self.space_ref_indicator = None
+        #self.time_ref_indicator = None
+        #self.space_ref_indicator = None
         
         super().__init__(event, layout)
         
@@ -89,48 +94,48 @@ class EventNode(BaseNode):
         if self.label:
             self.label.setDefaultTextColor(self.EVENT_COLORS['text'])
 
-    def _init_reference_indicators(self) -> None:
-        """Initialize visual indicators for time and space references."""
+    #def _init_reference_indicators(self) -> None:
+    #    """Initialize visual indicators for time and space references."""
         # Remove existing indicators if any
-        if self.time_ref_indicator:
-            if self.time_ref_indicator.scene():
-                self.time_ref_indicator.scene().removeItem(self.time_ref_indicator)
-        if self.space_ref_indicator:
-            if self.space_ref_indicator.scene():
-                self.space_ref_indicator.scene().removeItem(self.space_ref_indicator)
+        #if self.time_ref_indicator:
+        #    if self.time_ref_indicator.scene():
+        #        self.time_ref_indicator.scene().removeItem(self.time_ref_indicator)
+        #if self.space_ref_indicator:
+        #    if self.space_ref_indicator.scene():
+        #        self.space_ref_indicator.scene().removeItem(self.space_ref_indicator)
         
         # Create time reference indicator if event has a time reference
-        if self.event.time_ref_id and self.event.time_ref_id > 0:
-            self.time_ref_indicator = QGraphicsEllipseItem(
-                0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-            )
-            self.time_ref_indicator.setPos(
-                self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-                self.INDICATOR_MARGIN
-            )
-            self.time_ref_indicator.setBrush(QBrush(QColor(180, 0, 200)))  # Purple
-            self.time_ref_indicator.setPen(QPen(Qt.NoPen))
-            self.time_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-            self.time_ref_indicator.setToolTip(f"Time Ref: {self.event.time_ref_id}")
+        #if self.event.time_ref_id and self.event.time_ref_id > 0:
+        #    self.time_ref_indicator = QGraphicsEllipseItem(
+        #        0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
+        #    )
+        #    self.time_ref_indicator.setPos(
+        #        self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
+        #        self.INDICATOR_MARGIN
+        #    )
+        #    self.time_ref_indicator.setBrush(QBrush(QColor(180, 0, 200)))  # Purple
+        #    self.time_ref_indicator.setPen(QPen(Qt.NoPen))
+        #    self.time_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        #    self.time_ref_indicator.setToolTip(f"Time Ref: {self.event.time_ref_id}")
         
         # Create space reference indicator if event has a space reference
-        if self.event.space_ref_id and self.event.space_ref_id > 0:
-            self.space_ref_indicator = QGraphicsEllipseItem(
-                0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-            )
-            # Position below time indicator, or at same position if no time ref
-            y_pos = self.INDICATOR_MARGIN
-            if self.time_ref_indicator:
-                y_pos += self.INDICATOR_SIZE + self.INDICATOR_SPACING
-            
-            self.space_ref_indicator.setPos(
-                self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-                y_pos
-            )
-            self.space_ref_indicator.setBrush(QBrush(QColor(100, 150, 255)))  # Blue
-            self.space_ref_indicator.setPen(QPen(Qt.NoPen))
-            self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-            self.space_ref_indicator.setToolTip(f"Space Ref: {self.event.space_ref_id}")
+        #if self.event.space_ref_id and self.event.space_ref_id > 0:
+        #    self.space_ref_indicator = QGraphicsEllipseItem(
+        #        0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
+        #    )
+        #    # Position below time indicator, or at same position if no time ref
+        #    y_pos = self.INDICATOR_MARGIN
+        #    if self.time_ref_indicator:
+        #        y_pos += self.INDICATOR_SIZE + self.INDICATOR_SPACING
+        #    
+        #    self.space_ref_indicator.setPos(
+        #        self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
+        #        y_pos
+        #    )
+        #    self.space_ref_indicator.setBrush(QBrush(QColor(100, 150, 255)))  # Blue
+        #    self.space_ref_indicator.setPen(QPen(Qt.NoPen))
+        #    self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        #    self.space_ref_indicator.setToolTip(f"Space Ref: {self.event.space_ref_id}")
 
     def set_selected_appearance(self, selected: bool) -> None:
         """
@@ -155,33 +160,33 @@ class EventNode(BaseNode):
     # Event-specific methods
     # -------------------------------------------------------------------------
     
-    def get_time_ref_id(self) -> Optional[int]:
-        """Get the time reference ID."""
-        return self.event.time_ref_id if self.event.time_ref_id > 0 else None
+    #def get_time_ref_id(self) -> Optional[int]:
+    #    """Get the time reference ID."""
+    #    return self.event.time_ref_id if self.event.time_ref_id > 0 else None
 
-    def get_space_ref_id(self) -> Optional[int]:
-        """Get the space reference ID."""
-        return self.event.space_ref_id if self.event.space_ref_id else None
+    #def get_space_ref_id(self) -> Optional[int]:
+    #    """Get the space reference ID."""
+    #    return self.event.space_ref_id if self.event.space_ref_id else None
 
-    def set_time_ref_id(self, time_ref_id: int) -> None:
-        """
-        Set the time reference ID and update indicators.
-        
-        Args:
-            time_ref_id: The new time reference ID
-        """
-        self.event.time_ref_id = time_ref_id
-        self._init_reference_indicators()
+    #def set_time_ref_id(self, time_ref_id: int) -> None:
+    #    """
+    #    Set the time reference ID and update indicators.
+    #    
+    #    Args:
+    #        time_ref_id: The new time reference ID
+    #    """
+    #    self.event.time_ref_id = time_ref_id
+    #    self._init_reference_indicators()
 
-    def set_space_ref_id(self, space_ref_id: Optional[int]) -> None:
-        """
-        Set the space reference ID and update indicators.
-        
-        Args:
-            space_ref_id: The new space reference ID (can be None)
-        """
-        self.event.space_ref_id = space_ref_id
-        self._init_reference_indicators()
+    #def set_space_ref_id(self, space_ref_id: Optional[int]) -> None:
+    #    """
+    #    Set the space reference ID and update indicators.
+    #    
+    #    Args:
+    #        space_ref_id: The new space reference ID (can be None)
+    #    """
+    #    self.event.space_ref_id = space_ref_id
+    #    self._init_reference_indicators()
 
     def set_description(self, description: str) -> None:
         """

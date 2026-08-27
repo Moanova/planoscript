@@ -3,8 +3,12 @@
 # Script       : journey_workspace.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 2026-08-27
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : TSC + Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -19,8 +23,8 @@ import os
 from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
-from ui.nodes.time_ref_node import TimeRefNode
-from ui.nodes.space_ref_node import SpaceRefNode
+#from ui.nodes.time_ref_node import TimeRefNode
+#from ui.nodes.space_ref_node import SpaceRefNode
 from core.models.view_model import NodeType
 
 class JourneyWorkspace(QGraphicsView):
@@ -169,14 +173,14 @@ class JourneyWorkspace(QGraphicsView):
         start_x = int(scene_rect.left() - (scene_rect.left() % grid_size))
         for x in range(start_x, int(scene_rect.right()) + grid_size, grid_size):
             line = self.scene.addLine(x, scene_rect.top(), x, scene_rect.bottom(), pen_main)
-            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            line.setZValue(-1)  # Draw below nodes
             self.grid_lines.append(line)
         
         # Horizontal lines
         start_y = int(scene_rect.top() - (scene_rect.top() % grid_size))
         for y in range(start_y, int(scene_rect.bottom()) + grid_size, grid_size):
             line = self.scene.addLine(scene_rect.left(), y, scene_rect.right(), y, pen_main)
-            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            line.setZValue(-1)  # Draw below nodes
             self.grid_lines.append(line)
 
         # Subgrid (80px)
@@ -187,14 +191,14 @@ class JourneyWorkspace(QGraphicsView):
         start_x = int(scene_rect.left() - (scene_rect.left() % subgrid_size))
         for x in range(start_x, int(scene_rect.right()) + subgrid_size, subgrid_size):
             line = self.scene.addLine(x, scene_rect.top(), x, scene_rect.bottom(), pen_sub)
-            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            line.setZValue(-1)  # Drow below nodes
             self.grid_lines.append(line)
         
         # Horizontal subgrid lines
         start_y = int(scene_rect.top() - (scene_rect.top() % subgrid_size))
         for y in range(start_y, int(scene_rect.bottom()) + subgrid_size, subgrid_size):
             line = self.scene.addLine(scene_rect.left(), y, scene_rect.right(), y, pen_sub)
-            line.setZValue(-1)  # Dessiner EN DESSOUS des nœuds
+            line.setZValue(-1)  # Draw below nodes
             self.grid_lines.append(line)
 
 
@@ -203,15 +207,16 @@ class JourneyWorkspace(QGraphicsView):
         super().resizeEvent(event)
         self._draw_grid()
 
+
     def _expand_scene_to_include(self, x: float, y: float, margin: int = None):
         """
-        Étend dynamiquement sceneRect pour inclure le point (x, y).
-        L'extension se fait UNIQUEMENT dans la/les direction(s) où le point dépasse.
-        
+        Dynamically expands sceneRect to include the point (x, y). 
+        Expansion occurs ONLY in the direction(s) where the point extends beyond the current bounds. 
+
         Args:
-            x: Coordonnée X du point à inclure
-            y: Coordonnée Y du point à inclure
-            margin: Marge à appliquer (utilise self.scene_rect_margin si None)
+            x: X-coordinate of the point to include
+            y: Y-coordinate of the point to include
+            margin: Margin to apply (uses self.scene_rect_margin if None)
         """
         if margin is None:
             margin = self.scene_rect_margin
@@ -220,29 +225,30 @@ class JourneyWorkspace(QGraphicsView):
         new_rect = current_rect
         expanded = False
         
-        # Étendre à GAUCHE si x - margin < current_rect.left()
+        # Extend to the LEFT if x - margin < current_rect.left()
         if x - margin < new_rect.left():
             new_rect.setLeft(x - margin)
             expanded = True
         
-        # Étendre à DROITE si x + margin > current_rect.right()
+        # Extend to the RIGHT if x + margin > current_rect.right()
         if x + margin > new_rect.right():
             new_rect.setRight(x + margin)
             expanded = True
         
-        # Étendre en HAUT si y - margin < current_rect.top()
+        # Expand UPWARDS if y - margin < current_rect.top()
         if y - margin < new_rect.top():
             new_rect.setTop(y - margin)
             expanded = True
         
-        # Étendre en BAS si y + margin > current_rect.bottom()
+        # Expand downwards if y + margin > current_rect.bottom()
         if y + margin > new_rect.bottom():
             new_rect.setBottom(y + margin)
             expanded = True
         
-        # Appliquer la nouvelle taille si nécessaire
+        # Apply the new size if necessary
         if expanded:
             self.setSceneRect(new_rect)
+
 
     def ensure_visible(self, x: float, y: float, margin: int = 200):
         """
@@ -267,24 +273,24 @@ class JourneyWorkspace(QGraphicsView):
 
 
     def mouseMoveEvent(self, event):
-        # 1. Laisser Qt traiter le déplacement du nœud D'ABORD
+        # 1. Let Qt handle the node movement FIRST.
         super().mouseMoveEvent(event)
 
-        # 2. Auto-scrolling (RG012) + contrainte (RG011) + extension dynamique de la scène
+        # 2. Auto-scrolling + constraint + dynamic scene expansion
         if event.buttons() == Qt.LeftButton:
-            # Auto-scrolling si la souris est près des bords du viewport
+            # Auto-scrolling when the mouse is near the viewport edges
             viewport_rect = self.viewport().rect()
             mouse_viewport_pos = event.position().toPoint()
             scroll_margin = 50
             scroll_speed = 20
 
-            # Vérifier les bords
+            # Check the edges
             near_left = mouse_viewport_pos.x() < scroll_margin
             near_right = mouse_viewport_pos.x() > viewport_rect.width() - scroll_margin
             near_top = mouse_viewport_pos.y() < scroll_margin
             near_bottom = mouse_viewport_pos.y() > viewport_rect.height() - scroll_margin
 
-            # Défilement automatique
+            # Auto-scroll
             if near_left:
                 self.horizontalScrollBar().setValue(
                     self.horizontalScrollBar().value() - scroll_speed
@@ -302,68 +308,68 @@ class JourneyWorkspace(QGraphicsView):
                 self.verticalScrollBar().setValue(
                     self.verticalScrollBar().value() + scroll_speed
                 )
-            
-            # 3. Extension dynamique de la scène si un item dépasse les limites
-            # Pour chaque item sélectionné et déplaçable, vérifier et étendre si nécessaire
+            # 3. Dynamically expand the scene if an item exceeds the boundaries
+            # For each selected and movable item, check and expand if necessary
             for item in self.scene.selectedItems():
                 if not (item.flags() & QGraphicsItem.ItemIsMovable):
                     continue
                 
-                # Position actuelle de l'item dans les coordonnées de la scène
+                # Current position of the item in scene coordinates
                 item_pos = item.scenePos()
-                # _expand_scene_to_include utilise self.sceneRect() en temps réel
-                # et vérifie elle-même si une extension est nécessaire
+                # _expand_scene_to_include uses self.sceneRect() in real time
+                # and checks for itself whether expansion is necessary
                 self._expand_scene_to_include(item_pos.x(), item_pos.y())
+
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
 
+
     def mousePressEvent(self, event):
         """
-        RG009: Gère la sélection unique des composants et connexions.
-        - Si clic sur un item sélectable (nœud ou connexion) → le sélectionner et désélectionner tous les autres
-        - Si clic sur l'espace vide → désélectionner tout
+        Manages the single selection of components and connections. 
+            - If a selectable item (node ​​or connection) is clicked → select it and deselect all others
+            - If empty space is clicked → deselect everything
         """
-        # Récupérer l'item sous le curseur
+        # Retrieve the item under the cursor
         item = self.itemAt(event.position().toPoint())
         
-        # Appeler la méthode parente d'abord pour que Qt gère le clic normalement
+        # Call the parent method first so that Qt handles the click normally
         super().mousePressEvent(event)
         
-        # Ensuite appliquer notre logique RG009
         if event.button() == Qt.LeftButton:
             if item is None:
-                # Clic sur espace vide : désélectionner tout
+                # Click on empty space: deselect all
                 self._clear_all_selections()
             elif item.isEnabled() and item.isVisible():
-                # Vérifier si c'est un item sélectable (nœud ou connexion)
+                # Check if it is a selectable item (node ​​or connection)
                 if item.flags() & QGraphicsItem.ItemIsSelectable:
-                    # RG009: Sélectionner uniquement cet item
+                    # Select only this item
                     self._select_item_only(item)
 
 
     def create_node_from_data(self, node_data: dict):
         """
-        Crée un nœud visuel à partir des données retournées par le use case.
-        
+        Creates a visual node from the data returned by the use case. 
+
         Args:
-            node_data: Dictionnaire contenant :
-                - 'entity': l'entité métier
-                - 'layout': NodeLayout
-                - 'node_type': NodeType
-                - 'component_type': str (optionnel)
+            node_data: Dictionary containing:
+            - 'entity': the business entity
+            - 'layout': NodeLayout
+            - 'node_type': NodeType
+            - 'component_type': str (optional)
         """
         entity = node_data['entity']
         layout = node_data['layout']
         node_type = node_data['node_type']
 
-        # Mapping NodeType -> Classe de nœud visuel
+        # Mapping NodeType -> Visual node class
         NODE_CLASS_MAPPING = {
             NodeType.AGENT: AgentNode,
             NodeType.STATE: StateNode,
             NodeType.EVENT: EventNode,
-            NodeType.TIME_REF: TimeRefNode,
-            NodeType.SPACE_REF: SpaceRefNode,
+            #NodeType.TIME_REF: TimeRefNode,
+            #NodeType.SPACE_REF: SpaceRefNode,
         }
 
         node_class = NODE_CLASS_MAPPING.get(node_type)
@@ -371,34 +377,35 @@ class JourneyWorkspace(QGraphicsView):
             print(f"Type de nœud inconnu: {node_type}")
             return None
 
-        # Créer le nœud visuel
+        # Create the visual node
         node = node_class(entity, layout)
 
-        # Ajouter à la scène
+        # Add to the scene
         self.add_item_at(layout.x, layout.y, node)
         
-        # RG009: Sélectionner le nouveau nœud et désélectionner les autres
+        # Select the new node and deselect the others
         self._select_item_only(node)
 
         return node
 
+
     def create_connection_from_data(self, connection_data: dict):
         """
-        Crée une connexion visuelle à partir des données retournées par le use case.
-    
+        Creates a visual connection based on the data returned by the use case. 
+
         Args:
-            connection_data: Dictionnaire contenant :
-                - 'connection_layout': ConnectionLayout
-                - 'source_entity': entité source
-                - 'target_entity': entité cible
+            connection_data: Dictionary containing:
+            - 'connection_layout': ConnectionLayout
+            - 'source_entity': source entity
+            - 'target_entity': target entity
         """
-        from ui.nodes.connection import Connection  # À vérifier si cette classe existe
+        from ui.nodes.connection import Connection  # Check if this class exists
 
         connection_layout = connection_data['connection_layout']
         source_entity = connection_data['source_entity']
         target_entity = connection_data['target_entity']
 
-        # Trouver les nœuds visuels correspondants dans la scène
+        # Find the corresponding visual nodes in the scene
         source_node = self._find_node_by_entity_id(source_entity.id)
         target_node = self._find_node_by_entity_id(target_entity.id)
 
@@ -406,32 +413,33 @@ class JourneyWorkspace(QGraphicsView):
             print("Nœud source ou cible non trouvé")
             return None
 
-        # Créer la connexion visuelle
+        # Create the visual connection
         connection = Connection(connection_layout)
 
         # Positionner la connexion (à adapter selon votre implémentation)
         self.scene.addItem(connection)
         connection.update_path(source_node, target_node)
         
-        # RG009: Sélectionner la nouvelle connexion et désélectionner les autres
+        # Select the new connection and deselect the others
         self._select_item_only(connection)
 
         return connection
 
 
     def _find_node_by_entity_id(self, entity_id: int):
-        """Trouve un nœud dans la scène par son entity_id."""
+        """Find a node in the scene by its entity_id."""
         for item in self.scene.items():
             if hasattr(item, 'entity') and item.entity.id == entity_id:
                 return item
         return None
 
+
     def _select_item_only(self, item):
         """
-        RG009: Sélectionne uniquement l'item spécifié et désélectionne tous les autres.
-        
+        Selects only the specified item and deselects all others. 
+
         Args:
-            item: Le QGraphicsItem à sélectionner
+            item: The QGraphicsItem to select.
         """
         # Désélectionner tous les items sélectables
         for existing_item in self.scene.items():
@@ -444,9 +452,10 @@ class JourneyWorkspace(QGraphicsView):
         if item.flags() & QGraphicsItem.ItemIsSelectable:
             item.setSelected(True)
 
+
     def _clear_all_selections(self):
         """
-        RG009: Désélectionne tous les items sélectables dans la scène.
+        Deselects all selectable items in the scene.
         """
         for item in self.scene.items():
             if (item.flags() & QGraphicsItem.ItemIsSelectable and 

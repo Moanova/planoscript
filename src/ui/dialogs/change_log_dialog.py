@@ -3,8 +3,8 @@
 # Script       : change_log_dialog.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
@@ -19,7 +19,7 @@ class ChangeLogDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self):
-        self.setWindowTitle("Journal des changements")
+        self.setWindowTitle("Change Log")
         self.setMinimumSize(500, 400)
 
         layout = QVBoxLayout(self)
@@ -57,12 +57,12 @@ class ChangeLogDialog(QDialog):
 
         html_content = """
         <html><body style='font-family: Arial; font-size: 10pt;'>
-        <h2>Journal des changements</h2>
+        <h2>Change Log</h2>
         """
 
         for change in changes:
             html_content += f"""
-            <p><strong>{change.get('version', 'N/A')}</strong> - {change.get('build_date', 'Date inconnue')}</p>
+            <p><strong>{change.get('version', 'N/A')}</strong> - {change.get('build_date', 'Unknown Date')}</p>
             <p>{change.get('object', '')}</p>
             <p>{change.get('content', '').replace('\n', '<br>')}</p>
             <hr>

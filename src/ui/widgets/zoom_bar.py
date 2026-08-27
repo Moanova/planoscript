@@ -3,8 +3,8 @@
 # Script       : zoom_bar.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -75,7 +75,7 @@ class ZoomBar(QWidget):
         #self.zoom_slider.setMinimumWidth(100)
         layout.addWidget(self.zoom_slider)
 
-        # Label pour le pourcentage
+        # Percentage Label
         #self.zoom_label = QLabel("100%")
         #self.zoom_label.setStyleSheet("font-weight: normal; font-size: 9pt; margin-left: 5px;")
         #layout.addWidget(self.zoom_label)

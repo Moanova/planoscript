@@ -3,8 +3,8 @@
 # Script       : tree_layout.py
 # Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Tree Layout Model for Planoscript.
@@ -82,6 +82,7 @@ class TreeLayout:
             'child_tree_ids': self.child_tree_ids
         }
 
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'TreeLayout':
         """Create a TreeLayout from a dictionary."""
@@ -101,10 +102,12 @@ class TreeLayout:
             child_tree_ids=list(data.get('child_tree_ids', []))
         )
 
+
     def add_node(self, node_id: int) -> None:
         """Add a node ID to the tree."""
         if node_id not in self.node_ids:
             self.node_ids.append(node_id)
+
 
     def remove_node(self, node_id: int) -> bool:
         """Remove a node ID from the tree."""
@@ -113,10 +116,12 @@ class TreeLayout:
             return True
         return False
 
+
     def add_connection(self, connection_id: str) -> None:
         """Add a connection ID to the tree."""
         if connection_id not in self.connection_ids:
             self.connection_ids.append(connection_id)
+
 
     def remove_connection(self, connection_id: str) -> bool:
         """Remove a connection ID from the tree."""
@@ -125,10 +130,12 @@ class TreeLayout:
             return True
         return False
 
+
     def add_child_tree(self, child_tree_id: int) -> None:
         """Add a child tree ID."""
         if child_tree_id not in self.child_tree_ids:
             self.child_tree_ids.append(child_tree_id)
+
 
     def remove_child_tree(self, child_tree_id: int) -> bool:
         """Remove a child tree ID."""
@@ -137,11 +144,13 @@ class TreeLayout:
             return True
         return False
 
+
     def clear(self) -> None:
         """Clear all node and connection references."""
         self.node_ids.clear()
         self.connection_ids.clear()
         self.child_tree_ids.clear()
+
 
     def get_center(self) -> tuple:
         """Get the center coordinates of the tree."""

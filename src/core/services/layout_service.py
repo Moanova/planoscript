@@ -1,10 +1,15 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : layout_service.py
-# Version      : 2
+# Script       : data_model.py
+# Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 26-08-2026
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Layout Service for Planoscript.

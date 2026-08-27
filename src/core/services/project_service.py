@@ -3,8 +3,8 @@
 # Script       : project_servcice.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 import json
 from uuid import uuid4
@@ -18,18 +18,18 @@ class ProjectService:
 
 
     def create_project(self) -> Project:
-        """Crée un projet d'initialisation avec id, lb et une carte narrative par défaut"""
+        """Create an initialization project with an ID, LB, and a default narrative map."""
         # Créer une NarrativeMap par défaut
         narrative_map = NarrativeMap(
             id=str(uuid4()),
-            lb="Carte narrative principale",
+            lb="Main narrative map",
             creation_date_time=datetime.now(),
-            modification_date_time=None  # Champ obligatoire (héritage de BaseEntity)
+            modification_date_time=None  # Mandatory field (inherited from BaseEntity)
         )
         
         self._current_project = Project(
             id=str(uuid4()),
-            lb="Nouveau projet",
+            lb="New Project",
             creation_date_time=datetime.now(),
             modification_date_time=None,
             narrative_map=[narrative_map]
@@ -39,11 +39,11 @@ class ProjectService:
 
 
     def load_project(self, file_path: str) -> bool:
-        """Charge un projet depuis un fichier JSON
-        Args:
-            file_path: Chemin du fichier .json
-        Returns:
-            bool: True si chargement réussi
+        """Loads a project from a JSON file
+           Args:
+               file_path: Path to the .json file
+           Returns:
+               bool: True if loading was successful
         """
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -53,16 +53,16 @@ class ProjectService:
                 self._is_modified = False
                 return True
         except (IOError, OSError, json.JSONDecodeError, KeyError) as e:
-            print(f"Erreur lors du chargement: {e}")
+            print(f"Loading Error: {e}")
             return False
 
 
     def save_project(self, file_path: str) -> bool:
-        """Sauvegarde le projet (FN008 et FN009)
-        Args:
-            file_path: Chemin du fichier de destination
-        Returns:
-            bool: True si sauvegarde réussie
+        """Saves the project (FN008 and FN009)
+           Args:
+               file_path: Path to the destination file
+           Returns:
+               bool: True if the save was successful
         """
         if not self._current_project:
             return False
@@ -79,7 +79,7 @@ class ProjectService:
             self._is_modified = False
             return True
         except (IOError, OSError) as e:
-            print(f"Erreur lors de la sauvegarde: {e}")
+            print(f"Saving Error: {e}")
             return False
 
 

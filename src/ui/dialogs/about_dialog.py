@@ -3,13 +3,13 @@
 # Script       : about_dialog.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
 
 class AboutDialog(QDialog):
-    """Dialogue 'À propos'"""
+    """About Dialog'"""
 
     def __init__(self, about_service: AboutService, parent=None):
         super().__init__(parent)

@@ -1,17 +1,21 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
 # Script       : data_model.py
+# Version      : 1
+# Date         : 01-06-2026
+# Design       : TSC
+# Build        : Mistral Vibe
+# ---------------------------------------------------------------------
 # Version      : 2
 # Date         : 26-08-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Content      : Data Model Redesign
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 import json
-
 
 # ---------------------------------------------------------------------
 # Entity classes

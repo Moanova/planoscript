@@ -2,25 +2,25 @@
 # Application  : Planoscript
 # Script       : create_node_usecase.py
 # Version      : 1
-# Date         : 23-07-2026
+# Date         : 07-23-2026
 # Conception   : TSC
 # Construction : Mistral Vibe
 # ---------------------------------------------------------------------
 """
-Use Case pour la création de nœuds dans l'espace de travail.
+Use Case for creating nodes in the workspace.
 
-Ce use case gère la création des entités métiers et de leurs layouts visuels,
-mais NE gère PAS la création des objets graphiques Qt (QGraphicsItem).
+This use case handles the creation of business entities and their visual layouts,
+but DOES NOT handle the creation of Qt graphic objects (QGraphicsItem).
 
-Responsabilités :
-- Créer une entité métier (Agent, State, Event, etc.) avec un ID unique
-- Ajouter l'entité à la NarrativeMap du projet
-- Créer un NodeLayout pour la représentation visuelle
-- Retourner toutes les données nécessaires pour créer le nœud visuel
+Responsibilities:
+- Create a business entity (Agent, State, Event, etc.) with a unique ID
+- Add the entity to the project's NarrativeMap
+- Create a NodeLayout for visual representation
+- Return all data needed to create the visual node
 
-Séparation des responsabilités :
-- Ce use case : logique métier et données
-- JourneyWorkspace : création et affichage des QGraphicsItem
+Separation of responsibilities:
+- This use case: business logic and data
+- JourneyWorkspace: creation and display of QGraphicsItem
 """
 
 from datetime import datetime
@@ -28,7 +28,7 @@ from typing import Optional, Dict, Any
 from uuid import uuid4
 
 from core.models.data_model import (
-    Agent, State, Event, Time_ref, Space_ref, NarrativeMap
+    Agent, State, Event, NarrativeMap, Project
 )
 from core.models.view_model import NodeLayout, NodeType
 from core.services.project_service import ProjectService
@@ -37,28 +37,16 @@ from core.services.layout_service import LayoutService
 
 class CreateNodeUseCase:
     """
-    Use Case pour créer un nouveau nœud dans la carte narrative.
+    Use Case for creating a new node in the narrative map.
     
-    Ce use case coordonne la création de l'entité métier, son ajout au projet,
-    et la préparation des données nécessaires pour l'affichage.
+    This use case coordinates the creation of the business entity, its addition to the project,
+    and the preparation of data needed for display.
     
     Attributes:
-        project_service: Service de gestion du projet courant
+        project_service: Service for managing the current project
     """
 
     COMPONENT_MAPPING = {
-        "Référence temporelle": {
-            'entity_class': Time_ref,
-            'node_type': NodeType.TIME_REF,
-            'entity_type_key': 'time_ref',
-            'default_label': 'Réf. temporelle'
-        },
-        "Référence spatiale": {
-            'entity_class': Space_ref,
-            'node_type': NodeType.SPACE_REF,
-            'entity_type_key': 'space_ref',
-            'default_label': 'Réf. spatiale'
-        },
         "Agent": {
             'entity_class': Agent,
             'node_type': NodeType.AGENT,
@@ -81,10 +69,10 @@ class CreateNodeUseCase:
 
     def __init__(self, project_service: ProjectService):
         """
-        Initialise le use case avec le service de projet.
+        Initialize the use case with the project service.
         
         Args:
-            project_service: Service gérant le projet courant
+            project_service: Service managing the current project
         """
         self.project_service = project_service
 
@@ -96,42 +84,42 @@ class CreateNodeUseCase:
         narrative_map: Optional[NarrativeMap] = None
     ) -> Optional[Dict]:
         """
-        Exécute la création d'un nœud du type spécifié.
+        Execute creation of a node of the specified type.
         
         Args:
-            component_type: Type de composant à créer (ex: "Agent", "État", etc.)
-            x: Coordonnée X pour le positionnement du nœud
-            y: Coordonnée Y pour le positionnement du nœud
-            narrative_map: NarrativeMap cible (optionnel, utilise la première par défaut)
+            component_type: Type of component to create (e.g., "Agent", "State", etc.)
+            x: X coordinate for node positioning
+            y: Y coordinate for node positioning
+            narrative_map: Target NarrativeMap (optional, uses the first by default)
             
         Returns:
-            Dictionnaire contenant :
-                - 'success': bool (True si création réussie)
-                - 'entity': l'entité métier créée (Agent, State, etc.)
-                - 'entity_id': ID de l'entité
-                - 'layout': NodeLayout pour la représentation visuelle
-                - 'node_type': NodeType enum pour savoir quel type de nœud créer
-                - 'narrative_map_id': ID de la carte narrative
-                - 'component_type': Type de composant
+            Dictionary containing:
+                - 'success': bool (True if creation successful)
+                - 'entity': the created business entity (Agent, State, etc.)
+                - 'entity_id': ID of the entity
+                - 'layout': NodeLayout for visual representation
+                - 'node_type': NodeType enum to know which type of node to create
+                - 'narrative_map_id': ID of the narrative map
+                - 'component_type': Component type
             
-            Ou None si échec (type inconnu, pas de projet, etc.)
+            Or None if failure (unknown type, no project, etc.)
         """
-        # 1. Vérifier qu'un projet est ouvert
+        # 1. Check that a project is opened
         if not self.project_service or not self.project_service.current_project:
-            print("CreateNodeUseCase: Aucun projet ouvert")
+            print("CreateNodeUseCase: No project opened")
             return None
         
         project = self.project_service.current_project
         
-        # 2. Utiliser la NarrativeMap fournie, ou la première par défaut
+        # 2. Use the provided NarrativeMap, or the first by default
         if narrative_map is None:
             if not project or not project.narrative_map:
                 return None
             narrative_map = project.narrative_map[0]
         
-        # 3. Vérifier que le type de composant est valide
+        # 3. Check that the component type is valid
         if component_type not in self.COMPONENT_MAPPING:
-            print(f"CreateNodeUseCase: Type de composant inconnu: {component_type}")
+            print(f"CreateNodeUseCase: Unknown component type: {component_type}")
             return None
         
         component_config = self.COMPONENT_MAPPING[component_type]
@@ -140,16 +128,19 @@ class CreateNodeUseCase:
         entity_type_key = component_config['entity_type_key']
         default_label = component_config['default_label']
         
-        # 4. Générer un ID unique via la NarrativeMap (BONNE PRATIQUE)
-        entity_id = narrative_map.get_next_id(entity_type_key)
+        # 4. Generate a unique ID via the NarrativeMap or Project
+        if entity_type_key == 'agent':
+            entity_id = project.get_next_id('agent')
+        else:
+            entity_id = narrative_map.get_next_id(entity_type_key)
         
-        # 5. Créer l'entité métier avec des valeurs par défaut
+        # 5. Create business entity with default values
         entity = self._create_entity(entity_class, entity_id, default_label)
         
-        # 6. Ajouter l'entité à la NarrativeMap
-        self._add_entity_to_narrative_map(narrative_map, entity, entity_type_key)
+        # 6. Add entity to the NarrativeMap or Project
+        self._add_entity_to_narrative_map(narrative_map, entity, entity_type_key, project)
         
-        # 7. Créer le NodeLayout via LayoutService
+        # 7. Create NodeLayout via LayoutService
         layout = LayoutService.create_node_layout(
             node_id=entity_id,
             node_type=node_type.value,
@@ -157,10 +148,10 @@ class CreateNodeUseCase:
             y=y
         )
         
-        # 8. Marquer le projet comme modifié
+        # 8. Mark project as modified
         self.project_service.set_modified(True)
         
-        # 9. Retourner toutes les données nécessaires pour créer le nœud visuel
+        # 9. Return all data needed to create the visual node
         return {
             'success': True,
             'entity': entity,
@@ -173,64 +164,41 @@ class CreateNodeUseCase:
 
     def _create_entity(self, entity_class, entity_id: int, default_label: str):
         """
-        Crée une entité métier avec des valeurs par défaut.
+        Create a business entity with default values.
         
         Args:
-            entity_class: Classe de l'entité (Agent, State, etc.)
-            entity_id: ID unique pour l'entité
-            default_label: Libellé par défaut
+            entity_class: Entity class (Agent, State, Event)
+            entity_id: Unique ID for the entity
+            default_label: Default label
             
         Returns:
-            Instance de l'entité créée
+            Instance of the created entity
         """
-        # Créer avec les attributs de base + champs obligatoires spécifiques
+        from core.models.data_model import Agent, State, Event
+        
+        # Create with base attributes + specific required fields
         if entity_class == Agent:
             entity = entity_class(
                 id=entity_id,
                 lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None,
-                typ="Sujet"  # Champ obligatoire (même s'il a une valeur par défaut dans le modèle)
+                typ="Subject"  # Required field (even if it has a default value in the model)
             )
         elif entity_class == State:
             entity = entity_class(
                 id=entity_id,
                 lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None,
-                space_ref_id=None,  # Champ obligatoire pour State
-                time_ref_id=0
+                typ="Action"  # Required field with default value
             )
         elif entity_class == Event:
             entity = entity_class(
                 id=entity_id,
-                lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None,
-                space_ref_id=None,  # Champ obligatoire pour Event
-                time_ref_id=0
-            )
-        elif entity_class == Time_ref:
-            entity = entity_class(
-                id=entity_id,
-                lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None,
-                prev_id=0  # Champ obligatoire pour Time_ref
-            )
-        elif entity_class == Space_ref:
-            entity = entity_class(
-                id=entity_id,
-                lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None
+                lb=f"{default_label} {entity_id}"
             )
         else:
+            # Generic creation for any other entity type
             entity = entity_class(
                 id=entity_id,
-                lb=f"{default_label} {entity_id}",
-                creation_date_time=datetime.now(),
-                modification_date_time=None
+                lb=f"{default_label} {entity_id}"
             )
         
         return entity
@@ -239,26 +207,31 @@ class CreateNodeUseCase:
         self,
         narrative_map: NarrativeMap,
         entity,
-        entity_type_key: str
+        entity_type_key: str,
+        project: Project = None
     ) -> None:
         """
-        Ajoute une entité à la NarrativeMap selon son type.
+        Add an entity to the NarrativeMap or Project based on its type.
         
         Args:
-            narrative_map: La carte narrative à mettre à jour
-            entity: L'entité à ajouter
-            entity_type_key: Clé du type d'entité ('agent', 'state', etc.)
+            narrative_map: The narrative map to update (for State, Event, Journey)
+            entity: The entity to add
+            entity_type_key: Entity type key ('agent', 'state', 'event')
+            project: The project to update (for Agent entities)
         """
-        # Mapping des clés vers les noms d'attributs de NarrativeMap
-        attr_mapping = {
-            'time_ref': 'time_ref',
-            'space_ref': 'space_ref',
-            'agent': 'agent',
-            'state': 'state',
-            'event': 'event'
-        }
-        
-        attr_name = attr_mapping.get(entity_type_key)
-        if attr_name and hasattr(narrative_map, attr_name):
-            entity_list = getattr(narrative_map, attr_name)
-            entity_list.append(entity)
+        # Agents are now managed at Project level, not NarrativeMap
+        if entity_type_key == 'agent':
+            if project is not None:
+                project.agent.append(entity)
+        else:
+            # Mapping of keys to NarrativeMap attribute names
+            attr_mapping = {
+                'state': 'state',
+                'event': 'event',
+                'journey': 'journey'
+            }
+            
+            attr_name = attr_mapping.get(entity_type_key)
+            if attr_name and hasattr(narrative_map, attr_name):
+                entity_list = getattr(narrative_map, attr_name)
+                entity_list.append(entity)

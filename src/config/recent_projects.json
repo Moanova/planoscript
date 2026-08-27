@@ -1,6 +1,6 @@
 {
   "recent_projects": [
-    "C:/Users/thoma/Documents/02_PROJET/02_DEV/Planoscript/application/data/init.json",
-    "C:/Users/thoma/Documents/02_PROJET/02_DEV/Planoscript/application/data/exemple.json",
+    "../projects/init.json",
+    "../projects/exemple.json",
   ]
 }

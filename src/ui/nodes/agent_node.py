@@ -3,8 +3,8 @@
 # Script       : agent_node.py
 # Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Agent Node for Planoscript.
@@ -156,6 +156,7 @@ class AgentNode(BaseNode):
             self.agent.typ = agent_type
             self._update_type_colors()
             self._init_type_indicator()
+
 
     # -------------------------------------------------------------------------
     # Agent-specific port methods

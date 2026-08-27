@@ -3,8 +3,8 @@
 # Script       : create_project_usecase.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from core.models.data_model import Project
 from core.services.project_service import ProjectService

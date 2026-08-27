@@ -1,10 +1,10 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : change_log_service.py
+# Script       : about_service.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction  : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 import json
 import os

@@ -3,8 +3,8 @@
 # Script       : about_service.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 import json
 import os
@@ -23,5 +23,5 @@ class AboutService:
                 "version": "0.1.0-alpha",
                 "year": "AA-MM-AAAA",
                 "author": "TSC",
-                "built_by": "Mistral Vibe"
+                "built_by": "TSC + Mistral Vibe"
             }

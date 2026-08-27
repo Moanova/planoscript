@@ -2,26 +2,26 @@
 # Application  : Planoscript
 # Script       : create_relation_usecase.py
 # Version      : 1
-# Date         : 23-07-2026
+# Date         : 07-23-2026
 # Conception   : TSC
 # Construction : Mistral Vibe
 # ---------------------------------------------------------------------
 """
-Use Case pour la création de relations entre nœuds dans l'espace de travail.
+Use Case for creating relations between nodes in the workspace.
 
-Ce use case gère la création des entités de relation (Agent_rel_hist, Agent_state_rel, etc.)
-et de leurs layouts visuels (ConnectionLayout), mais NE gère PAS la création des objets
-graphiques Qt (QGraphicsLineItem).
+This use case handles the creation of relation entities (Agent_rel_hist, Agent_state_rel, etc.)
+and their visual layouts (ConnectionLayout), but DOES NOT handle the creation of Qt
+graphic objects (QGraphicsLineItem).
 
-Responsabilités :
-- Créer une entité de relation avec des IDs uniques
-- Ajouter l'entité de relation à la NarrativeMap du projet
-- Créer un ConnectionLayout pour la représentation visuelle
-- Retourner toutes les données nécessaires pour créer la connexion visuelle
+Responsibilities:
+- Create a relation entity with unique IDs
+- Add the relation entity to the project's NarrativeMap
+- Create a ConnectionLayout for visual representation
+- Return all data needed to create the visual connection
 
-Séparation des responsabilités :
-- Ce use case : logique métier et données
-- JourneyWorkspace : création et affichage des QGraphicsLineItem
+Separation of responsibilities:
+- This use case: business logic and data
+- JourneyWorkspace: creation and display of QGraphicsLineItem
 """
 
 from datetime import datetime
@@ -29,11 +29,7 @@ from typing import Optional, Dict, Any, Tuple
 from uuid import uuid4
 
 from core.models.data_model import (
-    Agent_rel_hist,
-    Agent_state_rel,
-    Agent_event_rel,
-    State_event_rel,
-    Event_state_rel,
+    State_agent_rel,
     NarrativeMap
 )
 from core.models.view_model import ConnectionLayout, NodeType
@@ -43,55 +39,33 @@ from core.services.layout_service import LayoutService
 
 class CreateRelationUseCase:
     """
-    Use Case pour créer une nouvelle relation entre deux nœuds dans la carte narrative.
+    Use Case for creating a new relation between two nodes in the narrative map.
     
-    Ce use case coordonne la création de l'entité de relation, son ajout au projet,
-    et la préparation des données nécessaires pour l'affichage de la connexion.
+    This use case coordinates the creation of the relation entity, its addition to the project,
+    and the preparation of data needed for displaying the connection.
     
     Attributes:
-        project_service: Service de gestion du projet courant
+        project_service: Service for managing the current project
     """
 
-    # Mapping des types de relation (noms français de l'UI) vers les classes d'entités
+    # Mapping of relation types to entity classes
+    # Note: Only State_agent_rel exists in the new data model
+    # State-Event relations are handled directly via StateNodeService
     RELATION_MAPPING = {
-        "Agent à agent": {
-            'entity_class': Agent_rel_hist,
-            'relation_type_key': 'agent_rel_hist',
-            'source_id_attr': 'agent_1_id',
-            'target_id_attr': 'agent_2_id'
-        },
-        "Agent à état": {
-            'entity_class': Agent_state_rel,
-            'relation_type_key': 'agent_state_rel',
-            'source_id_attr': 'agent_id',
-            'target_id_attr': 'state_id'
-        },
-        "Agent à évènement": {
-            'entity_class': Agent_event_rel,
-            'relation_type_key': 'agent_event_rel',
-            'source_id_attr': 'agent_id',
-            'target_id_attr': 'event_id'
-        },
-        "État à évènement": {
-            'entity_class': State_event_rel,
-            'relation_type_key': 'state_event_rel',
+        "State to Agent": {
+            'entity_class': State_agent_rel,
+            'relation_type_key': 'state_agent_rel',
             'source_id_attr': 'state_id',
-            'target_id_attr': 'event_id'
-        },
-        "Évènement à état": {
-            'entity_class': Event_state_rel,
-            'relation_type_key': 'event_state_rel',
-            'source_id_attr': 'event_id',
-            'target_id_attr': 'state_id'
+            'target_id_attr': 'agent_id'
         },
     }
 
     def __init__(self, project_service: ProjectService):
         """
-        Initialise le use case avec le service de projet.
+        Initialize the use case with the project service.
         
         Args:
-            project_service: Service gérant le projet courant
+            project_service: Service managing the current project
         """
         self.project_service = project_service
 
@@ -103,40 +77,40 @@ class CreateRelationUseCase:
         narrative_map: Optional[NarrativeMap] = None
     ) -> Optional[Dict]:
         """
-        Exécute la création d'une relation du type spécifié entre deux entités.
+        Execute creation of a relation of the specified type between two entities.
         
         Args:
-            source_entity: Entité source (Agent, State, Event, etc.)
-            target_entity: Entité cible (Agent, State, Event, etc.)
-            relation_type: Type de relation (ex: "Agent à agent", "Agent à état", etc.)
-            narrative_map: NarrativeMap cible (optionnel, utilise la première par défaut)
+            source_entity: Source entity (Agent, State, Event, etc.)
+            target_entity: Target entity (Agent, State, Event, etc.)
+            relation_type: Relation type (e.g., "Agent à agent", "Agent à état", etc.)
+            narrative_map: Target NarrativeMap (optional, uses the first by default)
             
         Returns:
-            Dictionnaire contenant :
-                - 'success': bool (True si création réussie)
-                - 'relation_entity': l'entité de relation créée
-                - 'connection_layout': ConnectionLayout pour la représentation visuelle
-                - 'relation_type': Type de relation
-                - 'narrative_map_id': ID de la carte narrative
+            Dictionary containing:
+                - 'success': bool (True if creation successful)
+                - 'relation_entity': the created relation entity
+                - 'connection_layout': ConnectionLayout for visual representation
+                - 'relation_type': Relation type
+                - 'narrative_map_id': ID of the narrative map
                 
-            Ou None si échec (type inconnu, pas de projet, etc.)
+            Or None if failure (unknown type, no project, etc.)
         """
-        # 1. Vérifier qu'un projet est ouvert
+        # 1. Check that a project is opened
         if not self.project_service or not self.project_service.current_project:
-            print("CreateRelationUseCase: Aucun projet ouvert")
+            print("CreateRelationUseCase: No project opened")
             return None
         
         project = self.project_service.current_project
         
-        # 2. Utiliser la NarrativeMap fournie, ou la première par défaut
+        # 2. Use the provided NarrativeMap, or the first by default
         if narrative_map is None:
             if not project or not project.narrative_map:
                 return None
             narrative_map = project.narrative_map[0]
         
-        # 3. Vérifier que le type de relation est valide
+        # 3. Check that the relation type is valid
         if relation_type not in self.RELATION_MAPPING:
-            print(f"CreateRelationUseCase: Type de relation inconnu: {relation_type}")
+            print(f"CreateRelationUseCase: Unknown relation type: {relation_type}")
             return None
         
         relation_config = self.RELATION_MAPPING[relation_type]
@@ -145,10 +119,10 @@ class CreateRelationUseCase:
         source_id_attr = relation_config['source_id_attr']
         target_id_attr = relation_config['target_id_attr']
         
-        # 4. Générer un ID unique via la NarrativeMap
+        # 4. Generate a unique ID via the NarrativeMap
         relation_id = narrative_map.get_next_id(relation_type_key)
         
-        # 5. Créer l'entité de relation avec les IDs source et cible
+        # 5. Create the relation entity with source and target IDs
         relation_entity = self._create_relation_entity(
             relation_class=relation_class,
             relation_id=relation_id,
@@ -161,19 +135,19 @@ class CreateRelationUseCase:
         if relation_entity is None:
             return None
         
-        # 6. Ajouter l'entité de relation à la NarrativeMap
+        # 6. Add the relation entity to the NarrativeMap
         self._add_relation_to_narrative_map(narrative_map, relation_entity, relation_type_key)
         
-        # 7. Créer le ConnectionLayout via LayoutService
+        # 7. Create ConnectionLayout via LayoutService
         connection_layout = LayoutService.create_connection_layout(
             source_node_id=source_entity.id,
             target_node_id=target_entity.id
         )
         
-        # 8. Marquer le projet comme modifié
+        # 8. Mark project as modified
         self.project_service.set_modified(True)
         
-        # 9. Retourner toutes les données nécessaires pour créer la connexion visuelle
+        # 9. Return all data needed to create the visual connection
         return {
             'success': True,
             'relation_entity': relation_entity,
@@ -195,44 +169,37 @@ class CreateRelationUseCase:
         target_id_attr: str
     ) -> Any:
         """
-        Crée une entité de relation avec les IDs source et cible.
+        Create a relation entity with source and target IDs.
         
         Args:
-            relation_class: Classe de l'entité de relation
-            relation_id: ID unique pour la relation
-            source_entity: Entité source
-            target_entity: Entité cible
-            source_id_attr: Nom de l'attribut pour l'ID source
-            target_id_attr: Nom de l'attribut pour l'ID cible
+            relation_class: Relation entity class
+            relation_id: Unique ID for the relation
+            source_entity: Source entity
+            target_entity: Target entity
+            source_id_attr: Attribute name for source ID
+            target_id_attr: Attribute name for target ID
             
         Returns:
-            Instance de l'entité de relation créée
+            Instance of the created relation entity
         """
-        # Créer un dictionnaire avec les attributs de base
+        from core.models.data_model import State_agent_rel
+        
+        # Create a dictionary with base attributes
         relation_data = {
             'id': relation_id,
             'creation_date_time': datetime.now(),
             'modification_date_time': None
         }
         
-        # Ajouter les IDs source et cible
+        # Add source and target IDs
         relation_data[source_id_attr] = source_entity.id
         relation_data[target_id_attr] = target_entity.id
         
-        # Ajouter les attributs spécifiques optionnels
-        if relation_class == Agent_rel_hist:
-            relation_data['time_ref_id'] = 0
-            relation_data['state_id'] = None
-        elif relation_class == Agent_state_rel:
-            relation_data['note'] = None
-        elif relation_class == Agent_event_rel:
-            relation_data['note'] = None
-        elif relation_class == State_event_rel:
-            relation_data['note'] = None
-        elif relation_class == Event_state_rel:
+        # Add optional specific attributes for State_agent_rel
+        if relation_class == State_agent_rel:
             relation_data['note'] = None
         
-        # Créer et retourner l'entité
+        # Create and return the entity
         return relation_class(**relation_data)
 
     def _add_relation_to_narrative_map(
@@ -242,20 +209,16 @@ class CreateRelationUseCase:
         relation_type_key: str
     ) -> None:
         """
-        Ajoute une entité de relation à la NarrativeMap selon son type.
+        Add a relation entity to the NarrativeMap based on its type.
         
         Args:
-            narrative_map: La carte narrative à mettre à jour
-            relation_entity: L'entité de relation à ajouter
-            relation_type_key: Clé du type de relation
+            narrative_map: The narrative map to update
+            relation_entity: The relation entity to add
+            relation_type_key: Relation type key
         """
-        # Mapping des clés vers les noms d'attributs de NarrativeMap
+        # Mapping of keys to NarrativeMap attribute names
         attr_mapping = {
-            'agent_rel_hist': 'agent_rel_hist',
-            'agent_state_rel': 'agent_state_rel',
-            'agent_event_rel': 'agent_event_rel',
-            'state_event_rel': 'state_event_rel',
-            'event_state_rel': 'event_state_rel',
+            'state_agent_rel': 'state_agent_rel',
         }
         
         attr_name = attr_mapping.get(relation_type_key)

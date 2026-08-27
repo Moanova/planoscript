@@ -3,8 +3,8 @@
 # Script       : info_bar.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -27,11 +27,11 @@ class InfoBar(QWidget):
         """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 0, 0)
-        #self.info_label = QLabel("Sélectionnez un composant ou une relation")
+        #self.info_label = QLabel("Select a component")
         self.info_label = QLabel()
         self.info_label.setStyleSheet("font-size: 10pt; color: #666;")
         layout.addWidget(self.info_label)
 
     def show_message(self, message: str):
-        """Affiche un message dans la barre d'information."""
+        """Displays a message in the information bar."""
         self.info_label.setText(message)

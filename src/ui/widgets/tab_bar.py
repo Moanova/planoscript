@@ -3,17 +3,17 @@
 # Script       : tab_bar.py
 # Version      : 1
 # Date         : 01-06-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
 
 class TabBar(QWidget):
-    """Barre des onglets pour basculer entre les vues"""
+    """Tab bar for switching between views"""
 
-    tabChanged = Signal(int)  # Émet le nom de l'onglet sélectionné
+    tabChanged = Signal(int)  # Sends the name of the selected tab
 
     def __init__(self):
         super().__init__()
@@ -26,7 +26,7 @@ class TabBar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Créer les 3 onglets
+        # Create the three tabs
         self.tabs = {}
         tab_configs = [
             ("Parcours", 0),
@@ -69,7 +69,7 @@ class TabBar(QWidget):
 
 
     def _on_tab_clicked(self, idx):
-        """Active l'onglet par index et émet le signal"""
+        """Activates the tab by index and emits the signal."""
         for tab_idx, btn in enumerate(self.tabs.values()):
             btn.setChecked(tab_idx == idx)
         self.tabChanged.emit(idx)

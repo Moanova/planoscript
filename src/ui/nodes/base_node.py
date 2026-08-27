@@ -3,8 +3,8 @@
 # Script       : base_node.py
 # Version      : 1
 # Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Design       : TSC
+# Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Base Node for Planoscript.

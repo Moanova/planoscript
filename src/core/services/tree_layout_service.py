@@ -1,10 +1,14 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : tree_layout_service.py
+# Script       : journey_workspace.py
 # Version      : 1
-# Date         : 22-07-2026
-# Conception   : TSC
-# Construction : Mistral Vibe
+# Date         : 01-06-2026
+# Design       : TSC
+# ---------------------------------------------------------------------
+# Version      : 2
+# Date         : 2026-08-27
+# Content      : Non-functional version (intermediate redesign stage)
+# Build        : TSC + Mistral Vibe
 # ---------------------------------------------------------------------
 """
 Tree Layout Service for Planoscript.
@@ -70,6 +74,7 @@ class TreeLayoutService:
         trees_dir.mkdir(parents=True, exist_ok=True)
         return trees_dir
 
+
     @classmethod
     def _get_tree_filepath(
         cls,
@@ -95,6 +100,7 @@ class TreeLayoutService:
         type_dir.mkdir(parents=True, exist_ok=True)
         
         return type_dir / f"{tree_id}.json"
+
 
     @classmethod
     def save_tree_layout(
@@ -139,6 +145,7 @@ class TreeLayoutService:
             print(f"Error saving tree layout to {filepath}: {e}")
             return False
 
+
     @classmethod
     def load_tree_layout(
         cls,
@@ -170,6 +177,7 @@ class TreeLayoutService:
             print(f"Error loading tree layout from {filepath}: {e}")
             return None
 
+
     @classmethod
     def delete_tree_layout(
         cls,
@@ -200,6 +208,7 @@ class TreeLayoutService:
             print(f"Error deleting tree layout {filepath}: {e}")
             return False
 
+
     @classmethod
     def tree_layout_exists(
         cls,
@@ -220,6 +229,7 @@ class TreeLayoutService:
         """
         filepath = cls._get_tree_filepath(project_filepath, tree_type, tree_id)
         return filepath.exists()
+
 
     @classmethod
     def list_tree_layouts(
@@ -272,6 +282,7 @@ class TreeLayoutService:
         
         return layouts
 
+
     @classmethod
     def delete_all_tree_layouts(
         cls,
@@ -312,6 +323,7 @@ class TreeLayoutService:
         except OSError as e:
             print(f"Error deleting tree layouts: {e}")
             return False
+
 
     @classmethod
     def create_tree_layout(
