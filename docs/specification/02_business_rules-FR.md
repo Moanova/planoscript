@@ -1,5 +1,11 @@
 # Règles de gestion - Planoscript
 
+## Document Version
+- **Version**: 1.0
+- **Date**: 29-08-2026
+- **Status**: Original version to be realigned with the latest redesign
+
+---
 
 ## RG001
 - **Description** :

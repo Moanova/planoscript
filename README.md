@@ -47,7 +47,7 @@ This project is licensed under the **[MIT](LICENSE)** licence.
 ## Note from the creator
 ### 22 August 2026
 Planoscript is primarily a learning project and, in its current state, should be viewed as such.
-Consequently, its design and implementation are evolving in tandem as the project progresses and unforeseen complexities come to light...
+Consequently, its design and implementation are evolving in tandem as the project progresses and unforeseen complexities come to light.
 The project is currently being redesigned; as a result, the code no longer aligns with the data model and the intended application logic.
 Likewise, there are no tests... for the time being.
 

@@ -240,7 +240,7 @@
             "default": {
                 "type": "boolean",
                 "default_value": false,
-                "description": "Indicator of whether the journey is default or not"
+                "description": "Indicator of default journey"
             },
             "creation_date_time":{
                "type":"string",
@@ -312,7 +312,7 @@
             },
             "state_id":{
                "type":"integer",
-               "description":"Unique identifier of the node state (reference to State.id) | Value 0 = placeholder without state (isolated event awaiting connection)"
+               "description":"Unique identifier of the state (reference to State.id) | Value 0 = placeholder without state (isolated event awaiting connection)"
             },
             "to_event_id":{
                "type":"integer",
@@ -421,8 +421,8 @@
       }
    ],
     "notes": [
-      "Cardinalities follow this notation: 0..* (zero or more), 1..* (one or more), 0..1 (zero or one), 1 (exactly one).",
-      "Directional relationships have a source and a target, whereas non-directional relationships have no direction.",
+      "Cardinalities follow this notation: 0..* (zero or many), 1..* (one or many), 0..1 (zero or one), 1 (exactly one).",
+      "Directional relationships have a source and a target.",
       "Convention: the value 0 (zero) used in a predecessor reference field (from_event_id) signifies the absence of a predecessor."
     ]
 }

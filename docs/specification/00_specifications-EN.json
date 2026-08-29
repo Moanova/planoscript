@@ -1,0 +1,51 @@
+{
+  "app_name": "Planoscript",
+  "version": "0.1.0-alpha",
+  "directories": {
+    "general": "planoscript",
+	"conception": "planoscript\conception",
+	"specification": "planoscript\specification",
+    "source_code": "planoscript\src"
+  }
+  "docs": {
+    "product_vision": "planoscript/conception/00_product-vision-EN.md",
+    "user_stories": "planoscript/specification/01_user_stories-FR.md",
+    "business_rules": "planoscript/specification/02_business_rules-FR.md",
+    "features": "planoscript/specification/03_features-FR.md",
+    "behavior": "planoscript/specification/04_behavior-FR.md",
+    "gui": "planoscript/specification/05_interface-EN.md",
+    "gui_menu": "planoscript/specification/06_menu-FR.yaml",
+    "data_model": "planoscript/specification/07_data_model-FR.json",
+	"mvp_scope": "planoscript/specification/99_mvp_scope-FR.md"
+  },
+  "technical": {
+    "language": "Python 3.10+",
+  },
+  "configuration": {
+    "files": [
+      {
+        "name": "config.json",
+        "path": "planoscript/src/config/config.json",
+        "description": "Application configuration file.",
+        "format": "json",
+        "parameters": {
+          "recent_files_path": {
+            "type": "str",
+            "default": "planoscript/src/config/recent_projects.json",
+            "description": "Liste des derniers projets ouverts."
+          },
+          "recent_files_limit": {
+            "type": "int",
+            "default": 10,
+            "description": "Limit for the history of recently opened projects to be retained."
+          },
+          "change_log_path": {
+            "type": "str",
+            "default": "planoscript/src/config/change_log.json",
+            "description": "Application development change log."
+          }
+        }
+      }
+    ]
+  }
+}

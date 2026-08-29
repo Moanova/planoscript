@@ -3,7 +3,7 @@
 ## Document Version
 - **Version**: 2.0
 - **Date**: 27-08-2026
-- **Status**: Retrospective update to reflect the current implementation
+- **Status**: Retrospective update to reflect the current implementation (latest redesign)
 
 ---
 

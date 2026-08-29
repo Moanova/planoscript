@@ -1,5 +1,11 @@
 # Planoscript ::: Scenarii d'utilisation
 
+## Document Version
+- **Version**: 2.0
+- **Date**: 29-08-2026
+- **Status**: New version realigned with the latest redesign
+
+---
 
 ## SU001 : Gérer un projet narratif
 - **Description** : En tant qu'auteur, je peux créer, ouvrir, enregistrer, renommer et fermer un projet narratif afin de regrouper, retrouver et poursuivre le travail sur mes cartes narratives.

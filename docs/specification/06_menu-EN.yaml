@@ -1,7 +1,7 @@
 # Planoscript ::: General Application Menu
 # Version : 2.0
 # Date : 27-08-2026
-# Content : Retrospective update to reflect the current implementation in main_window.py
+# Content : Retrospective update to reflect the current implementation in main_window.py (latest redesign)
 
 menu:
   name: General Mennu
@@ -107,7 +107,7 @@ menu:
         - name: Relations...
           items:
             - name: Link State and Event
-              note: "Implemented - Active le mode cration de relation State-Event"
+              note: "Implemented - Activates State-Event relationship creation mode"
 
     - name: About
       items:

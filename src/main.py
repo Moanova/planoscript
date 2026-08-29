@@ -4,7 +4,7 @@
 # Version      : 1
 # Date         : 01-06-2026
 # Design       : TSC
-# Build        : TSC + Mistral Vibe
+# Build        : Mistral Vibe + TSC
 # ---------------------------------------------------------------------
 import sys
 from PySide6.QtWidgets import QApplication

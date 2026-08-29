@@ -1,0 +1,428 @@
+{
+   "$schema":"http://json-schema.org/draft-07/schema#",
+   "name": "Planoscript ::: Modèle de données",
+   "version": "0.1.0-alpha",
+   "description": "Modèle de données des projets Planoscript : projets, cartes narratives, entités et relations.",
+   "type":"object",
+   "properties":{
+      "id":{
+        "type":"string",
+        "format":"uuid",
+        "description":"Identifiant unique du projet"
+      },
+      "lb":{
+         "type":"string",
+         "description":"Nom du projet"
+      },
+      "creation_date_time":{
+         "type":"string",
+         "format":"date-time",
+         "description":"Date et heure de création du projet"
+      },
+      "modification_date_time":{
+         "type":"string",
+         "format":"date-time",
+         "description":"Date et heure de dernière modification du projet"
+      },
+      "agent":{
+         "type":"array",
+         "items":{
+            "$ref":"#/$defs/Agent"
+         },
+          "description":"Agent de la carte narrative"
+      },
+      "narrative_map":[
+        {
+         "type":"object",
+         "properties":{
+           "id":{
+             "type":"string",
+             "format":"uuid",
+             "description":"Identifiant unique de la carte narrative"
+           },
+           "lb":{
+              "type":"string",
+              "description":"Nom de la carte narrative"
+           },
+           "creation_date_time":{
+              "type":"string",
+              "format":"date-time",
+              "description":"Date et heure de création de la carte narrative"
+           },
+           "modification_date_time":{
+              "type":"string",
+              "format":"date-time",
+              "description":"Date et heure de dernière modification de la carte narrative"
+           },
+            "state":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/State"
+               },
+               "description":"Etat de la carte narrative"
+            },
+            "event":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/Event"
+               },
+               "description":"Evènement de la carte narrative"
+            },
+            "journey":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/Journey"
+               },
+               "description":"Parcours de la carte narrative"
+            },
+            "state_agent_rel":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/State_agent_rel"
+               },
+               "description":"Relation entre état et agent"
+            },
+            "state_node":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/State_node"
+               },
+               "description":"Noeud de relations d'état à évènement à état"
+            },
+            "Journey_node":{
+               "type":"array",
+               "items":{
+                  "$ref":"#/$defs/Journey_node"
+               },
+               "description":"Noeud de parcours"
+            }
+         },
+         "required":[
+         ]
+      }
+      ]
+    },
+    "required":[
+      "id",
+      "lb",
+      "creation_date_time"
+    ],
+   "$defs":{
+      "Agent":{
+         "type":"object",
+         "category":"entity",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'agent"
+            },
+            "lb":{
+               "type":"string",
+               "description":"Libellé de l'agent"
+            },
+            "note":{
+               "type":"string",
+               "description":"Annotation de l'agent"
+            },
+            "typ": {
+                "type": "string",
+                "enum": ["Object", "Subject"],
+                "default_value": "Subject",
+                "description": "Type de l'agent"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création de l'agent"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification de l'agent"
+            }
+         },
+         "required":[
+            "id",
+            "lb",
+            "typ",
+            "creation_date_time"
+         ]
+      },
+      "State":{
+         "type":"object",
+         "category":"entity",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'état"
+            },
+            "lb":{
+               "type":"string",
+               "description":"Libellé de l'état"
+            },
+            "note":{
+               "type":"string",
+               "description":"Annotation de l'état"
+            },
+            "typ": {
+                "type": "string",
+                "enum": ["Initial", "Action", "Relation", "Final"],
+                "default_value": "Action",
+                "description": "Type de l'état"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création de l'état"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification de l'état"
+            }
+         },
+         "required":[
+            "id",
+            "lb",
+            "typ",
+            "creation_date_time"
+         ]
+      },
+      "Event":{
+         "type":"object",
+         "category":"entity",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'évènement"
+            },
+            "lb":{
+               "type":"string",
+               "description":"Libellé de l'évènement"
+            },
+            "note":{
+               "type":"string",
+               "description":"Annotation de l'évènement"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création de l'évènement"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification de l'évènement"
+            }
+         },
+         "required":[
+            "id",
+            "lb",
+            "creation_date_time"
+         ]
+      },
+      "Journey":{
+         "type":"object",
+         "category":"entity",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique du parcours"
+            },
+            "lb":{
+               "type":"string",
+               "description":"Libellé du parcours"
+            },
+            "note":{
+               "type":"string",
+               "description":"Annotation du parcours"
+            },
+            "default": {
+                "type": "boolean",
+                "default_value": false,
+                "description": "Indicateur de parcours par défaut"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création du parcours"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification du parcours"
+            }
+         },
+         "required":[
+            "id",
+            "lb",
+            "default",
+            "creation_date_time"
+         ]
+      },
+      "State_agent_rel":{
+         "type":"object",
+         "category":"relationship",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique de la relation d'état à agent"
+            },
+            "state_id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'état (référence à State.id)"
+            },
+            "agent_id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'agent (référence à Agent.id)"
+            },
+            "note":{
+               "type":"string",
+               "description":"Annotation de la relation d'état à agent"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création de la relation d'état à agent"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification de la relation d'état à agent"
+            }
+         },
+         "required":[
+            "id",
+            "state_id",
+            "agent_id",
+            "creation_date_time"
+         ]
+      },
+      "State_node":{
+         "type":"object",
+         "category":"relationship",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique du noeud de relation d'état à évènement à état"
+            },
+            "from_event_id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'évènement prédécesseur (référence à Event.id)"
+            },
+            "state_id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'état (référence à State.id) | Valeur 0 = placeholder pour l'absence d'état (évènement isolé en attente de connexion)"
+            },
+            "to_event_id":{
+               "type":"integer",
+               "description":"Identifiant unique de l'évènement successeur (référence à Event.id)"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création du noeud de relation d'état à évènement à état"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification du noeud de relation d'état à évènement à état"
+            }
+         },
+         "required":[
+            "id",
+            "state_id",
+            "creation_date_time"
+         ]
+      },
+      "Journey_node":{
+         "type":"object",
+         "category":"relationship",
+         "properties":{
+            "id":{
+               "type":"integer",
+               "description":"Identifiant unique du noeud de parcours"
+            },
+            "state_node_id":{
+               "type":"integer",
+               "description":"Identifiant unique du noeud de relation d'état à évènement à état (référence à State_node.id)"
+            },
+            "journey_id":{
+               "type":"integer",
+               "description":"Identifiant unique du parcours (référence à Journey.id)"
+            },
+            "creation_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de création du noeud de parcours"
+            },
+            "modification_date_time":{
+               "type":"string",
+               "format":"date-time",
+               "description":"Date et heure de dernière modification du noeud de parcours"
+            }
+         },
+         "required":[
+            "id",
+            "state_node_id",
+            "journey_id",
+            "creation_date_time"
+         ]
+      }
+   },
+   "cardinalities": [
+      {
+        "name": "state_agent_rel_card",
+        "description": "0 or n états sont liés à 0 or n agents",
+        "from": "State",
+        "to": "Agent",
+        "relationship": "State_agent_rel",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": false
+      },
+      {
+        "name": "from_state_card",
+        "description": "0 or n états sont liés à 0 or n évènements",
+        "from": "State",
+        "to": "Event",
+        "relationship": "State_node",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": true
+      },
+      {
+        "name": "to_state_card",
+        "description": "0 or n états sont liés à 0 or n évènements",
+        "from": "Event",
+        "to": "State",
+        "relationship": "State_node",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": true
+      },
+      {
+        "name": "journey_node_card",
+        "description": "0 or n noeuds de relation d'état à évènement à état sont liés à 0 or n parcours",
+        "from": "State_node",
+        "to": "Journey",
+        "relationship": "Journey_node",
+        "cardinality": {
+          "from": "0..*",
+          "to": "0..*"
+        },
+        "directional_relationship": false
+      }
+   ],
+    "notes": [
+      "Les cardinalités suivent cette notation : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou plusieurs), 1 (exactement un).",
+      "Les relations directionnelles ont une source et une cible",
+      "Convention : la valeur 0 (zéro) utilisée dans le champ de référence d'un prédécesseur (from_event_id) signale l'absence du prédécesseur."
+    ]
+}

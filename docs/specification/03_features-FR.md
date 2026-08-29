@@ -1,5 +1,11 @@
 # Planoscript ::: Fonctionnalités
 
+## Document Version
+- **Version**: 1.0
+- **Date**: 29-08-2026
+- **Status**: Original version to be realigned with the latest redesign
+
+---
 
 ## FN001 : Lancer l'application
 - **Description** : Lancer l'application.
