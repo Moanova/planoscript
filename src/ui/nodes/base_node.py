@@ -16,7 +16,7 @@ workspace. It inherits from QGraphicsRectItem and adds functionality for:
 - Handling selection and movement
 - Supporting connection ports
 
-All concrete node types (AgentNode, StateNode, EventNode, etc.) should inherit
+All concrete node types (AgentNode, StateNode, EventNode) should inherit
 from this class.
 """
 
@@ -37,7 +37,7 @@ class BaseNode(QGraphicsRectItem):
     (Agent, State, Event, etc.).
     
     Attributes:
-        entity: The business entity this node represents (Agent, State, etc.)
+        entity: The business entity this node represents (Agent, State, Event)
         layout: The NodeLayout containing visual properties (position, size, etc.)
         label: QGraphicsTextItem for displaying the entity's name
         ports: Dictionary of connection ports (for future use)
@@ -105,6 +105,7 @@ class BaseNode(QGraphicsRectItem):
         # Update visual state based on layout
         self.update_from_layout()
 
+
     def _init_appearance(self) -> None:
         """Initialize the visual appearance of the node."""
         # Set default pen and brush
@@ -113,6 +114,7 @@ class BaseNode(QGraphicsRectItem):
         
         # Set rounded corners
         self.setRect(0, 0, self.rect().width(), self.rect().height())
+
 
     def _init_label(self) -> None:
         """Initialize the label with the entity's name."""
@@ -129,6 +131,7 @@ class BaseNode(QGraphicsRectItem):
         
         # Make label non-selectable (selection is handled at node level)
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
+
 
     def update_from_layout(self) -> None:
         """
@@ -156,6 +159,7 @@ class BaseNode(QGraphicsRectItem):
             except (ValueError, AttributeError):
                 pass
 
+
     def update_layout(self) -> None:
         """
         Update the layout object with the node's current properties.
@@ -174,6 +178,7 @@ class BaseNode(QGraphicsRectItem):
         # Update selection state
         self.layout.selected = self.isSelected()
 
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the node's appearance based on selection state.
@@ -188,6 +193,7 @@ class BaseNode(QGraphicsRectItem):
             self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
             self.setBrush(QBrush(self.DEFAULT_BG_COLOR))
 
+
     # -------------------------------------------------------------------------
     # QGraphicsItem overrides
     # -------------------------------------------------------------------------
@@ -200,6 +206,7 @@ class BaseNode(QGraphicsRectItem):
         # Update selection appearance
         self.set_selected_appearance(self.isSelected())
 
+
     def mouseReleaseEvent(self, event) -> None:
         """Handle mouse release events."""
         super().mouseReleaseEvent(event)
@@ -207,6 +214,7 @@ class BaseNode(QGraphicsRectItem):
         # Update layout after movement
         if self.isSelected():
             self.update_layout()
+
 
     def mouseMoveEvent(self, event) -> None:
         """Handle mouse move events (during drag)."""
@@ -216,11 +224,13 @@ class BaseNode(QGraphicsRectItem):
         if event.buttons() == Qt.LeftButton:
             self.update_layout()
 
+
     def hoverEnterEvent(self, event) -> None:
         """Handle hover enter events."""
         # Visual feedback for hover
         self.setPen(QPen(QColor(0, 120, 215), 2))  # Blue border on hover
         super().hoverEnterEvent(event)
+
 
     def hoverLeaveEvent(self, event) -> None:
         """Handle hover leave events."""
@@ -228,6 +238,7 @@ class BaseNode(QGraphicsRectItem):
         if not self.isSelected():
             self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
         super().hoverLeaveEvent(event)
+
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
         """
@@ -239,16 +250,16 @@ class BaseNode(QGraphicsRectItem):
             self.set_selected_appearance(bool(value))
             self.layout.selected = bool(value)
         elif change == QGraphicsItem.ItemPositionChange:
-            # RG011: Contraint le déplacement aux limites de la scène (limite absolue)
+            # Constrains the movement to the limits of the scene (absolute limit)
             new_pos = value
             scene = self.scene()
             if scene:
                 scene_rect = scene.sceneRect()
-                # Utiliser self.rect() pour les dimensions (indépendant de la position)
+                # Use self.rect() for dimensions (independent of position)
                 node_width = self.rect().width()
                 node_height = self.rect().height()
                 
-                # Contraintes pour garder le nœud ENTIÈREMENT dans la scène
+                # Constraints to keep the node ENTIRELY within the scene
                 max_x = scene_rect.right() - node_width
                 max_y = scene_rect.bottom() - node_height
                 min_x = scene_rect.left()
@@ -257,13 +268,14 @@ class BaseNode(QGraphicsRectItem):
                 constrained_x = max(min_x, min(new_pos.x(), max_x))
                 constrained_y = max(min_y, min(new_pos.y(), max_y))
                 
-                # Mettre à jour le layout avec la position contrainte
+                # Update the layout with the constrained position.
                 self.layout.x = constrained_x
                 self.layout.y = constrained_y
                 
                 return QPointF(constrained_x, constrained_y)
         
         return super().itemChange(change, value)
+
 
     # -------------------------------------------------------------------------
     # Connection port methods (for future use)
@@ -277,7 +289,7 @@ class BaseNode(QGraphicsRectItem):
         specific port positions based on their layout.
         
         Args:
-            port_name: Name of the port (e.g., 'left', 'right', 'top', 'bottom')
+            port_name: Name of the port (e.g., 'left', 'right')
             
         Returns:
             Position of the port in scene coordinates
@@ -285,29 +297,18 @@ class BaseNode(QGraphicsRectItem):
         # Default implementation: return center of the node
         return self.sceneBoundingRect().center()
 
+
     def get_left_port_position(self) -> QPointF:
         """Get the position of the left connection port."""
         rect = self.sceneBoundingRect()
         return QPointF(rect.left(), rect.center().y())
+
 
     def get_right_port_position(self) -> QPointF:
         """Get the position of the right connection port."""
         rect = self.sceneBoundingRect()
         return QPointF(rect.right(), rect.center().y())
 
-    def get_top_port_position(self) -> QPointF:
-        """Get the position of the top connection port."""
-        rect = self.sceneBoundingRect()
-        return QPointF(rect.center().x(), rect.top())
-
-    def get_bottom_port_position(self) -> QPointF:
-        """Get the position of the bottom connection port."""
-        rect = self.sceneBoundingRect()
-        return QPointF(rect.center().x(), rect.bottom())
-
-    def get_center_port_position(self) -> QPointF:
-        """Get the position of the center connection port."""
-        return self.sceneBoundingRect().center()
 
     def add_port(self, name: str, position: QPointF) -> None:
         """
@@ -331,6 +332,7 @@ class BaseNode(QGraphicsRectItem):
         """
         return self.ports.get(name)
 
+
     # -------------------------------------------------------------------------
     # Utility methods
     # -------------------------------------------------------------------------
@@ -338,6 +340,7 @@ class BaseNode(QGraphicsRectItem):
     def center(self) -> QPointF:
         """Get the center position of the node in scene coordinates."""
         return self.sceneBoundingRect().center()
+
 
     def set_entity_label(self, text: str) -> None:
         """
@@ -350,6 +353,7 @@ class BaseNode(QGraphicsRectItem):
         # Update entity's lb if it has one
         if hasattr(self.entity, 'lb'):
             self.entity.lb = text
+
 
     def get_entity_label(self) -> str:
         """Get the current label text."""

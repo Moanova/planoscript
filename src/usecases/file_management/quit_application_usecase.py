@@ -14,5 +14,5 @@ class QuitApplicationUseCase:
         self.project_service = project_service
 
     def should_ask_confirmation(self) -> bool:
-        """Décide si une confirmation est nécessaire (logique pure)"""
+        """Decide whether confirmation is required (pure logic)"""
         return self.project_service.is_modified

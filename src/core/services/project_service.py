@@ -19,7 +19,7 @@ class ProjectService:
 
     def create_project(self) -> Project:
         """Create an initialization project with an ID, LB, and a default narrative map."""
-        # Créer une NarrativeMap par défaut
+        # Create a default narrative map
         narrative_map = NarrativeMap(
             id=str(uuid4()),
             lb="Main narrative map",

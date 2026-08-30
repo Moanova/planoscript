@@ -4,13 +4,16 @@
 # Version      : 1
 # Date         : 06-01-2026
 # Design       : TSC
-# Build        : TSC + Mistral Vibe
+# Build        : Mistral Vibe + TSC
 # ---------------------------------------------------------------------
 # Version      : 2
-# Date         : 2026-08-27
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : TSC + Mistral Vibe
+# Date         : 30-08-2026
+# Content      : Rework in progress
+# Build        : TSC
 # ---------------------------------------------------------------------
+import sys
+import os
+
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QMenuBar, QMenu, QLabel, QPushButton, QGraphicsView, QGraphicsScene,
@@ -21,13 +24,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QSize, QSizeF, QPointF
 from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
 
-import sys
-import os
-
 from ui.views.journey_workspace import JourneyWorkspace
 from ui.widgets.info_bar import InfoBar
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
+from core.models.data_model import State, Event
 from core.services.project_service import ProjectService
 from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
@@ -50,13 +51,15 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # MVP : one narrative map only per project
         self.current_narrative_map_index = 0
 
         # Boolean to define whether a project is opened or not
         self.project_opened = False
 
-        # Node counter to enable or disable the "Relation" button
+        # Node counter to enable or disable the "Relation" button (MVP : no control buttons, menu operations only)
         self.node_count = 0
+
         # Variables for relation creation
         self.relation_type = None
         self.waiting_for_source = False
@@ -69,11 +72,12 @@ class MainWindow(QMainWindow):
         self.load_project_usecase = LoadProjectUseCase(self.project_service)
         self.save_project_usecase = SaveProjectUseCase(self.project_service)
         self.quit_usecase = QuitApplicationUseCase(self.project_service)
-        self.about_service = AboutService()
-        self.change_log_service = ChangeLogService()
         self.create_node_usecase = CreateNodeUseCase(self.project_service)
         self.create_relation_usecase = CreateRelationUseCase(self.project_service)
+        self.about_service = AboutService()
+        self.change_log_service = ChangeLogService()
 
+        # Dimensions of the application window
         self.setGeometry(100, 100, 1280, 720)
 
         # Central widget and layout creation
@@ -103,9 +107,10 @@ class MainWindow(QMainWindow):
         bottom_layout.setContentsMargins(0, 0, 0, 0)
         bottom_layout.setSpacing(0)
         
-        # Information bar (75%)
+        # Information bar (75%) --> MPV 100%, no zoom bar
         self.info_bar = InfoBar()
-        bottom_layout.addWidget(self.info_bar, 4)  # 75%
+        ##bottom_layout.addWidget(self.info_bar, 4)  # 75%
+        bottom_layout.addWidget(self.info_bar)
         
         # Zoom bar (25%)
         #self.zoom_bar = ZoomBar()
@@ -113,9 +118,6 @@ class MainWindow(QMainWindow):
         
         main_layout.addLayout(bottom_layout)
         
-        # Status bar
-        #self.status_bar = QStatusBar()
-        #self.setStatusBar(self.status_bar)
         self.setWindowTitle("Planoscript : start your new project")
 
 
@@ -184,7 +186,7 @@ class MainWindow(QMainWindow):
         # Display menu
         self.view_menu = self.menu_bar.addMenu("Display")
         self.journey_menu = self.view_menu.addMenu("Journey")
-        self.menu_actions['list_journeys'] = self.journey_menu.addAction("JounreyList", lambda: None)
+        self.menu_actions['list_journeys'] = self.journey_menu.addAction("JourneyList", lambda: None)
         self.zoom_menu = self.view_menu.addMenu("Zoom")
         self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
         self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
@@ -193,15 +195,16 @@ class MainWindow(QMainWindow):
         # Project menu
         self.project_menu = self.menu_bar.addMenu("Project")
 
+        # MVP : journey view only + the relation view will be reworked at a leter stage of development
         self.view_menu = self.project_menu.addMenu("View")
         self.menu_actions['view_journeys'] = self.view_menu.addAction("Journey", lambda: None)
-        self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
-        self.menu_actions['view_chapters'] = self.view_menu.addAction("Chapters", lambda: None)
+        #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
+        #self.menu_actions['view_chapters'] = self.view_menu.addAction("Chapters", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
-        self.components_menu.addAction("Agent", lambda: self._create_node_from_menu("Agent"))
-        self.components_menu.addAction("State", lambda: self._create_node_from_menu("État"))
-        self.components_menu.addAction("Event", lambda: self._create_node_from_menu("Évènement"))
+        self.components_menu.addAction("Agent", lambda: self._create_new_node("Agent"))
+        self.components_menu.addAction("State", lambda: self._create_new_node("State"))
+        self.components_menu.addAction("Event", lambda: self._create_new_node("Event"))
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
         self.relations_menu.addAction("Link State and Event", lambda: self._start_state_event_relation_creation())
@@ -220,8 +223,8 @@ class MainWindow(QMainWindow):
         has_project = self.project_opened
         is_modified = self.project_service.is_modified
 
-        # RG007: Disable if no project is opened
-        rg007_actions = [
+        # Disable if no project is opened
+        actions = [
             'close', 'save', 'save_as', 'export_map',
             'undo', 'redo', 'history', 'cut', 'copy', 'paste', 'delete',
             'zoom_in', 'zoom_out', 'zoom_reset'
@@ -233,7 +236,7 @@ class MainWindow(QMainWindow):
         self.components_menu.setEnabled(has_project)
         self.relations_menu.setEnabled(has_project)
 
-        for action_key in rg007_actions:
+        for action_key in actions:
             if action_key in self.menu_actions:
                 self.menu_actions[action_key].setEnabled(has_project)
 
@@ -308,8 +311,8 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.critical(
                 self,
-                "Error opening File",
-                f"Impossible to open the file : {file_path}"
+                "Error opening the File",
+                f"The File cannot be opened : {file_path}"
             )
 
         # For debugging
@@ -325,42 +328,12 @@ class MainWindow(QMainWindow):
             if item.widget():
                 item.widget().deleteLater()
 
-        # Single workspace
+        # Single workspace (MVP : journey view only)
         self.workspace = JourneyWorkspace(
             narrative_map=self.project_service.current_project.narrative_map[0]
         )
         self.middle_layout.addWidget(self.workspace)
 
-    def _create_node_from_menu(self, component_type: str):
-        """
-        Create a node from menu selection.
-        Places the node at the center of the workspace.
-        """
-        # Check project and workspace
-        if not self.project_opened or not hasattr(self, 'workspace') or self.workspace is None:
-            return
-
-        narrative_map = self.project_service.current_project.narrative_map[0]
-
-        # Calculate center position of the workspace
-        viewport_rect = self.workspace.viewport().rect()
-        scene_pos = self.workspace.mapToScene(
-            viewport_rect.width() / 2,
-            viewport_rect.height() / 2
-        )
-
-        # Execute use case
-        result = self.create_node_usecase.execute(
-            component_type=component_type,
-            x=scene_pos.x(),
-            y=scene_pos.y(),
-            narrative_map=narrative_map
-        )
-
-        if result and result.get('success'):
-            self.workspace.create_node_from_data(result)
-            self._update_menu_state()
-            self.node_count += 1
 
     def _save_project(self):
         current_project = self.project_service.current_project
@@ -398,7 +371,7 @@ class MainWindow(QMainWindow):
                 self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb} ({file_path})")
             return success
         except Exception as e:
-            QMessageBox.critical(self, "Error Saving", str(e))
+            QMessageBox.critical(self, "Error Saving the Project", str(e))
             return False
 
 
@@ -421,12 +394,13 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes and not self._save_project():
                 return False
 
-        # Close the project
+        # Close the project and reinitialize the state of the application
         self._clear_project()
         self._show_welcome_message()
         self.project_opened = False
         self.setWindowTitle("Planoscript : start your new project")
         self._update_menu_state()
+
         return True
 
 
@@ -468,6 +442,7 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             return self._save_project()
+
         return reply == QMessageBox.No  # True if No, False if Cancel
 
 
@@ -479,12 +454,37 @@ class MainWindow(QMainWindow):
     # ---------------------------------------------------------------------
     # Interaction handling
     # ---------------------------------------------------------------------
-    def _show_changelog(self):
-        ChangeLogDialog(self.change_log_service, self).exec()
+    def _create_new_node(self, component_type: str):
+        """
+        Create a node from menu selection.
+        Places the node at the center of the workspace.
+        """
+        # Check project and workspace
+        if not self.project_opened or not hasattr(self, 'workspace') or self.workspace is None:
+            return
 
+        # MVP : one narrative map only per project
+        narrative_map = self.project_service.current_project.narrative_map[0]
 
-    def _show_about(self):
-        AboutDialog(self.about_service, self).exec()
+        # Calculate center position of the workspace
+        viewport_rect = self.workspace.viewport().rect()
+        scene_pos = self.workspace.mapToScene(
+            viewport_rect.width() / 2,
+            viewport_rect.height() / 2
+        )
+
+        # Execute use case
+        result = self.create_node_usecase.execute(
+            component_type=component_type,
+            x=scene_pos.x(),
+            y=scene_pos.y(),
+            narrative_map=narrative_map
+        )
+
+        if result and result.get('success'):
+            self.workspace.create_node_from_data(result)
+            self._update_menu_state()
+            self.node_count += 1
 
 
     def _start_state_event_relation_creation(self):
@@ -502,23 +502,6 @@ class MainWindow(QMainWindow):
         self.waiting_for_target = False
         self.source_node = None
         self.info_bar.show_message("Click on the first node (State or Event)")
-
-    def _start_relation_creation(self, relation_type: str):
-        """
-        Activate relation creation mode.
-        Store relation type and wait for node selection.
-        Note: This method is kept for backward compatibility but not used in the new model.
-        """
-        # Check minimum node count
-        if self.node_count < 2:
-            self.info_bar.show_message("A relation needs at least two nodes in the map")
-            return
-
-        self.relation_type = relation_type
-        self.waiting_for_source = True
-        self.waiting_for_target = False
-        self.source_node = None
-        self.info_bar.show_message(f"Click on the source node for {relation_type}")
 
 
     def _on_node_selected_for_relation(self, node):
@@ -543,8 +526,6 @@ class MainWindow(QMainWindow):
         """
         Create a State-Event relation between two nodes using StateNodeService.
         """
-        from core.models.data_model import State, Event
-        
         # Extract business entities from visual nodes
         source_entity = source_node.entity
         target_entity = target_node.entity
@@ -561,7 +542,7 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message("Error: Invalid connection (only State <-> Event allowed)")
             return
         
-        # Get the current narrative map
+        # Get the current narrative map (MVP : one narrative map only per project)
         narrative_map = self.project_service.current_project.narrative_map[0]
         
         # Create the State_node using the service
@@ -584,26 +565,10 @@ class MainWindow(QMainWindow):
         else:
             self.info_bar.show_message("Error: Cannot create State-Event relation")
 
-    def _create_relation(self, source_node, target_node):
-        """
-        Create a relation between two nodes via the use case.
-        Note: This method is kept for backward compatibility but not used in the new model.
-        """
-        # Extract business entities from visual nodes
-        source_entity = source_node.entity
-        target_entity = target_node.entity
 
-        # Execute use case
-        result = self.create_relation_usecase.execute(
-            source_entity=source_entity,
-            target_entity=target_entity,
-            relation_type=self.relation_type
-        )
+    def _show_changelog(self):
+        ChangeLogDialog(self.change_log_service, self).exec()
 
-        if result and result.get('success'):
-            # Create visual connection in workspace
-            if isinstance(self.workspace, JourneyWorkspace):
-                self.workspace.create_connection_from_data(result)
-            self.info_bar.show_message(f"Relation {self.relation_type} created")
-        else:
-            self.info_bar.show_message("Error : the relation cannot be created")
+
+    def _show_about(self):
+        AboutDialog(self.about_service, self).exec()

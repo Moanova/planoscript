@@ -6,11 +6,6 @@
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
-# Version      : 2
-# Date         : 2026-08-27
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : TSC + Mistral Vibe
-# ---------------------------------------------------------------------
 """
 Event Node for Planoscript.
 
@@ -85,6 +80,7 @@ class EventNode(BaseNode):
         # Initialize reference indicators (attributes already exist)
         self._init_reference_indicators()
 
+
     def _update_event_colors(self) -> None:
         """Update node colors to use event-specific scheme."""
         self.setBrush(QBrush(self.EVENT_COLORS['bg']))
@@ -137,6 +133,7 @@ class EventNode(BaseNode):
         #    self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
         #    self.space_ref_indicator.setToolTip(f"Space Ref: {self.event.space_ref_id}")
 
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the node's appearance based on selection state.
@@ -147,6 +144,7 @@ class EventNode(BaseNode):
             self.setBrush(QBrush(self.SELECTED_BG_COLOR))
         else:
             self._update_event_colors()
+
 
     def update_from_layout(self) -> None:
         """Update the node's visual properties from its layout."""
@@ -188,6 +186,7 @@ class EventNode(BaseNode):
     #    self.event.space_ref_id = space_ref_id
     #    self._init_reference_indicators()
 
+
     def set_description(self, description: str) -> None:
         """
         Set the event's description.
@@ -197,9 +196,11 @@ class EventNode(BaseNode):
         """
         self.event.desc = description
 
+
     def get_description(self) -> Optional[str]:
         """Get the event's description."""
         return self.event.desc
+
 
     def get_full_info(self) -> str:
         """
@@ -217,6 +218,7 @@ class EventNode(BaseNode):
             info += f"Description: {self.event.desc}\n"
         return info
 
+
     # -------------------------------------------------------------------------
     # Port methods
     # -------------------------------------------------------------------------
@@ -226,7 +228,7 @@ class EventNode(BaseNode):
         Get the scene position of a connection port.
         
         Args:
-            port_name: Name of the port ('left', 'right', 'top', 'bottom', 'center')
+            port_name: Name of the port ('left', 'right')
             
         Returns:
             Position of the port in scene coordinates
@@ -237,9 +239,3 @@ class EventNode(BaseNode):
             return self.get_left_port_position()
         elif port_name == "right":
             return self.get_right_port_position()
-        elif port_name == "top":
-            return self.get_top_port_position()
-        elif port_name == "bottom":
-            return self.get_bottom_port_position()
-        else:
-            return self.get_center_port_position()

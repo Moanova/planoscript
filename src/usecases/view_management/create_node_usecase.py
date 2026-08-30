@@ -13,7 +13,7 @@ This use case handles the creation of business entities and their visual layouts
 but DOES NOT handle the creation of Qt graphic objects (QGraphicsItem).
 
 Responsibilities:
-- Create a business entity (Agent, State, Event, etc.) with a unique ID
+- Create a business entity (Agent, State, Event) with a unique ID
 - Add the entity to the project's NarrativeMap
 - Create a NodeLayout for visual representation
 - Return all data needed to create the visual node
@@ -53,19 +53,20 @@ class CreateNodeUseCase:
             'entity_type_key': 'agent',
             'default_label': 'Agent'
         },
-        "État": {
+        "State": {
             'entity_class': State,
             'node_type': NodeType.STATE,
             'entity_type_key': 'state',
-            'default_label': 'État'
+            'default_label': 'State'
         },
-        "Évènement": {
+        "Event": {
             'entity_class': Event,
             'node_type': NodeType.EVENT,
             'entity_type_key': 'event',
-            'default_label': 'Évènement'
+            'default_label': 'Event'
         },
     }
+
 
     def __init__(self, project_service: ProjectService):
         """
@@ -75,6 +76,7 @@ class CreateNodeUseCase:
             project_service: Service managing the current project
         """
         self.project_service = project_service
+
 
     def execute(
         self,
@@ -87,7 +89,7 @@ class CreateNodeUseCase:
         Execute creation of a node of the specified type.
         
         Args:
-            component_type: Type of component to create (e.g., "Agent", "State", etc.)
+            component_type: Type of component to create (e.g., "Agent", "State", "Event")
             x: X coordinate for node positioning
             y: Y coordinate for node positioning
             narrative_map: Target NarrativeMap (optional, uses the first by default)
@@ -95,7 +97,7 @@ class CreateNodeUseCase:
         Returns:
             Dictionary containing:
                 - 'success': bool (True if creation successful)
-                - 'entity': the created business entity (Agent, State, etc.)
+                - 'entity': the created business entity (Agent, State, Event)
                 - 'entity_id': ID of the entity
                 - 'layout': NodeLayout for visual representation
                 - 'node_type': NodeType enum to know which type of node to create
@@ -162,6 +164,7 @@ class CreateNodeUseCase:
             'component_type': component_type
         }
 
+
     def _create_entity(self, entity_class, entity_id: int, default_label: str):
         """
         Create a business entity with default values.
@@ -202,6 +205,7 @@ class CreateNodeUseCase:
             )
         
         return entity
+
 
     def _add_entity_to_narrative_map(
         self,

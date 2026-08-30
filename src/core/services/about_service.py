@@ -23,5 +23,5 @@ class AboutService:
                 "version": "0.1.0-alpha",
                 "year": "AA-MM-AAAA",
                 "author": "TSC",
-                "built_by": "TSC + Mistral Vibe"
+                "built_by": "Mistral Vibe + TSC"
             }

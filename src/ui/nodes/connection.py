@@ -7,9 +7,9 @@
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 # Version      : 2
-# Date         : 2026-08-27
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : TSC + Mistral Vibe
+# Date         : 30-08-2026
+# Content      : Rework in progress
+# Build        : TSC
 # ---------------------------------------------------------------------
 """
 Connection for Planoscript.
@@ -20,26 +20,21 @@ supports various connection styles (straight, curved, arrows, etc.).
 
 The connection automatically updates its path when the connected nodes are moved,
 and maintains synchronization with the business model relation entities
-(e.g., Agent_state_rel, Agent_event_rel, etc.) or direct reference fields
-(for Time_ref and Space_ref connections).
+(e.g., State_agent_rel, State_node, Journey_node).
 """
+from datetime import datetime
+import math
 
 from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem
 from PySide6.QtCore import QPointF, Qt, QRectF
 from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath
 from typing import Optional, Any, Dict, Tuple
-from datetime import datetime
-import math
 
 from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, NodeType
 from core.models.data_model import (
-    Agent_state_rel,
-    Agent_event_rel,
-    State_event_rel,
-    Event_state_rel,
-    Agent_rel_hist,
-    Time_ref,
-    Space_ref,
+    State_Event_rel,
+    State_node,
+    Journey_node,
     State,
     Event,
     Agent
@@ -53,95 +48,6 @@ ENTITY_RELATION_TYPES = {
     "State_node", 
     "Journey_node"
 }
-
-# Types of relations that are direct fields (1-n cardinality)
-# Format: (source_type, target_type) -> (target_field_name, source_field_name)
-DIRECT_RELATION_FIELDS = {
-    #(NodeType.TIME_REF, NodeType.STATE): ("time_ref_id", None),
-    #(NodeType.TIME_REF, NodeType.EVENT): ("time_ref_id", None),
-    #(NodeType.SPACE_REF, NodeType.STATE): ("space_ref_id", None),
-    #(NodeType.SPACE_REF, NodeType.EVENT): ("space_ref_id", None),
-    # Reverse mappings (for consistency)
-    #(NodeType.STATE, NodeType.TIME_REF): (None, "time_ref_id"),
-    #(NodeType.EVENT, NodeType.TIME_REF): (None, "time_ref_id"),
-    #(NodeType.STATE, NodeType.SPACE_REF): (None, "space_ref_id"),
-    #(NodeType.EVENT, NodeType.SPACE_REF): (None, "space_ref_id"),
-}
-
-
-def get_relation_type(source_type: NodeType, target_type: NodeType) -> Optional[str]:
-    """
-    Determine the business relation type based on node types.
-    
-    For entity relations (n-n cardinality), returns the relation class name.
-    For direct field relations (1-n cardinality), returns the field name with
-    a special prefix to indicate it's a direct field.
-    
-    Args:
-        source_type: NodeType of the source node
-        target_type: NodeType of the target node
-        
-    Returns:
-        String representing the relation type:
-        - For entity relations: "Agent_state_rel", "Agent_event_rel", etc.
-        - For direct fields: "direct:time_ref_id", "direct:space_ref_id"
-        - None if no valid relation exists
-    """
-    # First check if this is a direct field relation
-    if (source_type, target_type) in DIRECT_RELATION_FIELDS:
-        target_field, _ = DIRECT_RELATION_FIELDS[(source_type, target_type)]
-        if target_field:
-            return f"direct:{target_field}"
-    
-    # Check reverse
-    if (target_type, source_type) in DIRECT_RELATION_FIELDS:
-        _, source_field = DIRECT_RELATION_FIELDS[(target_type, source_type)]
-        if source_field:
-            return f"direct:{source_field}"
-    
-    # Check entity relations
-    relation_mapping = {
-        #(NodeType.AGENT, NodeType.STATE): "Agent_state_rel",
-        #(NodeType.AGENT, NodeType.EVENT): "Agent_event_rel",
-        #(NodeType.AGENT, NodeType.AGENT): "Agent_rel_hist",
-        (NodeType.STATE, NodeType.EVENT): "State_event_rel",
-        (NodeType.EVENT, NodeType.STATE): "Event_state_rel",
-        # Reverse mappings for consistency
-        (NodeType.STATE, NodeType.AGENT): "Agent_state_rel",
-        (NodeType.EVENT, NodeType.AGENT): "Agent_event_rel",
-        #(NodeType.TIME_REF, NodeType.TIME_REF): None,
-        #(NodeType.SPACE_REF, NodeType.SPACE_REF): None,
-    }
-    
-    return relation_mapping.get((source_type, target_type))
-
-
-def is_direct_relation(relation_type: Optional[str]) -> bool:
-    """
-    Check if a relation type represents a direct field reference.
-    
-    Args:
-        relation_type: The relation type string
-        
-    Returns:
-        True if this is a direct field relation, False otherwise
-    """
-    return relation_type is not None and relation_type.startswith("direct:")
-
-
-def get_field_name_from_relation_type(relation_type: str) -> Optional[str]:
-    """
-    Extract the field name from a direct relation type.
-    
-    Args:
-        relation_type: The relation type string (e.g., "direct:time_ref_id")
-        
-    Returns:
-        The field name (e.g., "time_ref_id"), or None if not a direct relation
-    """
-    if is_direct_relation(relation_type):
-        return relation_type[7:]  # Remove "direct:" prefix
-    return None
 
 
 class Connection(QGraphicsPathItem):
@@ -211,6 +117,7 @@ class Connection(QGraphicsPathItem):
         # Connect to node movement signals
         self._connect_node_signals()
 
+
     def _init_appearance(self) -> None:
         """Initialize the visual appearance from the layout."""
         # Set pen from layout
@@ -228,6 +135,7 @@ class Connection(QGraphicsPathItem):
         
         # Set selected state
         self.setSelected(self.layout.selected)
+
 
     def _connect_node_signals(self) -> None:
         """
@@ -247,6 +155,7 @@ class Connection(QGraphicsPathItem):
         self.source_node.itemChange = self._source_item_change_wrapper
         self.target_node.itemChange = self._target_item_change_wrapper
 
+
     def _source_item_change_wrapper(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
         """Wrapper for source node's itemChange method."""
         result = self._source_item_change(change, value)
@@ -254,12 +163,14 @@ class Connection(QGraphicsPathItem):
             self.update_path()
         return result
 
+
     def _target_item_change_wrapper(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
         """Wrapper for target node's itemChange method."""
         result = self._target_item_change(change, value)
         if change == QGraphicsItem.ItemPositionChange:
             self.update_path()
         return result
+
 
     def update_path(self) -> None:
         """
@@ -287,6 +198,7 @@ class Connection(QGraphicsPathItem):
         
         self.setPath(path)
 
+
     def _get_port_position(self, node: BaseNode, port: PortPosition) -> QPointF:
         """
         Get the scene position of a port on a node.
@@ -304,12 +216,7 @@ class Connection(QGraphicsPathItem):
             return node.get_left_port_position()
         elif port_name == "right":
             return node.get_right_port_position()
-        elif port_name == "top":
-            return node.get_top_port_position()
-        elif port_name == "bottom":
-            return node.get_bottom_port_position()
-        else:
-            return node.get_center_port_position()
+
 
     def _create_straight_path(self, start: QPointF, end: QPointF) -> QPainterPath:
         """
@@ -326,6 +233,7 @@ class Connection(QGraphicsPathItem):
         path.moveTo(start)
         path.lineTo(end)
         return path
+
 
     def _create_curved_path(self, start: QPointF, end: QPointF) -> QPainterPath:
         """
@@ -359,6 +267,7 @@ class Connection(QGraphicsPathItem):
         path.cubicTo(cp1, cp2, end)
         return path
 
+
     def _create_arrow_path(self, start: QPointF, end: QPointF) -> QPainterPath:
         """
         Create a path with an arrowhead at the target end.
@@ -374,6 +283,7 @@ class Connection(QGraphicsPathItem):
         path = self._create_straight_path(start, end)
         return path
 
+
     def paint(self, painter, option, widget=None) -> None:
         """
         Paint the connection with optional arrowhead.
@@ -387,6 +297,7 @@ class Connection(QGraphicsPathItem):
         # Draw arrowhead if needed
         if self.layout.style in [ConnectionStyle.ARROW, ConnectionStyle.CURVED_ARROW]:
             self._draw_arrowhead(painter)
+
 
     def _draw_arrowhead(self, painter) -> None:
         """
@@ -446,6 +357,7 @@ class Connection(QGraphicsPathItem):
         painter.setBrush(pen.color())
         painter.drawPath(arrow_path)
 
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the connection's appearance based on selection state.
@@ -465,6 +377,7 @@ class Connection(QGraphicsPathItem):
             # Restore normal pen
             self._init_appearance()
 
+
     def update_layout(self) -> None:
         """
         Update the layout object with the connection's current properties.
@@ -473,6 +386,7 @@ class Connection(QGraphicsPathItem):
         persist the changes to the layout model.
         """
         self.layout.selected = self.isSelected()
+
 
     def set_source_node(self, node: BaseNode, port: PortPosition = PortPosition.RIGHT) -> None:
         """
@@ -493,6 +407,7 @@ class Connection(QGraphicsPathItem):
         
         self.update_path()
 
+
     def set_target_node(self, node: BaseNode, port: PortPosition = PortPosition.LEFT) -> None:
         """
         Set the target node and port.
@@ -512,23 +427,13 @@ class Connection(QGraphicsPathItem):
         
         self.update_path()
 
-    def _update_relation_type(self) -> None:
-        """Update the relation type based on source and target node types."""
-        if not self.source_node or not self.target_node:
-            self.layout.relation_type = None
-            return
-        
-        self.layout.relation_type = get_relation_type(
-            self.source_node.layout.node_type,
-            self.target_node.layout.node_type
-        )
 
     def set_relation_entity(self, entity: Any) -> None:
         """
         Set the business relation entity for this connection.
         
         Args:
-            entity: The business relation entity (e.g., Agent_state_rel instance)
+            entity: The business relation entity
         """
         self.relation_entity = entity
         if entity:
@@ -541,6 +446,7 @@ class Connection(QGraphicsPathItem):
         else:
             self.layout.relation_id = None
 
+
     def set_style(self, style: ConnectionStyle) -> None:
         """
         Set the connection style and update the path.
@@ -550,6 +456,7 @@ class Connection(QGraphicsPathItem):
         """
         self.layout.style = style
         self.update_path()
+
 
     def set_color(self, color: str) -> None:
         """
@@ -567,6 +474,7 @@ class Connection(QGraphicsPathItem):
         except (ValueError, AttributeError):
             pass
 
+
     def set_thickness(self, thickness: float) -> None:
         """
         Set the connection thickness.
@@ -577,6 +485,7 @@ class Connection(QGraphicsPathItem):
         self.layout.thickness = thickness
         current_pen = self.pen()
         self.setPen(QPen(current_pen.color(), thickness))
+
 
     def set_label(self, text: str) -> None:
         """
@@ -593,29 +502,36 @@ class Connection(QGraphicsPathItem):
             elif hasattr(self.relation_entity, 'desc'):
                 self.relation_entity.desc = text
 
+
     def get_source_node(self) -> Optional[BaseNode]:
         """Get the source node."""
         return self.source_node
+
 
     def get_target_node(self) -> Optional[BaseNode]:
         """Get the target node."""
         return self.target_node
 
+
     def get_label(self) -> Optional[str]:
         """Get the connection label."""
         return self.layout.label
+
 
     def get_relation_entity(self) -> Optional[Any]:
         """Get the business relation entity."""
         return self.relation_entity
 
+
     def get_relation_id(self) -> Optional[int]:
         """Get the relation entity ID."""
         return self.layout.relation_id
 
+
     def get_relation_type(self) -> Optional[str]:
         """Get the relation type."""
         return self.layout.relation_type
+
 
     # -------------------------------------------------------------------------
     # Business relation helper methods
@@ -624,16 +540,12 @@ class Connection(QGraphicsPathItem):
     def create_relation_entity(self, narrative_map: Any) -> Optional[Any]:
         """
         Create a business relation entity based on the connected nodes.
-        
-        For entity relations (n-n cardinality like Agent-State), creates a new
-        relation entity. For direct field relations (1-n cardinality like
-        Time_ref-State), updates the target entity's reference field.
-        
+       
         Args:
             narrative_map: The NarrativeMap to add the relation to
             
         Returns:
-            The created relation entity (for entity relations) or None (for direct fields)
+            The created relation entity
         """
         if not self.source_node or not self.target_node or not self.layout.relation_type:
             return None
@@ -642,24 +554,10 @@ class Connection(QGraphicsPathItem):
         source_id = self.source_node.entity.id
         target_id = self.target_node.entity.id
         
-        # Handle direct field relations (Time_ref -> State/Event, Space_ref -> State/Event)
-        if is_direct_relation(relation_type):
-            field_name = get_field_name_from_relation_type(relation_type)
-            if field_name:
-                # For direct relations, update the target entity's field
-                # The connection is from Time_ref/Space_ref to State/Event
-                target_entity = self.target_node.entity
-                if hasattr(target_entity, field_name):
-                    setattr(target_entity, field_name, source_id)
-                    # Mark as modified if the narrative map has a modification flag
-                    if hasattr(narrative_map, 'set_modified'):
-                        narrative_map.set_modified(True)
-                return None  # No entity created for direct relations
-        
         # Handle entity relations (n-n cardinality)
-        if relation_type == "Agent_state_rel":
+        if relation_type == "State_agent_rel":
             relation = Agent_state_rel(
-                id=narrative_map.get_next_id("agent_state_rel"),
+                id=narrative_map.get_next_id("state_agent_rel"),
                 agent_id=source_id,
                 state_id=target_id,
                 note=self.layout.label,
@@ -668,9 +566,9 @@ class Connection(QGraphicsPathItem):
             narrative_map.agent_state_rel.append(relation)
             self.set_relation_entity(relation)
             
-        elif relation_type == "Agent_event_rel":
+        elif relation_type == "State_node":
             relation = Agent_event_rel(
-                id=narrative_map.get_next_id("agent_event_rel"),
+                id=narrative_map.get_next_id("State_node"),
                 agent_id=source_id,
                 event_id=target_id,
                 note=self.layout.label,
@@ -679,7 +577,7 @@ class Connection(QGraphicsPathItem):
             narrative_map.agent_event_rel.append(relation)
             self.set_relation_entity(relation)
             
-        elif relation_type == "State_event_rel":
+        elif relation_type == "Journey_node":
             relation = State_event_rel(
                 id=narrative_map.get_next_id("state_event_rel"),
                 state_id=source_id,
@@ -689,32 +587,11 @@ class Connection(QGraphicsPathItem):
             )
             narrative_map.state_event_rel.append(relation)
             self.set_relation_entity(relation)
-            
-        elif relation_type == "Event_state_rel":
-            relation = Event_state_rel(
-                id=narrative_map.get_next_id("event_state_rel"),
-                event_id=source_id,
-                state_id=target_id,
-                note=self.layout.label,
-                creation_date_time=datetime.now()
-            )
-            narrative_map.event_state_rel.append(relation)
-            self.set_relation_entity(relation)
-            
-        elif relation_type == "Agent_rel_hist":
-            relation = Agent_rel_hist(
-                id=narrative_map.get_next_id("agent_rel_hist"),
-                agent_1_id=source_id,
-                agent_2_id=target_id,
-                desc=self.layout.label,
-                creation_date_time=datetime.now()
-            )
-            narrative_map.agent_rel_hist.append(relation)
-            self.set_relation_entity(relation)
         else:
             return None
         
         return self.relation_entity
+
 
     def delete_relation_entity(self, narrative_map: Any) -> bool:
         """
@@ -750,25 +627,17 @@ class Connection(QGraphicsPathItem):
         
         relation_id = self.layout.relation_id
         
-        if self.layout.relation_type == "Agent_state_rel":
-            narrative_map.agent_state_rel = [
-                rel for rel in narrative_map.agent_state_rel if rel.id != relation_id
+        if self.layout.relation_type == "State_agent_rel":
+            narrative_map.state_agent_rel = [
+                rel for rel in narrative_map.state_agent_rel if rel.id != relation_id
             ]
-        elif self.layout.relation_type == "Agent_event_rel":
-            narrative_map.agent_event_rel = [
-                rel for rel in narrative_map.agent_event_rel if rel.id != relation_id
+        elif self.layout.relation_type == "State_node":
+            narrative_map.state_node = [
+                rel for rel in narrative_map.state_node if rel.id != relation_id
             ]
-        elif self.layout.relation_type == "State_event_rel":
-            narrative_map.state_event_rel = [
-                rel for rel in narrative_map.state_event_rel if rel.id != relation_id
-            ]
-        elif self.layout.relation_type == "Event_state_rel":
-            narrative_map.event_state_rel = [
-                rel for rel in narrative_map.event_state_rel if rel.id != relation_id
-            ]
-        elif self.layout.relation_type == "Agent_rel_hist":
-            narrative_map.agent_rel_hist = [
-                rel for rel in narrative_map.agent_rel_hist if rel.id != relation_id
+        elif self.layout.relation_type == "Journey_node":
+            narrative_map.journey_node = [
+                rel for rel in narrative_map.journey_node if rel.id != relation_id
             ]
         else:
             return False

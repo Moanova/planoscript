@@ -31,13 +31,10 @@ class NodeType(Enum):
     Enumeration of all possible node types that can be displayed in the workspace.
     Each type corresponds to an entity in the business model (data_model.py).
     """
-    TIME_REF = "Time_ref"
-    SPACE_REF = "Space_ref"
     AGENT = "Agent"
     STATE = "State"
     EVENT = "Event"
     JOURNEY = "Journey"
-    CHAPTER = "Chapter"
 
 
 @dataclass
@@ -103,6 +100,13 @@ class NodeLayout:
         )
 
 
+class RelationType(Enum):
+    """Enumeration of relation types from the business model."""
+    STATE_AGENT_REL = "State_agent_rel"
+    STATE_NODE = "State_node"
+    JOURNEY_NODE = "Journey_node"
+
+
 class ConnectionStyle(Enum):
     """Enumeration of connection line styles."""
     STRAIGHT = "straight"      # Direct line between nodes
@@ -158,7 +162,7 @@ class ConnectionLayout:
     selected: bool = False
     label: Optional[str] = None
     relation_id: Optional[int] = None
-    relation_type: Optional[str] = None
+    relation_type: Optional[RelationType] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -175,12 +179,20 @@ class ConnectionLayout:
             'selected': self.selected,
             'label': self.label,
             'relation_id': self.relation_id,
-            'relation_type': self.relation_type
+            'relation_type': self.relation_type.value if self.relation_type else None
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ConnectionLayout':
         """Create a ConnectionLayout from a dictionary."""
+        relation_type_value = data.get('relation_type')
+        relation_type = None
+        if relation_type_value is not None:
+            try:
+                relation_type = RelationType(relation_type_value)
+            except ValueError:
+                relation_type = None
+        
         return cls(
             id=str(data['id']),
             source_node_id=int(data['source_node_id']),
@@ -194,7 +206,7 @@ class ConnectionLayout:
             selected=bool(data.get('selected', False)),
             label=data.get('label'),
             relation_id=int(data['relation_id']) if data.get('relation_id') is not None else None,
-            relation_type=data.get('relation_type')
+            relation_type=relation_type
         )
 
 

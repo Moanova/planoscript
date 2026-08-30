@@ -5,11 +5,6 @@
 # Date         : 01-06-2026
 # Design       : TSC
 # ---------------------------------------------------------------------
-# Version      : 2
-# Date         : 2026-08-27
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : TSC + Mistral Vibe
-# ---------------------------------------------------------------------
 """
 Tree Layout Service for Planoscript.
 

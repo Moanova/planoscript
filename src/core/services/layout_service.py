@@ -6,11 +6,6 @@
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
-# Version      : 2
-# Date         : 26-08-2026
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : Mistral Vibe
-# ---------------------------------------------------------------------
 """
 Layout Service for Planoscript.
 

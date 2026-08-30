@@ -6,10 +6,12 @@
 # Design       : TSC
 # ---------------------------------------------------------------------
 # Version      : 2
-# Date         : 2026-08-27
-# Content      : Non-functional version (intermediate redesign stage)
-# Build        : TSC + Mistral Vibe
+# Date         : 30-08-2026
+# Content      : Rework in progress
+# Build        : TSC
 # ---------------------------------------------------------------------
+import os
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QGraphicsView, QGraphicsScene,
@@ -18,14 +20,11 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QSize, QSizeF, QPointF, QRectF
 from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
-import os
 
+from core.models.view_model import NodeType
 from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
-#from ui.nodes.time_ref_node import TimeRefNode
-#from ui.nodes.space_ref_node import SpaceRefNode
-from core.models.view_model import NodeType
 
 class JourneyWorkspace(QGraphicsView):
     """Central workspace with infinite scrolling and dynamic grid"""
@@ -77,8 +76,8 @@ class JourneyWorkspace(QGraphicsView):
                 background: #e0e0e0;
                 border: none;
                 border-radius: 4px;
-                height: 4px;  /* Hauteur pour les barres verticales */
-                width: 4px;   /* Largeur pour les barres horizontales */
+                height: 4px;  /* Height for vertical the bar */
+                width: 4px;   /* Width for the norizontal bar */
             }
 
             /* Flèches pour les boutons */
@@ -136,7 +135,8 @@ class JourneyWorkspace(QGraphicsView):
 
         # Enable drag-and-drop for items
         self.setAcceptDrops(True)
-        # RG009: Désactiver RubberBandDrag pour éviter la sélection multiple
+
+        # Deactivate RubberBandDrag to avoid multiple selection
         self.setDragMode(QGraphicsView.NoDrag)
 
         # Track scene boundaries
@@ -367,14 +367,12 @@ class JourneyWorkspace(QGraphicsView):
         NODE_CLASS_MAPPING = {
             NodeType.AGENT: AgentNode,
             NodeType.STATE: StateNode,
-            NodeType.EVENT: EventNode,
-            #NodeType.TIME_REF: TimeRefNode,
-            #NodeType.SPACE_REF: SpaceRefNode,
+            NodeType.EVENT: EventNode
         }
 
         node_class = NODE_CLASS_MAPPING.get(node_type)
         if not node_class:
-            print(f"Type de nœud inconnu: {node_type}")
+            print(f"Unknown node type: {node_type}")
             return None
 
         # Create the visual node
@@ -410,13 +408,13 @@ class JourneyWorkspace(QGraphicsView):
         target_node = self._find_node_by_entity_id(target_entity.id)
 
         if not source_node or not target_node:
-            print("Nœud source ou cible non trouvé")
+            print("Source or target node not found")
             return None
 
         # Create the visual connection
         connection = Connection(connection_layout)
 
-        # Positionner la connexion (à adapter selon votre implémentation)
+        # Position the connection
         self.scene.addItem(connection)
         connection.update_path(source_node, target_node)
         
@@ -441,14 +439,14 @@ class JourneyWorkspace(QGraphicsView):
         Args:
             item: The QGraphicsItem to select.
         """
-        # Désélectionner tous les items sélectables
+        # Deselect all selectable items
         for existing_item in self.scene.items():
             if (existing_item != item and 
                 existing_item.flags() & QGraphicsItem.ItemIsSelectable and
                 existing_item.isEnabled()):
                 existing_item.setSelected(False)
         
-        # Sélectionner l'item spécifié
+        # Select the specified item
         if item.flags() & QGraphicsItem.ItemIsSelectable:
             item.setSelected(True)
 

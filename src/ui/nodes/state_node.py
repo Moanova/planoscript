@@ -69,8 +69,6 @@ class StateNode(BaseNode):
         # Store state-specific reference and indicators BEFORE super().__init__()
         # so that update_from_layout() can access them
         self.state = state
-        self.time_ref_indicator = None
-        self.space_ref_indicator = None
         
         super().__init__(state, layout)
         
@@ -79,6 +77,7 @@ class StateNode(BaseNode):
         
         # Initialize reference indicators (attributes already exist)
         self._init_reference_indicators()
+
 
     def _update_state_colors(self) -> None:
         """Update node colors to use state-specific scheme."""
@@ -89,48 +88,50 @@ class StateNode(BaseNode):
         if self.label:
             self.label.setDefaultTextColor(self.STATE_COLORS['text'])
 
-    def _init_reference_indicators(self) -> None:
-        """Initialize visual indicators for time and space references."""
-        # Remove existing indicators if any
-        if self.time_ref_indicator:
-            if self.time_ref_indicator.scene():
-                self.time_ref_indicator.scene().removeItem(self.time_ref_indicator)
-        if self.space_ref_indicator:
-            if self.space_ref_indicator.scene():
-                self.space_ref_indicator.scene().removeItem(self.space_ref_indicator)
-        
-        # Create time reference indicator if state has a time reference
-        if self.state.time_ref_id and self.state.time_ref_id > 0:
-            self.time_ref_indicator = QGraphicsEllipseItem(
-                0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-            )
-            self.time_ref_indicator.setPos(
-                self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-                self.INDICATOR_MARGIN
-            )
-            self.time_ref_indicator.setBrush(QBrush(QColor(100, 200, 100)))  # Green
-            self.time_ref_indicator.setPen(QPen(Qt.NoPen))
-            self.time_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-            self.time_ref_indicator.setToolTip(f"Time Ref: {self.state.time_ref_id}")
-        
-        # Create space reference indicator if state has a space reference
-        if self.state.space_ref_id and self.state.space_ref_id > 0:
-            self.space_ref_indicator = QGraphicsEllipseItem(
-                0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-            )
-            # Position below time indicator, or at same position if no time ref
-            y_pos = self.INDICATOR_MARGIN
-            if self.time_ref_indicator:
-                y_pos += self.INDICATOR_SIZE + self.INDICATOR_SPACING
-            
-            self.space_ref_indicator.setPos(
-                self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-                y_pos
-            )
-            self.space_ref_indicator.setBrush(QBrush(QColor(100, 150, 255)))  # Blue
-            self.space_ref_indicator.setPen(QPen(Qt.NoPen))
-            self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-            self.space_ref_indicator.setToolTip(f"Space Ref: {self.state.space_ref_id}")
+
+    #def _init_reference_indicators(self) -> None:
+    #    """Initialize visual indicators for time and space references."""
+    #    # Remove existing indicators if any
+    #    if self.time_ref_indicator:
+    #        if self.time_ref_indicator.scene():
+    #            self.time_ref_indicator.scene().removeItem(self.time_ref_indicator)
+    #    if self.space_ref_indicator:
+    #        if self.space_ref_indicator.scene():
+    #            self.space_ref_indicator.scene().removeItem(self.space_ref_indicator)
+    #    
+    #    # Create time reference indicator if state has a time reference
+    #    if self.state.time_ref_id and self.state.time_ref_id > 0:
+    #        self.time_ref_indicator = QGraphicsEllipseItem(
+    #            0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
+    #        )
+    #        self.time_ref_indicator.setPos(
+    #            self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
+    #            self.INDICATOR_MARGIN
+    #        )
+    #        self.time_ref_indicator.setBrush(QBrush(QColor(100, 200, 100)))  # Green
+    #        self.time_ref_indicator.setPen(QPen(Qt.NoPen))
+    #        self.time_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
+    #        self.time_ref_indicator.setToolTip(f"Time Ref: {self.state.time_ref_id}")
+    #    
+    #    # Create space reference indicator if state has a space reference
+    #    if self.state.space_ref_id and self.state.space_ref_id > 0:
+    #        self.space_ref_indicator = QGraphicsEllipseItem(
+    #            0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
+    #        )
+    #        # Position below time indicator, or at same position if no time ref
+    #        y_pos = self.INDICATOR_MARGIN
+    #        if self.time_ref_indicator:
+    #            y_pos += self.INDICATOR_SIZE + self.INDICATOR_SPACING
+    #        
+    #        self.space_ref_indicator.setPos(
+    #            self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
+    #            y_pos
+    #        )
+    #        self.space_ref_indicator.setBrush(QBrush(QColor(100, 150, 255)))  # Blue
+    #        self.space_ref_indicator.setPen(QPen(Qt.NoPen))
+    #        self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
+    #        self.space_ref_indicator.setToolTip(f"Space Ref: {self.state.space_ref_id}")
+
 
     def set_selected_appearance(self, selected: bool) -> None:
         """
@@ -143,6 +144,7 @@ class StateNode(BaseNode):
         else:
             self._update_state_colors()
 
+
     def update_from_layout(self) -> None:
         """Update the node's visual properties from its layout."""
         super().update_from_layout()
@@ -150,6 +152,7 @@ class StateNode(BaseNode):
         self._update_state_colors()
         # Re-initialize indicators in case references changed
         self._init_reference_indicators()
+
 
     # -------------------------------------------------------------------------
     # State-specific methods
@@ -159,29 +162,33 @@ class StateNode(BaseNode):
         """Get the time reference ID."""
         return self.state.time_ref_id if self.state.time_ref_id > 0 else None
 
+
     def get_space_ref_id(self) -> Optional[int]:
         """Get the space reference ID."""
         return self.state.space_ref_id if self.state.space_ref_id else None
 
-    def set_time_ref_id(self, time_ref_id: int) -> None:
-        """
-        Set the time reference ID and update indicators.
-        
-        Args:
-            time_ref_id: The new time reference ID
-        """
-        self.state.time_ref_id = time_ref_id
-        self._init_reference_indicators()
 
-    def set_space_ref_id(self, space_ref_id: Optional[int]) -> None:
-        """
-        Set the space reference ID and update indicators.
-        
-        Args:
-            space_ref_id: The new space reference ID (can be None)
-        """
-        self.state.space_ref_id = space_ref_id
-        self._init_reference_indicators()
+    #def set_time_ref_id(self, time_ref_id: int) -> None:
+    #    """
+    #    Set the time reference ID and update indicators.
+    #    
+    #    Args:
+    #        time_ref_id: The new time reference ID
+    #    """
+    #    self.state.time_ref_id = time_ref_id
+    #    self._init_reference_indicators()
+
+
+    #def set_space_ref_id(self, space_ref_id: Optional[int]) -> None:
+    #    """
+    #    Set the space reference ID and update indicators.
+    #    
+    #    Args:
+    #        space_ref_id: The new space reference ID (can be None)
+    #    """
+    #    self.state.space_ref_id = space_ref_id
+    #    self._init_reference_indicators()
+
 
     def set_description(self, description: str) -> None:
         """
@@ -192,9 +199,11 @@ class StateNode(BaseNode):
         """
         self.state.desc = description
 
+
     def get_description(self) -> Optional[str]:
         """Get the state's description."""
         return self.state.desc
+
 
     def get_full_info(self) -> str:
         """
@@ -204,13 +213,10 @@ class StateNode(BaseNode):
             Formatted string with state details
         """
         info = f"State: {self.state.lb}\n"
-        if self.state.time_ref_id and self.state.time_ref_id > 0:
-            info += f"Time Ref: {self.state.time_ref_id}\n"
-        if self.state.space_ref_id:
-            info += f"Space Ref: {self.state.space_ref_id}\n"
         if self.state.desc:
             info += f"Description: {self.state.desc}\n"
         return info
+
 
     # -------------------------------------------------------------------------
     # Port methods
@@ -232,9 +238,3 @@ class StateNode(BaseNode):
             return self.get_left_port_position()
         elif port_name == "right":
             return self.get_right_port_position()
-        elif port_name == "top":
-            return self.get_top_port_position()
-        elif port_name == "bottom":
-            return self.get_bottom_port_position()
-        else:
-            return self.get_center_port_position()

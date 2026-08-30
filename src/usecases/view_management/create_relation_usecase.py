@@ -9,7 +9,7 @@
 """
 Use Case for creating relations between nodes in the workspace.
 
-This use case handles the creation of relation entities (Agent_rel_hist, Agent_state_rel, etc.)
+This use case handles the creation of relation entities (State_agent_rel, State_node, Journey_node)
 and their visual layouts (ConnectionLayout), but DOES NOT handle the creation of Qt
 graphic objects (QGraphicsLineItem).
 
@@ -69,6 +69,7 @@ class CreateRelationUseCase:
         """
         self.project_service = project_service
 
+
     def execute(
         self,
         source_entity: Any,
@@ -80,9 +81,9 @@ class CreateRelationUseCase:
         Execute creation of a relation of the specified type between two entities.
         
         Args:
-            source_entity: Source entity (Agent, State, Event, etc.)
-            target_entity: Target entity (Agent, State, Event, etc.)
-            relation_type: Relation type (e.g., "Agent à agent", "Agent à état", etc.)
+            source_entity: Source entity (Agent, State, Event)
+            target_entity: Target entity (Agent, State, Event)
+            relation_type: Relation type (e.g., "Satet to Agent", "Satet to Event", "Event to State")
             narrative_map: Target NarrativeMap (optional, uses the first by default)
             
         Returns:
@@ -159,6 +160,7 @@ class CreateRelationUseCase:
             'narrative_map_id': narrative_map.id
         }
 
+
     def _create_relation_entity(
         self,
         relation_class,
@@ -201,6 +203,7 @@ class CreateRelationUseCase:
         
         # Create and return the entity
         return relation_class(**relation_data)
+
 
     def _add_relation_to_narrative_map(
         self,

@@ -13,5 +13,5 @@ class LoadProjectUseCase:
         self.project_service = project_service
 
     def execute(self, file_path: str) -> bool:
-        """Exécute le chargement du projet"""
+        """Executes the project loading"""
         return self.project_service.load_project(file_path)

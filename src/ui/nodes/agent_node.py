@@ -80,6 +80,7 @@ class AgentNode(BaseNode):
         self.type_indicator = None
         self._init_type_indicator()
 
+
     def _update_type_colors(self) -> None:
         """Update node colors based on agent type (Subject or Object)."""
         if self.agent.typ == "Subject":
@@ -92,6 +93,7 @@ class AgentNode(BaseNode):
         # Apply colors
         self.setBrush(QBrush(self.SUBJECT_BG))
         self.setPen(QPen(self.SUBJECT_BORDER, 2))
+
 
     def _init_type_indicator(self) -> None:
         """Initialize the visual type indicator (small colored circle)."""
@@ -122,6 +124,7 @@ class AgentNode(BaseNode):
         # Make indicator non-selectable
         self.type_indicator.setFlag(QGraphicsRectItem.ItemIsSelectable, False)
 
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the node's appearance based on selection state.
@@ -135,15 +138,18 @@ class AgentNode(BaseNode):
             # Use type-specific colors
             self._update_type_colors()
 
+
     def update_from_layout(self) -> None:
         """Update the node's visual properties from its layout."""
         super().update_from_layout()
         # Re-apply type-specific colors
         self._update_type_colors()
 
+
     def get_type(self) -> str:
         """Get the agent type (Subject or Object)."""
         return self.agent.typ
+
 
     def set_type(self, agent_type: str) -> None:
         """
@@ -170,7 +176,7 @@ class AgentNode(BaseNode):
         agent's role in the narrative.
         
         Args:
-            port_name: Name of the port ('left', 'right', 'top', 'bottom', 'center')
+            port_name: Name of the port ('left', 'right')
             
         Returns:
             Position of the port in scene coordinates
@@ -181,12 +187,7 @@ class AgentNode(BaseNode):
             return self.get_left_port_position()
         elif port_name == "right":
             return self.get_right_port_position()
-        elif port_name == "top":
-            return self.get_top_port_position()
-        elif port_name == "bottom":
-            return self.get_bottom_port_position()
-        else:
-            return self.get_center_port_position()
+
 
     # -------------------------------------------------------------------------
     # Utility methods for agent-specific operations
@@ -201,9 +202,11 @@ class AgentNode(BaseNode):
         """
         self.agent.desc = description
 
+
     def get_description(self) -> Optional[str]:
         """Get the agent's description."""
         return self.agent.desc
+
 
     def get_full_info(self) -> str:
         """
