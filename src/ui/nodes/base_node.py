@@ -20,7 +20,7 @@ All concrete node types (AgentNode, StateNode, EventNode) should inherit
 from this class.
 """
 
-from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem
+from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem, QGraphicsEllipseItem
 from PySide6.QtCore import QRectF, Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QFont
 from typing import Optional, Any
@@ -102,6 +102,11 @@ class BaseNode(QGraphicsRectItem):
         # Initialize ports (empty dict, to be populated by subclasses if needed)
         self.ports = {}
         
+        # Initialize visual input and output ports
+        self.input_port = None  # QGraphicsEllipseItem for input port (left)
+        self.output_port = None  # QGraphicsEllipseItem for output port (right)
+        self._init_ports()
+        
         # Update visual state based on layout
         self.update_from_layout()
 
@@ -133,6 +138,40 @@ class BaseNode(QGraphicsRectItem):
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
 
 
+    def _init_ports(self) -> None:
+        """
+        Initialize visual input and output ports as ellipse items.
+        
+        Creates two ports:
+        - Input port (left side, red) for incoming connections
+        - Output port (right side, green) for outgoing connections
+        """
+        port_size = self.PORT_SIZE
+        
+        # Input port (left side, centered vertically)
+        self.input_port = QGraphicsEllipseItem(
+            -port_size / 2,  # x: positioned at left edge
+            self.rect().height() / 2 - port_size / 2,  # y: centered vertically
+            port_size, port_size,
+            self
+        )
+        self.input_port.setBrush(QBrush(QColor(255, 0, 0)))  # Red
+        self.input_port.setPen(QPen(QColor(0, 0, 0)))  # Black border
+        self.input_port.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        self.input_port.setFlag(QGraphicsItem.ItemIsMovable, False)
+        
+        # Output port (right side, centered vertically)
+        self.output_port = QGraphicsEllipseItem(
+            self.rect().width() - port_size / 2,  # x: positioned at right edge
+            self.rect().height() / 2 - port_size / 2,  # y: centered vertically
+            port_size, port_size,
+            self
+        )
+        self.output_port.setBrush(QBrush(QColor(0, 255, 0)))  # Green
+        self.output_port.setPen(QPen(QColor(0, 0, 0)))  # Black border
+        self.output_port.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        self.output_port.setFlag(QGraphicsItem.ItemIsMovable, False)
+
     def update_from_layout(self) -> None:
         """
         Update the node's visual properties from its layout.
@@ -158,6 +197,9 @@ class BaseNode(QGraphicsRectItem):
                     self.setBrush(QBrush(color))
             except (ValueError, AttributeError):
                 pass
+        
+        # Update port positions when node size changes
+        self._update_port_positions()
 
 
     def update_layout(self) -> None:
@@ -298,14 +340,42 @@ class BaseNode(QGraphicsRectItem):
         return self.sceneBoundingRect().center()
 
 
+    def _update_port_positions(self) -> None:
+        """
+        Update the positions of input and output ports based on current node size.
+        
+        This should be called whenever the node is resized.
+        """
+        if self.input_port and self.output_port:
+            port_size = self.PORT_SIZE
+            node_height = self.rect().height()
+            
+            # Position input port (left side)
+            self.input_port.setRect(
+                -port_size / 2,
+                node_height / 2 - port_size / 2,
+                port_size, port_size
+            )
+            
+            # Position output port (right side)
+            self.output_port.setRect(
+                self.rect().width() - port_size / 2,
+                node_height / 2 - port_size / 2,
+                port_size, port_size
+            )
+
     def get_left_port_position(self) -> QPointF:
-        """Get the position of the left connection port."""
+        """Get the position of the left connection port (input port)."""
+        if self.input_port:
+            return self.input_port.scenePos()
         rect = self.sceneBoundingRect()
         return QPointF(rect.left(), rect.center().y())
 
 
     def get_right_port_position(self) -> QPointF:
-        """Get the position of the right connection port."""
+        """Get the position of the right connection port (output port)."""
+        if self.output_port:
+            return self.output_port.scenePos()
         rect = self.sceneBoundingRect()
         return QPointF(rect.right(), rect.center().y())
 

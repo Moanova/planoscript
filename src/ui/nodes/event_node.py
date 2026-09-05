@@ -77,6 +77,9 @@ class EventNode(BaseNode):
         # Override default colors for events
         self._update_event_colors()
         
+        # Update port colors for event-specific theme
+        self._update_port_colors()
+        
         # Initialize reference indicators (attributes already exist)
         #self._init_reference_indicators()
 
@@ -89,6 +92,13 @@ class EventNode(BaseNode):
         # Update label color
         if self.label:
             self.label.setDefaultTextColor(self.EVENT_COLORS['text'])
+
+    def _update_port_colors(self) -> None:
+        """Update port colors to use event-specific theme (purple/turquoise)."""
+        if self.input_port:
+            self.input_port.setBrush(QBrush(QColor(128, 0, 128)))  # Purple
+        if self.output_port:
+            self.output_port.setBrush(QBrush(QColor(0, 128, 128)))  # Turquoise
 
     def _init_reference_indicators(self) -> None:
         """Initialize visual indicators for time and space references."""
@@ -112,6 +122,7 @@ class EventNode(BaseNode):
         super().update_from_layout()
         # Re-apply event-specific colors
         self._update_event_colors()
+        self._update_port_colors()
         # Re-initialize indicators in case references changed
         #self._init_reference_indicators()
 

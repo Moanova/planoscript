@@ -75,6 +75,9 @@ class StateNode(BaseNode):
         # Override default colors for states
         self._update_state_colors()
         
+        # Update port colors for state-specific theme
+        self._update_port_colors()
+        
         # Initialize reference indicators (attributes already exist)
         #self._init_reference_indicators()
 
@@ -87,6 +90,13 @@ class StateNode(BaseNode):
         # Update label color
         if self.label:
             self.label.setDefaultTextColor(self.STATE_COLORS['text'])
+
+    def _update_port_colors(self) -> None:
+        """Update port colors to use state-specific theme (dark red/green)."""
+        if self.input_port:
+            self.input_port.setBrush(QBrush(QColor(150, 0, 0)))  # Dark red
+        if self.output_port:
+            self.output_port.setBrush(QBrush(QColor(0, 150, 0)))  # Dark green
 
 
     def _init_reference_indicators(self) -> None:
@@ -111,6 +121,7 @@ class StateNode(BaseNode):
         super().update_from_layout()
         # Re-apply state-specific colors
         self._update_state_colors()
+        self._update_port_colors()
         # Re-initialize indicators in case references changed
         #self._init_reference_indicators()
 
