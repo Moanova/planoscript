@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
         """)
         
         # Files menu
-        self.file_menu = self.menu_bar.addMenu("Fichiers")
+        self.file_menu = self.menu_bar.addMenu("Files")
 
         # Actions to disable without project
         self.menu_actions['new'] = self.file_menu.addAction("New Project...", self._create_project, "Ctrl+N")
@@ -184,10 +184,10 @@ class MainWindow(QMainWindow):
         self.menu_actions['delete'] = self.edit_menu.addAction("Delete", lambda: None, "Del")
 
         # Display menu
-        self.view_menu = self.menu_bar.addMenu("Display")
-        self.journey_menu = self.view_menu.addMenu("Journey")
+        self.display_menu = self.menu_bar.addMenu("Display")
+        self.journey_menu = self.display_menu.addMenu("Journey")
         self.menu_actions['list_journeys'] = self.journey_menu.addAction("JourneyList", lambda: None)
-        self.zoom_menu = self.view_menu.addMenu("Zoom")
+        self.zoom_menu = self.display_menu.addMenu("Zoom")
         self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
         self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
         self.menu_actions['zoom_reset'] = self.zoom_menu.addAction("Reset", lambda: None, "Ctrl+0")
@@ -197,17 +197,17 @@ class MainWindow(QMainWindow):
 
         # MVP : journey view only + the relation view will be reworked at a leter stage of development
         self.view_menu = self.project_menu.addMenu("View")
-        self.menu_actions['view_journeys'] = self.view_menu.addAction("Journey", lambda: None)
+        self.menu_actions['view_journeys'] = self.view_menu.addAction("Journeys", lambda: None)
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
-        #self.menu_actions['view_chapters'] = self.view_menu.addAction("Chapters", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
-        self.components_menu.addAction("Agent", lambda: self._create_new_node("Agent"))
+        #self.components_menu.addAction("Agent", lambda: self._create_new_node("Agent"))
+        self.components_menu.addAction("Agent", lambda: None)
         self.components_menu.addAction("State", lambda: self._create_new_node("State"))
         self.components_menu.addAction("Event", lambda: self._create_new_node("Event"))
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
-        self.relations_menu.addAction("Link State and Event", lambda: self._start_state_event_relation_creation())
+        self.relations_menu.addAction("Connect State and Event", lambda: self._start_state_event_relation_creation())
 
         # About menu (always enabled)
         self.about_menu = self.menu_bar.addMenu("About")
@@ -224,15 +224,29 @@ class MainWindow(QMainWindow):
         is_modified = self.project_service.is_modified
 
         # Disable if no project is opened
+        #actions = [
+        #    'close', 'save', 'save_as', 'export_map', 'import_map',
+        #    'undo', 'redo', 'history', 'cut', 'copy', 'paste', 'delete',
+        #    'zoom_in', 'zoom_out', 'zoom_reset'
+        #]
         actions = [
-            'close', 'save', 'save_as', 'export_map',
-            'undo', 'redo', 'history', 'cut', 'copy', 'paste', 'delete',
-            'zoom_in', 'zoom_out', 'zoom_reset'
+            'close', 'save', 'save_as'
         ]
 
-        self.journey_menu.setEnabled(has_project)
-        self.zoom_menu.setEnabled(has_project)
-        self.view_menu.setEnabled(has_project)
+        self.menu_actions['export_map'].setEnabled(False)
+        self.menu_actions['import_map'].setEnabled(False)
+        self.menu_actions['undo'].setEnabled(False)
+        self.menu_actions['redo'].setEnabled(False)
+        self.menu_actions['history'].setEnabled(False)
+        self.menu_actions['cut'].setEnabled(False)
+        self.menu_actions['copy'].setEnabled(False)
+        self.menu_actions['paste'].setEnabled(False)
+        self.menu_actions['delete'].setEnabled(False)
+
+        self.journey_menu.setEnabled(False)
+        self.zoom_menu.setEnabled(False)
+
+        self.view_menu.setEnabled(False)
         self.components_menu.setEnabled(has_project)
         self.relations_menu.setEnabled(has_project)
 
@@ -268,7 +282,7 @@ class MainWindow(QMainWindow):
         welcome_label.setStyleSheet("QLabel { padding: 40px; }")
 
         welcome_layout.addWidget(welcome_label)
-        self.middle_layout.addWidget(welcome_widget, 0, 0, 2, 3)  # Span toutes les cellules
+        self.middle_layout.addWidget(welcome_widget, 0, 0, 2, 3)
 
 
     # ---------------------------------------------------------------------
@@ -494,7 +508,7 @@ class MainWindow(QMainWindow):
         """
         # Check minimum node count
         if self.node_count < 2:
-            self.info_bar.show_message("A relation needs at least two nodes in the map")
+            self.info_bar.show_message("two nodes are needed in the narrative map for a relation")
             return
 
         # Set up relation creation mode

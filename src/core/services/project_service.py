@@ -58,7 +58,7 @@ class ProjectService:
 
 
     def save_project(self, file_path: str) -> bool:
-        """Saves the project (FN008 and FN009)
+        """Saves the project
            Args:
                file_path: Path to the destination file
            Returns:

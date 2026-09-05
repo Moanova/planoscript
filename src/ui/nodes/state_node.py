@@ -76,7 +76,7 @@ class StateNode(BaseNode):
         self._update_state_colors()
         
         # Initialize reference indicators (attributes already exist)
-        self._init_reference_indicators()
+        #self._init_reference_indicators()
 
 
     def _update_state_colors(self) -> None:
@@ -89,48 +89,9 @@ class StateNode(BaseNode):
             self.label.setDefaultTextColor(self.STATE_COLORS['text'])
 
 
-    #def _init_reference_indicators(self) -> None:
-    #    """Initialize visual indicators for time and space references."""
-    #    # Remove existing indicators if any
-    #    if self.time_ref_indicator:
-    #        if self.time_ref_indicator.scene():
-    #            self.time_ref_indicator.scene().removeItem(self.time_ref_indicator)
-    #    if self.space_ref_indicator:
-    #        if self.space_ref_indicator.scene():
-    #            self.space_ref_indicator.scene().removeItem(self.space_ref_indicator)
-    #    
-    #    # Create time reference indicator if state has a time reference
-    #    if self.state.time_ref_id and self.state.time_ref_id > 0:
-    #        self.time_ref_indicator = QGraphicsEllipseItem(
-    #            0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-    #        )
-    #        self.time_ref_indicator.setPos(
-    #            self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-    #            self.INDICATOR_MARGIN
-    #        )
-    #        self.time_ref_indicator.setBrush(QBrush(QColor(100, 200, 100)))  # Green
-    #        self.time_ref_indicator.setPen(QPen(Qt.NoPen))
-    #        self.time_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-    #        self.time_ref_indicator.setToolTip(f"Time Ref: {self.state.time_ref_id}")
-    #    
-    #    # Create space reference indicator if state has a space reference
-    #    if self.state.space_ref_id and self.state.space_ref_id > 0:
-    #        self.space_ref_indicator = QGraphicsEllipseItem(
-    #            0, 0, self.INDICATOR_SIZE, self.INDICATOR_SIZE, self
-    #        )
-    #        # Position below time indicator, or at same position if no time ref
-    #        y_pos = self.INDICATOR_MARGIN
-    #        if self.time_ref_indicator:
-    #            y_pos += self.INDICATOR_SIZE + self.INDICATOR_SPACING
-    #        
-    #        self.space_ref_indicator.setPos(
-    #            self.rect().width() - self.INDICATOR_SIZE - self.INDICATOR_MARGIN,
-    #            y_pos
-    #        )
-    #        self.space_ref_indicator.setBrush(QBrush(QColor(100, 150, 255)))  # Blue
-    #        self.space_ref_indicator.setPen(QPen(Qt.NoPen))
-    #        self.space_ref_indicator.setFlag(QGraphicsItem.ItemIsSelectable, False)
-    #        self.space_ref_indicator.setToolTip(f"Space Ref: {self.state.space_ref_id}")
+    def _init_reference_indicators(self) -> None:
+        """Initialize visual indicators for time and space references."""
+        pass
 
 
     def set_selected_appearance(self, selected: bool) -> None:
@@ -151,7 +112,7 @@ class StateNode(BaseNode):
         # Re-apply state-specific colors
         self._update_state_colors()
         # Re-initialize indicators in case references changed
-        self._init_reference_indicators()
+        #self._init_reference_indicators()
 
 
     # -------------------------------------------------------------------------

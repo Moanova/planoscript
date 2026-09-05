@@ -29,7 +29,7 @@ from typing import Optional, Dict, Any, List
 @dataclass
 class TreeLayout:
     """
-    Represents the visual layout of a relation tree (e.g., State_node, Journey).
+    Represents the visual layout of a relation tree (e.g., State_node, Journey_node).
     
     A TreeLayout contains the visual properties of a tree container, including
     its position, size, and references to the node and connection layouts
@@ -37,7 +37,7 @@ class TreeLayout:
     
     Attributes:
         tree_id: The ID of the tree entity (e.g., State_node.id, Journey.id)
-        tree_type: The type of the tree ("State_node", "Journey", etc.)
+        tree_type: The type of the tree ("State_node", "Journey_node")
         x: X position of the tree container in the workspace
         y: Y position of the tree container in the workspace
         width: Width of the tree container

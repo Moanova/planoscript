@@ -34,7 +34,7 @@ class NodeType(Enum):
     AGENT = "Agent"
     STATE = "State"
     EVENT = "Event"
-    JOURNEY = "Journey"
+    #JOURNEY = "Journey"
 
 
 @dataclass
@@ -104,7 +104,7 @@ class RelationType(Enum):
     """Enumeration of relation types from the business model."""
     STATE_AGENT_REL = "State_agent_rel"
     STATE_NODE = "State_node"
-    JOURNEY_NODE = "Journey_node"
+    #JOURNEY_NODE = "Journey_node"
 
 
 class ConnectionStyle(Enum):
