@@ -36,7 +36,6 @@ class JourneyWorkspace(QGraphicsView, QObject):
     
     def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None):
         super().__init__()
-        QObject.__init__(self)
 
         self.narrative_map = narrative_map
 

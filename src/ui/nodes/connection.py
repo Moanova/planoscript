@@ -32,7 +32,7 @@ from typing import Optional, Any, Dict, Tuple
 
 from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, NodeType
 from core.models.data_model import (
-    State_Event_rel,
+    State_agent_rel,
     State_node,
     Journey_node,
     State,
