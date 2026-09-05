@@ -355,41 +355,59 @@ class JourneyWorkspace(QGraphicsView, QObject):
         """
         Handle port selection during relation creation.
         Detects clicks on input/output ports and manages the connection flow.
+        Only allows connections from output port (right) to input port (left).
         """
         port_clicked = False
         parent_node = None
+        is_output_port = False
         
         # Check if clicked item is a port (QGraphicsEllipseItem child of a node)
         if item and isinstance(item, QGraphicsEllipseItem):
             parent = item.parentItem()
-            if parent and hasattr(parent, 'entity'):
+            if parent and hasattr(parent, 'entity') and hasattr(parent, 'output_port') and hasattr(parent, 'input_port'):
                 parent_node = parent
+                # Check if this is the output port (right side, green)
+                if item == parent.output_port:
+                    is_output_port = True
+                elif item == parent.input_port:
+                    is_output_port = False
                 port_clicked = True
         
         if port_clicked and parent_node:
             if self.waiting_for_source:
-                # First port clicked = source node
-                self.source_node = parent_node
-                self.waiting_for_source = False
-                self.waiting_for_target = True
-                
-                # Create temporary connection from source port
-                mouse_scene_pos = self.mapToScene(event.position().toPoint())
-                self._create_temp_connection(
-                    self.source_node.get_right_port_position(),
-                    mouse_scene_pos
-                )
-                
+                # First port clicked must be an OUTPUT port (right side)
+                if is_output_port:
+                    self.source_node = parent_node
+                    self.waiting_for_source = False
+                    self.waiting_for_target = True
+                    
+                    # Create temporary connection from source output port
+                    mouse_scene_pos = self.mapToScene(event.position().toPoint())
+                    self._create_temp_connection(
+                        self.source_node.output_port.scenePos(),
+                        mouse_scene_pos
+                    )
+                else:
+                    # Clicked on input port first - invalid, cancel
+                    self.info_bar.show_message("Please click on an output port (green) first")
+                    self.exit_relation_creation_mode()
+                    
             elif self.waiting_for_target and self.source_node:
-                # Second port clicked = target node
-                target_node = parent_node
-                
-                if target_node != self.source_node:
-                    # Emit signal to create the relation
-                    self.relation_created.emit(self.source_node, target_node)
-                
-                # Clean up
-                self.exit_relation_creation_mode()
+                # Second port clicked must be an INPUT port (left side)
+                if not is_output_port:
+                    # Second port clicked = target node
+                    target_node = parent_node
+                    
+                    if target_node != self.source_node:
+                        # Emit signal to create the relation
+                        self.relation_created.emit(self.source_node, target_node)
+                    
+                    # Clean up
+                    self.exit_relation_creation_mode()
+                else:
+                    # Clicked on output port second - invalid, cancel
+                    self.info_bar.show_message("Please click on an input port (red) for the target")
+                    self.exit_relation_creation_mode()
         else:
             # Click on grid or non-port element -> cancel relation creation
             self.exit_relation_creation_mode()
@@ -413,7 +431,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
     def _update_temp_connection(self, end_pos: QPointF):
         """Update temporary connection path to follow mouse position."""
         if self.temp_connection and self.source_node:
-            start_pos = self.source_node.get_right_port_position()
+            start_pos = self.source_node.output_port.scenePos()
             path = QPainterPath()
             path.moveTo(start_pos)
             path.lineTo(end_pos)
