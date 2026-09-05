@@ -373,7 +373,7 @@
    "cardinalities": [
       {
         "name": "state_agent_rel_card",
-        "description": "0 or n états sont liés à 0 or n agents",
+        "description": "0 ou n états sont liés à 0 ou n agents",
         "from": "State",
         "to": "Agent",
         "relationship": "State_agent_rel",
@@ -385,7 +385,7 @@
       },
       {
         "name": "from_state_card",
-        "description": "0 or n états sont liés à 0 or n évènements",
+        "description": "0 ou n états sont liés à 0 ou n évènements",
         "from": "State",
         "to": "Event",
         "relationship": "State_node",
@@ -397,7 +397,7 @@
       },
       {
         "name": "to_state_card",
-        "description": "0 or n états sont liés à 0 or n évènements",
+        "description": "0 ou n états sont liés à 0 ou n évènements",
         "from": "Event",
         "to": "State",
         "relationship": "State_node",
@@ -409,7 +409,7 @@
       },
       {
         "name": "journey_node_card",
-        "description": "0 or n noeuds de relation d'état à évènement à état sont liés à 0 or n parcours",
+        "description": "0 ou n noeuds de relation d'état à évènement à état sont liés à 0 ou n parcours",
         "from": "State_node",
         "to": "Journey",
         "relationship": "Journey_node",
@@ -421,8 +421,8 @@
       }
    ],
     "notes": [
-      "Les cardinalités suivent cette notation : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou plusieurs), 1 (exactement un).",
-      "Les relations directionnelles ont une source et une cible",
+      "Les cardinalités suivent cette notation : 0..* (zéro ou plusieurs), 1..* (un ou plusieurs), 0..1 (zéro ou un), 1 (exactement un).",
+      "Les relations directionnelles ont une source et une cible.",
       "Convention : la valeur 0 (zéro) utilisée dans le champ de référence d'un prédécesseur (from_event_id) signale l'absence du prédécesseur."
     ]
 }

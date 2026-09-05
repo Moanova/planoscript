@@ -94,19 +94,17 @@ menu:
               note: "Not implemented - Tab present in TabBar but not connected"
             - name: Relations
               note: "Not implemented"
-            - name: Chapters
-              note: "Not implemented"
         - name: Components...
           items:
             - name: Agent
               note: "Implemented - Creates an Agent node in the center of the workspace"
-            - name: tat
+            - name: State
               note: "Implemented - Creates a State node in the center of the workspace"
             - name: Event
               note: "Implemented - Create an Event node in the center of the workspace"
         - name: Relations...
           items:
-            - name: Link State and Event
+            - name: Connect State and Event
               note: "Implemented - Activates State-Event relationship creation mode"
 
     - name: About
