@@ -60,11 +60,8 @@ class MainWindow(QMainWindow):
         # Node counter to enable or disable the "Relation" button (MVP : no control buttons, menu operations only)
         self.node_count = 0
 
-        # Variables for relation creation
+        # Variables for relation creation (kept for backward compatibility but now handled by workspace)
         self.relation_type = None
-        self.waiting_for_source = False
-        self.waiting_for_target = False
-        self.source_node = None
 
         # Dependencies initialization
         self.project_service = ProjectService()
@@ -347,6 +344,10 @@ class MainWindow(QMainWindow):
             narrative_map=self.project_service.current_project.narrative_map[0]
         )
         self.middle_layout.addWidget(self.workspace)
+        
+        # Connect workspace signal for relation creation
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.relation_created.connect(self._on_relation_created)
 
 
     def _save_project(self):
@@ -503,19 +504,25 @@ class MainWindow(QMainWindow):
 
     def _start_state_event_relation_creation(self):
         """
-        Activate State-Event relation creation mode.
-        Wait for user to select source and target nodes.
+        Activate State-Event relation creation mode with rubber band effect.
         """
         # Check minimum node count
         if self.node_count < 2:
             self.info_bar.show_message("two nodes are needed in the narrative map for a relation")
             return
 
-        # Set up relation creation mode
-        self.waiting_for_source = True
-        self.waiting_for_target = False
-        self.source_node = None
-        self.info_bar.show_message("Click on the first node (State or Event)")
+        # Enter relation creation mode in workspace
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.enter_relation_creation_mode()
+        self.info_bar.show_message("Click on source node output port")
+
+    
+    def _on_relation_created(self, source_node, target_node):
+        """
+        Callback called when a relation is created via rubber band connection.
+        Creates the business State_node relation and visual connection.
+        """
+        self._create_state_event_relation(source_node, target_node)
 
 
     def _on_node_selected_for_relation(self, node):
