@@ -390,8 +390,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
                 
                 # Clean up
                 self.exit_relation_creation_mode()
-        elif event.button() == Qt.RightButton:
-            # Right click cancels relation creation
+        else:
+            # Click on grid or non-port element -> cancel relation creation
             self.exit_relation_creation_mode()
 
 
@@ -399,27 +399,15 @@ class JourneyWorkspace(QGraphicsView, QObject):
         """Create a temporary connection for rubber band effect."""
         self._clear_temp_connection()
         
-        # Create temporary connection layout
-        temp_layout = ConnectionLayout(
-            id="temp_connection",
-            source_node_id=-1,
-            source_port=PortPosition.RIGHT,
-            target_node_id=-1,
-            target_port=PortPosition.LEFT,
-            style=ConnectionStyle.STRAIGHT,
-            color="#808080",
-            thickness=2.0,
-            z_index=100,
-            selected=False
-        )
+        # Create a simple QGraphicsPathItem for temporary connection (no need for full Connection class)
+        path = QPainterPath()
+        path.moveTo(start_pos)
+        path.lineTo(end_pos)
         
-        # Create the temporary connection
-        self.temp_connection = Connection(temp_layout)
-        self.scene.addItem(self.temp_connection)
-        self.temp_connection.setZValue(100)
-        
-        # Set initial path
-        self._update_temp_connection(end_pos)
+        # Dashed line style for rubber band effect
+        pen = QPen(QColor("#808080"), 2, Qt.DashLine)
+        self.temp_connection = self.scene.addPath(path, pen)
+        self.temp_connection.setZValue(100)  # Ensure it's on top
 
 
     def _update_temp_connection(self, end_pos: QPointF):
