@@ -1,22 +1,22 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : tree_visual.py
+# Script       : graph_visual.py
 # Version      : 1
 # Date         : 22-07-2026
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 """
-Tree Visual for Planoscript.
+Graph Visual for Planoscript.
 
-This module provides the TreeVisual class, which represents a visual container
-for relation trees (e.g., State_event_set, Journey) in the workspace.
+This module provides the GraphVisual class, which represents a visual container
+for relation graphs (e.g., State_event_set, Journey_node) in the workspace.
 
-A TreeVisual groups multiple nodes and connections together into a single
+A GraphVisual groups multiple nodes and connections together into a single
 visual container with a title, border, and background. It maintains references
-to the business model tree entity and its visual layout.
+to the business model graph entity and its visual layout.
 
-The tree container automatically resizes to fit its contents and can be
+The graph container automatically resizes to fit its contents and can be
 moved, selected, and collapsed/expanded by the user.
 """
 
@@ -25,27 +25,27 @@ from PySide6.QtCore import QRectF, Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QFont, QPainterPath
 from typing import Optional, Dict, List, Any
 
-from core.models.tree_layout import TreeLayout
+from core.models.graph_layout import GraphLayout
 from core.models.data_model import State_event_set, State_event_subset
 from ui.nodes.base_node import BaseNode
 from ui.nodes.connection import Connection
 
 
-class TreeVisual(QGraphicsRectItem):
+class GraphVisual(QGraphicsRectItem):
     """
-    Visual container for a relation tree (e.g., State_event_set, Journey).
+    Visual container for a relation graph (e.g., State_event_set, Journey_node).
     
     This class represents a group of nodes and connections as a single
-    visual entity with a title, border, and background. The tree can be
+    visual entity with a title, border, and background. The graph can be
     moved, selected, and collapsed/expanded.
     
     Attributes:
-        tree_entity: The business tree entity (State_event_set, Journey, etc.)
-        layout: The TreeLayout containing visual properties
-        title_item: QGraphicsTextItem for the tree title
+        graph_entity: The business graph entity (State_event_set, Journey_node, etc.)
+        layout: The GraphLayout containing visual properties
+        title_item: QGraphicsTextItem for the graph title
         nodes: Dictionary of node_id -> BaseNode
         connections: Dictionary of connection_id -> Connection
-        is_collapsed: Whether the tree content is hidden
+        is_collapsed: Whether the graph content is hidden
     """
     
     # Visual settings
@@ -66,13 +66,13 @@ class TreeVisual(QGraphicsRectItem):
     TITLE_FONT = QFont("Arial", 11, QFont.Bold)
     COLLAPSE_BUTTON_SIZE = 20
     
-    def __init__(self, tree_entity: Any, layout: TreeLayout):
+    def __init__(self, graph_entity: Any, layout: GraphLayout):
         """
-        Initialize a TreeVisual with a tree entity and its layout.
+        Initialize a GraphVisual with a graph entity and its layout.
         
         Args:
-            tree_entity: The business tree entity (State_event_set, Journey, etc.)
-            layout: The TreeLayout containing visual properties
+            graph_entity: The business graph entity (State_event_set, Journey_node, etc.)
+            layout: The GraphLayout containing visual properties
         """
         # Initialize with default size from layout
         width = layout.width if layout.width > 0 else 400
@@ -80,14 +80,14 @@ class TreeVisual(QGraphicsRectItem):
         super().__init__(0, 0, width, height)
         
         # Store references
-        self.tree_entity = tree_entity
+        self.graph_entity = graph_entity
         self.layout = layout
         self.is_collapsed = layout.collapsed
         
         # Set position from layout
         self.setPos(layout.x, layout.y)
         
-        # Set z-value (trees appear behind nodes)
+        # Set z-value (graphs appear behind nodes)
         self.setZValue(layout.z_index if layout.z_index < 0 else -10)
         
         # Enable selection and movement
@@ -129,7 +129,7 @@ class TreeVisual(QGraphicsRectItem):
         self.setPen(QPen(self.DEFAULT_BORDER_COLOR, self.BORDER_WIDTH))
 
     def set_rounded_corners(self) -> None:
-        """Set a rounded rectangle shape for the tree container."""
+        """Set a rounded rectangle shape for the graph container."""
         path = QPainterPath()
         path.addRoundedRect(
             self.rect(),
@@ -168,7 +168,7 @@ class TreeVisual(QGraphicsRectItem):
         self.collapse_button.setPen(QPen(self.DEFAULT_BORDER_COLOR))
         self.collapse_button.setBrush(QBrush(self.TITLE_BG_COLOR))
         
-        # Make button non-selectable (handled by tree selection)
+        # Make button non-selectable (handled by graph selection)
         self.collapse_button.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.collapse_button.setFlag(QGraphicsItem.ItemIsMovable, False)
         
@@ -176,16 +176,16 @@ class TreeVisual(QGraphicsRectItem):
         self._update_collapse_button()
 
     def _update_title(self) -> None:
-        """Update the title based on tree entity and type."""
-        if self.tree_entity and hasattr(self.tree_entity, 'id'):
-            if isinstance(self.tree_entity, State_event_set):
-                title = f"Arbre État-Événement #{self.tree_entity.id}"
-            elif isinstance(self.tree_entity, Journey):
-                title = f"Arbre Parcours #{self.tree_entity.id}"
+        """Update the title based on graph entity and type."""
+        if self.graph_entity and hasattr(self.graph_entity, 'id'):
+            if isinstance(self.graph_entity, State_event_set):
+                title = f"Graphe \u00c9tat-\u00c9v\u00e9nement #{self.graph_entity.id}"
+            elif isinstance(self.graph_entity, Journey):
+                title = f"Graphe Parcours #{self.graph_entity.id}"
             else:
-                title = f"Arbre {self.layout.tree_type} #{self.tree_entity.id}"
+                title = f"Graphe {self.layout.graph_type} #{self.graph_entity.id}"
         else:
-            title = self.layout.title if self.layout.title else f"Nouvel Arbre ({self.layout.tree_type})"
+            title = self.layout.title if self.layout.title else f"Nouveau Graphe ({self.layout.graph_type})"
         
         self.title_item.setPlainText(title)
 
@@ -194,7 +194,7 @@ class TreeVisual(QGraphicsRectItem):
         if self.is_collapsed:
             self.collapse_button.setPlainText("+")
         else:
-            self.collapse_button.setPlainText("−")
+            self.collapse_button.setPlainText("\u2212")
         
         # Center text in button
         text_item = self.collapse_button.findChild(QGraphicsTextItem)
@@ -209,7 +209,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def add_node(self, node: BaseNode) -> None:
         """
-        Add a node to the tree.
+        Add a node to the graph.
         
         Args:
             node: The BaseNode to add
@@ -222,7 +222,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def remove_node(self, node_id: int) -> bool:
         """
-        Remove a node from the tree.
+        Remove a node from the graph.
         
         Args:
             node_id: The ID of the node to remove
@@ -244,7 +244,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def add_connection(self, connection: Connection) -> None:
         """
-        Add a connection to the tree.
+        Add a connection to the graph.
         
         Args:
             connection: The Connection to add
@@ -257,7 +257,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def remove_connection(self, connection_id: str) -> bool:
         """
-        Remove a connection from the tree.
+        Remove a connection from the graph.
         
         Args:
             connection_id: The ID of the connection to remove
@@ -279,9 +279,9 @@ class TreeVisual(QGraphicsRectItem):
 
     def _resize_to_fit(self) -> None:
         """
-        Resize the tree container to fit all its contents.
+        Resize the graph container to fit all its contents.
         
-        If the tree is collapsed, only show the title bar.
+        If the graph is collapsed, only show the title bar.
         """
         if not self.nodes and not self.connections:
             # No content, use default size
@@ -328,7 +328,7 @@ class TreeVisual(QGraphicsRectItem):
         self._init_collapse_button()
 
     def toggle_collapse(self) -> None:
-        """Toggle the collapsed state of the tree."""
+        """Toggle the collapsed state of the graph."""
         self.is_collapsed = not self.is_collapsed
         self.layout.collapsed = self.is_collapsed
         self._update_collapse_button()
@@ -343,9 +343,9 @@ class TreeVisual(QGraphicsRectItem):
 
     def update_layout(self) -> None:
         """
-        Update the layout object with the tree's current properties.
+        Update the layout object with the graph's current properties.
         
-        This should be called when the tree is moved or resized to
+        This should be called when the graph is moved or resized to
         persist the changes to the layout model.
         """
         self.layout.x = self.x()
@@ -356,7 +356,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def set_title(self, title: str) -> None:
         """
-        Set the tree title.
+        Set the graph title.
         
         Args:
             title: The new title
@@ -365,7 +365,7 @@ class TreeVisual(QGraphicsRectItem):
         self._update_title()
 
     def get_title(self) -> str:
-        """Get the tree title."""
+        """Get the graph title."""
         return self.title_item.toPlainText()
 
     # -------------------------------------------------------------------------
@@ -412,7 +412,7 @@ class TreeVisual(QGraphicsRectItem):
 
     def paint(self, painter, option, widget=None) -> None:
         """
-        Paint the tree container with rounded corners and title background.
+        Paint the graph container with rounded corners and title background.
         """
         # Draw the main shape (already set via path in set_rounded_corners)
         super().paint(painter, option, widget)
@@ -449,23 +449,23 @@ class TreeVisual(QGraphicsRectItem):
     # -------------------------------------------------------------------------
     
     def contains_node(self, node_id: int) -> bool:
-        """Check if the tree contains a specific node."""
+        """Check if the graph contains a specific node."""
         return node_id in self.nodes
 
     def contains_connection(self, connection_id: str) -> bool:
-        """Check if the tree contains a specific connection."""
+        """Check if the graph contains a specific connection."""
         return connection_id in self.connections
 
     def get_all_nodes(self) -> List[BaseNode]:
-        """Get all nodes in the tree."""
+        """Get all nodes in the graph."""
         return list(self.nodes.values())
 
     def get_all_connections(self) -> List[Connection]:
-        """Get all connections in the tree."""
+        """Get all connections in the graph."""
         return list(self.connections.values())
 
     def clear(self) -> None:
-        """Remove all nodes and connections from the tree."""
+        """Remove all nodes and connections from the graph."""
         # Remove all nodes
         for node_id, node in list(self.nodes.items()):
             self.remove_node(node_id)
