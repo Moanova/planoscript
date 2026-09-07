@@ -363,6 +363,12 @@ class JourneyWorkspace(QGraphicsView, QObject):
         parent_node = None
         is_output_port = False
         
+        # Debug: Print what was clicked
+        if item:
+            print(f"DEBUG: Clicked on item of type {type(item).__name__}")
+        else:
+            print("DEBUG: Clicked on empty space (no item)")
+        
         # Get all items at the click position (from bottom to top)
         # This allows us to ignore the temp connection and find ports/nodes below it
         all_items = self.items(event.position().toPoint())
@@ -403,23 +409,28 @@ class JourneyWorkspace(QGraphicsView, QObject):
             
             # Case 2: item is a node, check if click is near one of its ports
             elif hasattr(item, 'entity') and hasattr(item, 'output_port') and hasattr(item, 'input_port'):
-                mouse_scene_pos = self.mapToScene(event.position().toPoint())
-                output_port_pos = item.output_port.scenePos()
-                input_port_pos = item.input_port.scenePos()
-                
-                # Threshold distance to consider a port click (in pixels)
-                threshold = 15
-                
-                # Check distance to output port
-                if (mouse_scene_pos - output_port_pos).manhattanLength() < threshold:
-                    parent_node = item
-                    is_output_port = True
-                    port_clicked = True
-                # Check distance to input port
-                elif (mouse_scene_pos - input_port_pos).manhattanLength() < threshold:
-                    parent_node = item
-                    is_output_port = False
-                    port_clicked = True
+                # Check if ports exist
+                if not item.output_port or not item.input_port:
+                    # Node doesn't have valid ports
+                    pass
+                else:
+                    mouse_scene_pos = self.mapToScene(event.position().toPoint())
+                    output_port_pos = item.output_port.scenePos()
+                    input_port_pos = item.input_port.scenePos()
+                    
+                    # Threshold distance to consider a port click (in pixels)
+                    threshold = 15
+                    
+                    # Check distance to output port
+                    if (mouse_scene_pos - output_port_pos).manhattanLength() < threshold:
+                        parent_node = item
+                        is_output_port = True
+                        port_clicked = True
+                    # Check distance to input port
+                    elif (mouse_scene_pos - input_port_pos).manhattanLength() < threshold:
+                        parent_node = item
+                        is_output_port = False
+                        port_clicked = True
         
         if port_clicked and parent_node:
             if self.waiting_for_source:
@@ -437,7 +448,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     )
                 else:
                     # Clicked on input port first - invalid, cancel
-                    self.info_bar.show_message("Please click on an output port (green) first")
+                    if self.info_bar:
+                        self.info_bar.show_message("Please click on an output port (green) first")
                     self.exit_relation_creation_mode()
                     
             elif self.waiting_for_target and self.source_node:
@@ -448,16 +460,28 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     
                     if target_node != self.source_node:
                         # Emit signal to create the relation
+                        print(f"DEBUG: Emitting relation_created signal with source={self.source_node.entity.lb}, target={target_node.entity.lb}")
                         self.relation_created.emit(self.source_node, target_node)
+                    else:
+                        # Clicked on the same node - invalid
+                        self.info_bar.show_message("Cannot connect a node to itself")
                     
                     # Clean up
                     self.exit_relation_creation_mode()
                 else:
                     # Clicked on output port second - invalid, cancel
-                    self.info_bar.show_message("Please click on an input port (red) for the target")
+                    if self.info_bar:
+                        self.info_bar.show_message("Please click on an input port (red) for the target")
                     self.exit_relation_creation_mode()
         else:
             # Click on grid or non-port element -> cancel relation creation
+            if self.info_bar:
+                if self.waiting_for_source:
+                    self.info_bar.show_message("Relation creation cancelled - click on an output port (green)")
+                elif self.waiting_for_target:
+                    self.info_bar.show_message("Relation creation cancelled - click on an input port (red)")
+                else:
+                    self.info_bar.show_message("Relation creation cancelled")
             self.exit_relation_creation_mode()
 
 

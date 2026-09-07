@@ -329,6 +329,14 @@ class MainWindow(QMainWindow):
 
     def _init_workspace(self):
         """Initialize workspace with a single JourneyWorkspace."""
+        # Disconnect signal from old workspace if it exists
+        if hasattr(self, 'workspace') and self.workspace is not None:
+            try:
+                self.workspace.relation_created.disconnect()
+            except (TypeError, AttributeError):
+                # No connection to disconnect or workspace doesn't have the signal
+                pass
+
         # Clear existing layout
         self.middle_layout = self.middle_section.layout()
         while self.middle_layout.count():
@@ -509,9 +517,13 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message("two nodes are needed in the narrative map for a relation")
             return
 
+        # Check if workspace is ready
+        if not isinstance(self.workspace, JourneyWorkspace):
+            self.info_bar.show_message("Error: Workspace not ready for relation creation")
+            return
+
         # Enter relation creation mode in workspace
-        if isinstance(self.workspace, JourneyWorkspace):
-            self.workspace.enter_relation_creation_mode()
+        self.workspace.enter_relation_creation_mode()
         self.info_bar.show_message("Click on source node output port")
 
     
@@ -520,6 +532,7 @@ class MainWindow(QMainWindow):
         Callback called when a relation is created via rubber band connection.
         Creates the business State_node relation and visual connection.
         """
+        print(f"DEBUG: _on_relation_created called with source={source_node.entity.lb if hasattr(source_node, 'entity') else 'None'}, target={target_node.entity.lb if hasattr(target_node, 'entity') else 'None'}")
         self._create_state_event_relation(source_node, target_node)
 
 
@@ -528,6 +541,10 @@ class MainWindow(QMainWindow):
         Create a State-Event relation between two nodes using StateNodeService.
         """
         # Extract business entities from visual nodes
+        if not hasattr(source_node, 'entity') or not hasattr(target_node, 'entity'):
+            self.info_bar.show_message("Error: Invalid node type for relation")
+            return
+        
         source_entity = source_node.entity
         target_entity = target_node.entity
         
