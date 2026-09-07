@@ -364,16 +364,40 @@ class JourneyWorkspace(QGraphicsView, QObject):
         is_output_port = False
         
         # Check if clicked item is a port (QGraphicsEllipseItem child of a node)
-        if item and isinstance(item, QGraphicsEllipseItem):
-            parent = item.parentItem()
-            if parent and hasattr(parent, 'entity') and hasattr(parent, 'output_port') and hasattr(parent, 'input_port'):
-                parent_node = parent
-                # Check if this is the output port (right side, green)
-                if item == parent.output_port:
+        # OR if a node was clicked and the click is near one of its ports
+        if item:
+            # Case 1: item is directly a port
+            if isinstance(item, QGraphicsEllipseItem):
+                parent = item.parentItem()
+                if parent and hasattr(parent, 'entity') and hasattr(parent, 'output_port') and hasattr(parent, 'input_port'):
+                    parent_node = parent
+                    # Check if this is the output port (right side, green)
+                    if item == parent.output_port:
+                        is_output_port = True
+                        port_clicked = True
+                    elif item == parent.input_port:
+                        is_output_port = False
+                        port_clicked = True
+            
+            # Case 2: item is a node, check if click is near one of its ports
+            elif hasattr(item, 'entity') and hasattr(item, 'output_port') and hasattr(item, 'input_port'):
+                mouse_scene_pos = self.mapToScene(event.position().toPoint())
+                output_port_pos = item.output_port.scenePos()
+                input_port_pos = item.input_port.scenePos()
+                
+                # Threshold distance to consider a port click (in pixels)
+                threshold = 15
+                
+                # Check distance to output port
+                if (mouse_scene_pos - output_port_pos).manhattanLength() < threshold:
+                    parent_node = item
                     is_output_port = True
-                elif item == parent.input_port:
+                    port_clicked = True
+                # Check distance to input port
+                elif (mouse_scene_pos - input_port_pos).manhattanLength() < threshold:
+                    parent_node = item
                     is_output_port = False
-                port_clicked = True
+                    port_clicked = True
         
         if port_clicked and parent_node:
             if self.waiting_for_source:
