@@ -11,6 +11,7 @@
 # Build        : TSC
 # ---------------------------------------------------------------------
 import os
+import uuid
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -475,24 +476,53 @@ class JourneyWorkspace(QGraphicsView, QObject):
     def create_connection_from_data(self, connection_data: dict):
         """
         Creates a visual connection based on the data returned by the use case.
+        Accepts either:
+        - 'source', 'target', 'relation' (visual nodes and business entity)
+        - OR 'connection_layout', 'source_entity', 'target_entity' (legacy format)
         """
-        connection_layout = connection_data['connection_layout']
-        source_entity = connection_data['source_entity']
-        target_entity = connection_data['target_entity']
+        # Try new format first (source, target, relation)
+        source_node = connection_data.get('source')
+        target_node = connection_data.get('target')
+        relation_entity = connection_data.get('relation')
+        
+        if source_node and target_node:
+            # New format: directly use the visual nodes
+            from core.models.view_model import ConnectionLayout, RelationType
+            connection_layout = ConnectionLayout(
+                id=str(uuid.uuid4()),
+                source_node_id=source_node.entity.id,
+                target_node_id=target_node.entity.id,
+                relation_id=relation_entity.id if relation_entity else None,
+                relation_type=RelationType.STATE_NODE
+            )
+            connection = Connection(connection_layout, source_node, target_node, relation_entity)
+            self.scene.addItem(connection)
+            connection.update_path()
+            self._select_item_only(connection)
+            return connection
+        
+        # Fallback to legacy format for backward compatibility
+        try:
+            connection_layout = connection_data['connection_layout']
+            source_entity = connection_data['source_entity']
+            target_entity = connection_data['target_entity']
 
-        source_node = self._find_node_by_entity_id(source_entity.id)
-        target_node = self._find_node_by_entity_id(target_entity.id)
+            source_node = self._find_node_by_entity_id(source_entity.id)
+            target_node = self._find_node_by_entity_id(target_entity.id)
 
-        if not source_node or not target_node:
-            print("Source or target node not found")
+            if not source_node or not target_node:
+                print("Source or target node not found")
+                return None
+
+            connection = Connection(connection_layout)
+            self.scene.addItem(connection)
+            connection.update_path(source_node, target_node)
+            self._select_item_only(connection)
+
+            return connection
+        except KeyError:
+            print("Invalid connection data format")
             return None
-
-        connection = Connection(connection_layout)
-        self.scene.addItem(connection)
-        connection.update_path(source_node, target_node)
-        self._select_item_only(connection)
-
-        return connection
 
 
     def _find_node_by_entity_id(self, entity_id: int):

@@ -60,9 +60,6 @@ class MainWindow(QMainWindow):
         # Node counter to enable or disable the "Relation" button (MVP : no control buttons, menu operations only)
         self.node_count = 0
 
-        # Variables for relation creation (kept for backward compatibility but now handled by workspace)
-        self.relation_type = None
-
         # Dependencies initialization
         self.project_service = ProjectService()
         self.create_project_usecase = CreateProjectUseCase(self.project_service)
@@ -524,24 +521,6 @@ class MainWindow(QMainWindow):
         Creates the business State_node relation and visual connection.
         """
         self._create_state_event_relation(source_node, target_node)
-
-
-    def _on_node_selected_for_relation(self, node):
-        """
-        Callback called when a node is selected in relation creation mode.
-        Handle source/target selection and create the State-Event relation.
-        """
-        if self.waiting_for_source:
-            # First selected node = source
-            self.source_node = node
-            self.waiting_for_source = False
-            self.waiting_for_target = True
-            self.info_bar.show_message("Click on the second node (Event or State)")
-        elif self.waiting_for_target:
-            # Second selected node = target
-            self.waiting_for_target = False
-            self._create_state_event_relation(self.source_node, node)
-            self.source_node = None
 
 
     def _create_state_event_relation(self, source_node, target_node):
