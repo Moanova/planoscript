@@ -34,10 +34,11 @@ class JourneyWorkspace(QGraphicsView, QObject):
     # Signal emitted when a relation is created between two nodes
     relation_created = Signal(object, object)
     
-    def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None):
+    def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None):
         super().__init__()
 
         self.narrative_map = narrative_map
+        self.info_bar = info_bar
 
         self.initial_width = initial_width
         self.initial_height = initial_height

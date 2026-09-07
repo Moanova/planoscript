@@ -341,7 +341,8 @@ class MainWindow(QMainWindow):
 
         # Single workspace (MVP : journey view only)
         self.workspace = JourneyWorkspace(
-            narrative_map=self.project_service.current_project.narrative_map[0]
+            narrative_map=self.project_service.current_project.narrative_map[0],
+            info_bar=self.info_bar
         )
         self.middle_layout.addWidget(self.workspace)
         
