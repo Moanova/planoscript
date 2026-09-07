@@ -363,6 +363,28 @@ class JourneyWorkspace(QGraphicsView, QObject):
         parent_node = None
         is_output_port = False
         
+        # Get all items at the click position (from bottom to top)
+        # This allows us to ignore the temp connection and find ports/nodes below it
+        all_items = self.items(event.position().toPoint())
+        
+        # Find the first relevant item (port or node), ignoring the temp connection
+        target_item = None
+        for candidate in reversed(all_items):  # Check from top to bottom
+            if candidate == self.temp_connection:
+                continue  # Skip the temporary connection line
+            
+            if isinstance(candidate, QGraphicsEllipseItem):
+                parent = candidate.parentItem()
+                if parent and hasattr(parent, 'entity') and hasattr(parent, 'output_port') and hasattr(parent, 'input_port'):
+                    target_item = candidate
+                    break
+            elif hasattr(candidate, 'entity') and hasattr(candidate, 'output_port') and hasattr(candidate, 'input_port'):
+                target_item = candidate
+                break
+        
+        # Use the found target item instead of the original item
+        item = target_item
+        
         # Check if clicked item is a port (QGraphicsEllipseItem child of a node)
         # OR if a node was clicked and the click is near one of its ports
         if item:
