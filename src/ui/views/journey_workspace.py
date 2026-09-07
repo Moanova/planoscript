@@ -388,12 +388,39 @@ class JourneyWorkspace(QGraphicsView, QObject):
                 target_item = candidate
                 break
         
-        # Use the found target item instead of the original item
-        item = target_item
+        # If we clicked directly on a port or node, use it
+        if target_item:
+            item = target_item
+        # Otherwise, the click might be on temp connection covering a port - check all nodes for proximity
+        elif item:
+            # The original item might be the temp connection - check all nodes for proximity to ports
+            print("DEBUG: Checking all nodes for port proximity (temp connection may be covering port)")
+            mouse_scene_pos = self.mapToScene(event.position().toPoint())
+            for scene_item in self.scene.items():
+                if scene_item == self.temp_connection:
+                    continue
+                if hasattr(scene_item, 'entity') and hasattr(scene_item, 'output_port') and hasattr(scene_item, 'input_port'):
+                    if scene_item.output_port and scene_item.input_port:
+                        output_port_pos = scene_item.output_port.scenePos()
+                        input_port_pos = scene_item.input_port.scenePos()
+                        threshold = 15
+                        
+                        if (mouse_scene_pos - output_port_pos).manhattanLength() < threshold:
+                            item = scene_item
+                            parent_node = scene_item
+                            is_output_port = True
+                            port_clicked = True
+                            break
+                        elif (mouse_scene_pos - input_port_pos).manhattanLength() < threshold:
+                            item = scene_item
+                            parent_node = scene_item
+                            is_output_port = False
+                            port_clicked = True
+                            break
         
         # Check if clicked item is a port (QGraphicsEllipseItem child of a node)
         # OR if a node was clicked and the click is near one of its ports
-        if item:
+        if item and not (port_clicked and parent_node):
             # Case 1: item is directly a port
             if isinstance(item, QGraphicsEllipseItem):
                 parent = item.parentItem()
