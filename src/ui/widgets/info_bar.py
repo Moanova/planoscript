@@ -6,14 +6,7 @@
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton,  QFrame,
-    QVBoxLayout, QPushButton
-)
-from PySide6.QtCore import Qt, QSize, QSizeF, QPointF
-from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
-import os
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
 class InfoBar(QWidget):
     """Bottom-left information bar"""
@@ -27,7 +20,6 @@ class InfoBar(QWidget):
         """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 0, 0)
-        #self.info_label = QLabel("Select a component")
         self.info_label = QLabel()
         self.info_label.setStyleSheet("font-size: 10pt; color: #666;")
         layout.addWidget(self.info_label)

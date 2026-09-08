@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : about_service.py
+# Script       : change_log_service.py
 # Version      : 1
 # Date         : 01-06-2026
 # Design       : TSC

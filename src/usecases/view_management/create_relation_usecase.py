@@ -24,17 +24,19 @@ Separation of responsibilities:
 - JourneyWorkspace: creation and display of QGraphicsLineItem
 """
 
+import logging
 from datetime import datetime
-from typing import Optional, Dict, Any, Tuple
-from uuid import uuid4
+from typing import Optional, Dict, Any
 
 from core.models.data_model import (
     State_agent_rel,
     NarrativeMap
 )
-from core.models.view_model import ConnectionLayout, NodeType
+from core.models.view_model import ConnectionLayout
 from core.services.project_service import ProjectService
 from core.services.layout_service import LayoutService
+
+logger = logging.getLogger(__name__)
 
 
 class CreateRelationUseCase:
@@ -83,7 +85,7 @@ class CreateRelationUseCase:
         Args:
             source_entity: Source entity (Agent, State, Event)
             target_entity: Target entity (Agent, State, Event)
-            relation_type: Relation type (e.g., "Satet to Agent", "Satet to Event", "Event to State")
+            relation_type: Relation type (e.g., "State to Agent")
             narrative_map: Target NarrativeMap (optional, uses the first by default)
             
         Returns:
@@ -98,7 +100,7 @@ class CreateRelationUseCase:
         """
         # 1. Check that a project is opened
         if not self.project_service or not self.project_service.current_project:
-            print("CreateRelationUseCase: No project opened")
+            logger.warning("No project opened")
             return None
         
         project = self.project_service.current_project
@@ -111,7 +113,7 @@ class CreateRelationUseCase:
         
         # 3. Check that the relation type is valid
         if relation_type not in self.RELATION_MAPPING:
-            print(f"CreateRelationUseCase: Unknown relation type: {relation_type}")
+            logger.warning("Unknown relation type: %s", relation_type)
             return None
         
         relation_config = self.RELATION_MAPPING[relation_type]

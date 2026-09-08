@@ -23,9 +23,8 @@ Separation of responsibilities:
 - JourneyWorkspace: creation and display of QGraphicsItem
 """
 
-from datetime import datetime
-from typing import Optional, Dict, Any
-from uuid import uuid4
+import logging
+from typing import Optional, Dict
 
 from core.models.data_model import (
     Agent, State, Event, NarrativeMap, Project
@@ -33,6 +32,8 @@ from core.models.data_model import (
 from core.models.view_model import NodeLayout, NodeType
 from core.services.project_service import ProjectService
 from core.services.layout_service import LayoutService
+
+logger = logging.getLogger(__name__)
 
 
 class CreateNodeUseCase:
@@ -108,7 +109,7 @@ class CreateNodeUseCase:
         """
         # 1. Check that a project is opened
         if not self.project_service or not self.project_service.current_project:
-            print("CreateNodeUseCase: No project opened")
+            logger.warning("No project opened")
             return None
         
         project = self.project_service.current_project
@@ -121,7 +122,7 @@ class CreateNodeUseCase:
         
         # 3. Check that the component type is valid
         if component_type not in self.COMPONENT_MAPPING:
-            print(f"CreateNodeUseCase: Unknown component type: {component_type}")
+            logger.warning("Unknown component type: %s", component_type)
             return None
         
         component_config = self.COMPONENT_MAPPING[component_type]

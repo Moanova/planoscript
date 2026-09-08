@@ -10,11 +10,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPixmap, QPainter, QIcon
 from PySide6.QtSvg import QSvgRenderer
 
+
 def create_colored_icon(svg_path, color_hex="#000000"):
     """
-    Loads an SVG and applies a fill color. 
+    Loads an SVG and applies a fill color.
 
-    Objective: Avoid the issue of passing the widget's color to the SVG file. 
+    Objective: Avoid the issue of passing the widget's color to the SVG file.
 
     Args:
         svg_path (str): Path to the SVG file
@@ -29,12 +30,10 @@ def create_colored_icon(svg_path, color_hex="#000000"):
     pixmap = QPixmap(size)
     pixmap.fill(Qt.transparent)
 
-    # Rend le SVG
     painter = QPainter(pixmap)
     renderer.render(painter)
     painter.end()
 
-    # Applique la couleur
     painter = QPainter(pixmap)
     painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
     painter.fillRect(pixmap.rect(), QColor(color_hex))

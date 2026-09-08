@@ -13,3 +13,10 @@ Ce package contient les use cases liés à la manipulation des éléments
 visuels dans l'espace de travail (création, suppression, modification
 de nœuds, gestion des connections, etc.).
 """
+from usecases.view_management.create_node_usecase import CreateNodeUseCase
+from usecases.view_management.create_relation_usecase import CreateRelationUseCase
+
+__all__ = [
+    "CreateNodeUseCase",
+    "CreateRelationUseCase",
+]

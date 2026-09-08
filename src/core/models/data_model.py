@@ -14,8 +14,6 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from uuid import UUID
-import json
 
 # ---------------------------------------------------------------------
 # Entity classes
@@ -38,9 +36,7 @@ class Agent:
             self.id = int(self.id)
         if self.typ not in ["Subject", "Object"]:
             raise ValueError(f"Invalid Agent.typ: {self.typ}. Must be 'Subject' or 'Object'")
-        if not isinstance(self.typ, str):
-            self.typ = str(self.typ)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert entity to dictionary for JSON serialization."""
         result = asdict(self)
@@ -78,9 +74,7 @@ class State:
             self.id = int(self.id)
         if self.typ not in ["Initial", "Action", "Relation", "Final"]:
             raise ValueError(f"Invalid State.typ: {self.typ}. Must be one of: 'Initial', 'Action', 'Relation', 'Final'")
-        if not isinstance(self.typ, str):
-            self.typ = str(self.typ)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert entity to dictionary for JSON serialization."""
         result = asdict(self)

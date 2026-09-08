@@ -1,15 +1,19 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : project_servcice.py
+# Script       : project_service.py
 # Version      : 1
 # Date         : 01-06-2026
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
 import json
+import logging
 from uuid import uuid4
 from datetime import datetime
 from core.models.data_model import Project, NarrativeMap
+
+logger = logging.getLogger(__name__)
+
 
 class ProjectService:
     def __init__(self):
@@ -24,7 +28,7 @@ class ProjectService:
             id=str(uuid4()),
             lb="Main narrative map",
             creation_date_time=datetime.now(),
-            modification_date_time=None  # Mandatory field (inherited from BaseEntity)
+            modification_date_time=None  # Mandatory field (no default value in the dataclass)
         )
         
         self._current_project = Project(
@@ -53,7 +57,7 @@ class ProjectService:
                 self._is_modified = False
                 return True
         except (IOError, OSError, json.JSONDecodeError, KeyError) as e:
-            print(f"Loading Error: {e}")
+            logger.error("Loading error: %s", e)
             return False
 
 
@@ -67,20 +71,24 @@ class ProjectService:
         if not self._current_project:
             return False
 
-        # Mise à jour des métadonnées
-        self._current_project.file_path = file_path
-        self._current_project.modification_date_time = datetime.now()
-
+        # Prepare the dict with updated metadata without mutating the project
+        now = datetime.now()
         project_dict = self._current_project.to_dict()
+        project_dict['file_path'] = file_path
+        project_dict['modification_date_time'] = now.isoformat()
 
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(project_dict, f, indent=2, ensure_ascii=False)
-            self._is_modified = False
-            return True
         except (IOError, OSError) as e:
-            print(f"Saving Error: {e}")
+            logger.error("Saving error: %s", e)
             return False
+
+        # Update metadata only after successful write
+        self._current_project.file_path = file_path
+        self._current_project.modification_date_time = now
+        self._is_modified = False
+        return True
 
 
     @property

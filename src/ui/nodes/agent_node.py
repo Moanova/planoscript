@@ -20,7 +20,7 @@ Agent types:
 
 from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsEllipseItem
 from PySide6.QtCore import Qt, QPointF
-from PySide6.QtGui import QPen, QBrush, QColor, QFont
+from PySide6.QtGui import QPen, QBrush, QColor
 from typing import Optional
 
 from core.models.data_model import Agent

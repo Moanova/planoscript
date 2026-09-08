@@ -12,7 +12,8 @@ Service dedicated to managing State_node entities (State-Event relations).
 This service centralizes the business logic for creating, querying, and deleting
 State_node entities, ensuring data integrity and applying business rules:
 - Only State and Event entities can be linked
-- A State_node represents a connection between State and Event (bidirectional)
+- A State_node represents a directional connection between State and Event
+  (from_event_id -> state_id -> to_event_id)
 - A State can be connected to multiple Events, and vice versa
 """
 
@@ -181,8 +182,6 @@ class StateNodeService:
         Returns:
             The State_node connecting the two entities, or None if not found
         """
-        from core.models.data_model import State_node
-        
         # Case 1: State -> Event
         if entity1_type == "State" and entity2_type == "Event":
             for node in narrative_map.state_node:

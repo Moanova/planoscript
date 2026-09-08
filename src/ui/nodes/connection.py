@@ -26,28 +26,13 @@ from datetime import datetime
 import math
 
 from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem
-from PySide6.QtCore import QPointF, Qt, QRectF
-from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath
-from typing import Optional, Any, Dict, Tuple
+from PySide6.QtCore import QPointF, Qt
+from PySide6.QtGui import QPen, QColor, QPainterPath
+from typing import Optional, Any
 
-from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, NodeType
-from core.models.data_model import (
-    State_agent_rel,
-    State_node,
-    Journey_node,
-    State,
-    Event,
-    Agent
-)
+from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, RelationType
+from core.models.data_model import State_agent_rel
 from ui.nodes.base_node import BaseNode
-
-
-# Types of relations that are separate entities (n-n cardinality)
-ENTITY_RELATION_TYPES = {
-    "State_agent_rel",
-    "State_node", 
-    "Journey_node"
-}
 
 
 class Connection(QGraphicsPathItem):
@@ -74,7 +59,6 @@ class Connection(QGraphicsPathItem):
     
     # Arrow settings
     ARROW_SIZE = 10.0
-    ARROW_ANGLE = math.pi / 6  # 30 degrees
     
     def __init__(
         self,
@@ -90,7 +74,7 @@ class Connection(QGraphicsPathItem):
             layout: The ConnectionLayout containing visual properties
             source_node: The source BaseNode
             target_node: The target BaseNode
-            relation_entity: Optional business relation entity (e.g., Agent_state_rel)
+            relation_entity: Optional business relation entity (e.g., State_agent_rel)
         """
         super().__init__()
         
@@ -139,37 +123,12 @@ class Connection(QGraphicsPathItem):
 
     def _connect_node_signals(self) -> None:
         """
-        Connect to the nodes' position change signals.
-        
-        This ensures the connection updates when either node moves.
+        Register as a position observer on both nodes.
+
+        This ensures the connection updates its path when either node moves.
         """
-        # Enable position change notifications for both nodes
-        self.source_node.setFlag(QGraphicsItem.ItemSendsScenePositionChanges, True)
-        self.target_node.setFlag(QGraphicsItem.ItemSendsScenePositionChanges, True)
-        
-        # Store original itemChange method references
-        self._source_item_change = self.source_node.itemChange
-        self._target_item_change = self.target_node.itemChange
-        
-        # Replace itemChange methods to detect position changes
-        self.source_node.itemChange = self._source_item_change_wrapper
-        self.target_node.itemChange = self._target_item_change_wrapper
-
-
-    def _source_item_change_wrapper(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
-        """Wrapper for source node's itemChange method."""
-        result = self._source_item_change(change, value)
-        if change == QGraphicsItem.ItemPositionChange:
-            self.update_path()
-        return result
-
-
-    def _target_item_change_wrapper(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
-        """Wrapper for target node's itemChange method."""
-        result = self._target_item_change(change, value)
-        if change == QGraphicsItem.ItemPositionChange:
-            self.update_path()
-        return result
+        self.source_node.register_position_observer(self.update_path)
+        self.target_node.register_position_observer(self.update_path)
 
 
     def update_path(self) -> None:
@@ -540,108 +499,73 @@ class Connection(QGraphicsPathItem):
     def create_relation_entity(self, narrative_map: Any) -> Optional[Any]:
         """
         Create a business relation entity based on the connected nodes.
-       
+
         Args:
             narrative_map: The NarrativeMap to add the relation to
-            
+
         Returns:
-            The created relation entity
+            The created relation entity, or None if the relation type
+            does not support creation via this method.
         """
         if not self.source_node or not self.target_node or not self.layout.relation_type:
             return None
-        
+
         relation_type = self.layout.relation_type
         source_id = self.source_node.entity.id
         target_id = self.target_node.entity.id
-        
-        # Handle entity relations (n-n cardinality)
-        if relation_type == "State_agent_rel":
-            relation = Agent_state_rel(
+
+        # State_agent_rel is a simple State <-> Agent relation
+        if relation_type == RelationType.STATE_AGENT_REL:
+            relation = State_agent_rel(
                 id=narrative_map.get_next_id("state_agent_rel"),
-                agent_id=source_id,
-                state_id=target_id,
-                note=self.layout.label,
-                creation_date_time=datetime.now()
-            )
-            narrative_map.agent_state_rel.append(relation)
-            self.set_relation_entity(relation)
-            
-        elif relation_type == "State_node":
-            relation = Agent_event_rel(
-                id=narrative_map.get_next_id("State_node"),
-                agent_id=source_id,
-                event_id=target_id,
-                note=self.layout.label,
-                creation_date_time=datetime.now()
-            )
-            narrative_map.agent_event_rel.append(relation)
-            self.set_relation_entity(relation)
-            
-        elif relation_type == "Journey_node":
-            relation = State_event_rel(
-                id=narrative_map.get_next_id("state_event_rel"),
                 state_id=source_id,
-                event_id=target_id,
+                agent_id=target_id,
                 note=self.layout.label,
                 creation_date_time=datetime.now()
             )
-            narrative_map.state_event_rel.append(relation)
+            narrative_map.state_agent_rel.append(relation)
             self.set_relation_entity(relation)
         else:
+            # State_node and Journey_node are graph nodes, not simple
+            # source-target relations. They are created via StateNodeService,
+            # not via this method.
             return None
-        
+
         return self.relation_entity
 
 
     def delete_relation_entity(self, narrative_map: Any) -> bool:
         """
         Delete the business relation entity associated with this connection.
-        
-        For entity relations, removes the entity from the narrative map.
-        For direct field relations, clears the reference field in the target entity.
-        
+
+        Removes the entity from the narrative map's relation list.
+
         Args:
             narrative_map: The NarrativeMap containing the relation
-            
+
         Returns:
             True if the relation was deleted, False otherwise
         """
         if not self.layout.relation_type:
             return False
-        
-        # Handle direct field relations
-        if is_direct_relation(self.layout.relation_type):
-            field_name = get_field_name_from_relation_type(self.layout.relation_type)
-            if field_name and self.target_node and hasattr(self.target_node.entity, field_name):
-                # Clear the reference field in the target entity
-                setattr(self.target_node.entity, field_name, None)
-                if hasattr(narrative_map, 'set_modified'):
-                    narrative_map.set_modified(True)
-                self.layout.relation_id = None
-                return True
-            return False
-        
-        # Handle entity relations
+
         if not self.layout.relation_id:
             return False
-        
+
         relation_id = self.layout.relation_id
-        
-        if self.layout.relation_type == "State_agent_rel":
+        relation_type = self.layout.relation_type
+
+        if relation_type == RelationType.STATE_AGENT_REL:
             narrative_map.state_agent_rel = [
                 rel for rel in narrative_map.state_agent_rel if rel.id != relation_id
             ]
-        elif self.layout.relation_type == "State_node":
+        elif relation_type == RelationType.STATE_NODE:
             narrative_map.state_node = [
                 rel for rel in narrative_map.state_node if rel.id != relation_id
             ]
-        elif self.layout.relation_type == "Journey_node":
-            narrative_map.journey_node = [
-                rel for rel in narrative_map.journey_node if rel.id != relation_id
-            ]
         else:
             return False
-        
+
         self.relation_entity = None
         self.layout.relation_id = None
         if hasattr(narrative_map, 'set_modified'):

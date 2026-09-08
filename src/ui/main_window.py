@@ -11,18 +11,15 @@
 # Content      : Rework in progress
 # Build        : TSC
 # ---------------------------------------------------------------------
-import sys
+import logging
 import os
 
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QMenuBar, QMenu, QLabel, QPushButton, QGraphicsView, QGraphicsScene,
-    QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsItem, QFrame,
-    QMessageBox, QStatusBar, QDialog, QTextEdit, QVBoxLayout, QPushButton,
-    QGridLayout, QFileDialog
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QMenuBar, QMenu, QLabel,
+    QMessageBox, QGridLayout, QFileDialog
 )
-from PySide6.QtCore import Qt, QSize, QSizeF, QPointF
-from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon
+from PySide6.QtCore import Qt
 
 from ui.views.journey_workspace import JourneyWorkspace
 from ui.widgets.info_bar import InfoBar
@@ -40,19 +37,16 @@ from usecases.file_management.quit_application_usecase import QuitApplicationUse
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 
+logger = logging.getLogger(__name__)
+
 class MainWindow(QMainWindow):
     """Main Application Window"""
-
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # ---------------------------------------------------------------------
     # Environment setup
     # ---------------------------------------------------------------------
     def __init__(self):
         super().__init__()
-
-        # MVP : one narrative map only per project
-        self.current_narrative_map_index = 0
 
         # Boolean to define whether a project is opened or not
         self.project_opened = False
@@ -294,8 +288,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb}")
         self._update_menu_state()
 
-        # For debugging
-        print(f"{self.project_service.current_project}")
+        logger.debug("Project created: %s", self.project_service.current_project)
 
 
     def _open_project(self):
@@ -323,8 +316,7 @@ class MainWindow(QMainWindow):
                 f"The File cannot be opened : {file_path}"
             )
 
-        # For debugging
-        print(f"{self.project_service.current_project}")
+        logger.debug("Project loaded: %s", self.project_service.current_project)
 
 
     def _init_workspace(self):
@@ -532,7 +524,9 @@ class MainWindow(QMainWindow):
         Callback called when a relation is created via rubber band connection.
         Creates the business State_node relation and visual connection.
         """
-        print(f"DEBUG: _on_relation_created called with source={source_node.entity.lb if hasattr(source_node, 'entity') else 'None'}, target={target_node.entity.lb if hasattr(target_node, 'entity') else 'None'}")
+        logger.debug("_on_relation_created called with source=%s, target=%s",
+                     source_node.entity.lb if hasattr(source_node, 'entity') else 'None',
+                     target_node.entity.lb if hasattr(target_node, 'entity') else 'None')
         self._create_state_event_relation(source_node, target_node)
 
 

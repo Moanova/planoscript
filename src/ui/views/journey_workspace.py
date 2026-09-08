@@ -10,23 +10,23 @@
 # Content      : Rework in progress
 # Build        : TSC
 # ---------------------------------------------------------------------
-import os
+import logging
 import uuid
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QGraphicsView, QGraphicsScene,
-    QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsItem, QFrame,
-    QVBoxLayout, QPushButton, QGraphicsPathItem
+    QGraphicsView, QGraphicsScene,
+    QGraphicsEllipseItem, QGraphicsItem
 )
-from PySide6.QtCore import Qt, QSize, QSizeF, QPointF, QRectF, Signal, QObject
-from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QIcon, QPainterPath
+from PySide6.QtCore import Qt, QPointF, Signal, QObject
+from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
 
-from core.models.view_model import NodeType, ConnectionLayout, ConnectionStyle, PortPosition
+from core.models.view_model import NodeType, ConnectionLayout
 from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
 from ui.nodes.connection import Connection
+
+logger = logging.getLogger(__name__)
 
 
 class JourneyWorkspace(QGraphicsView, QObject):
@@ -41,8 +41,6 @@ class JourneyWorkspace(QGraphicsView, QObject):
         self.narrative_map = narrative_map
         self.info_bar = info_bar
 
-        self.initial_width = initial_width
-        self.initial_height = initial_height
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         
@@ -146,9 +144,6 @@ class JourneyWorkspace(QGraphicsView, QObject):
         # Deactivate RubberBandDrag to avoid multiple selection
         self.setDragMode(QGraphicsView.NoDrag)
 
-        # Track scene boundaries
-        self.min_scene_size = QSizeF(800, 600)
-        
         # Relation creation mode attributes
         self.relation_creation_mode = False
         self.temp_connection = None
@@ -365,9 +360,9 @@ class JourneyWorkspace(QGraphicsView, QObject):
         
         # Debug: Print what was clicked
         if item:
-            print(f"DEBUG: Clicked on item of type {type(item).__name__}")
+            logger.debug("Clicked on item of type %s", type(item).__name__)
         else:
-            print("DEBUG: Clicked on empty space (no item)")
+            logger.debug("Clicked on empty space (no item)")
         
         # Get all items at the click position (from bottom to top)
         # This allows us to ignore the temp connection and find ports/nodes below it
@@ -394,15 +389,15 @@ class JourneyWorkspace(QGraphicsView, QObject):
         # Otherwise, the click might be on temp connection covering a port - check all nodes for proximity
         elif item:
             # The original item might be the temp connection - check all nodes for proximity to ports
-            print("DEBUG: Checking all nodes for port proximity (temp connection may be covering port)")
+            logger.debug("Checking all nodes for port proximity (temp connection may be covering port)")
             mouse_scene_pos = self.mapToScene(event.position().toPoint())
             for scene_item in self.scene.items():
                 if scene_item == self.temp_connection:
                     continue
                 if hasattr(scene_item, 'entity') and hasattr(scene_item, 'output_port') and hasattr(scene_item, 'input_port'):
                     if scene_item.output_port and scene_item.input_port:
-                        output_port_pos = scene_item.output_port.scenePos()
-                        input_port_pos = scene_item.input_port.scenePos()
+                        output_port_pos = scene_item.get_right_port_position()
+                        input_port_pos = scene_item.get_left_port_position()
                         threshold = 15
                         
                         if (mouse_scene_pos - output_port_pos).manhattanLength() < threshold:
@@ -442,8 +437,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     pass
                 else:
                     mouse_scene_pos = self.mapToScene(event.position().toPoint())
-                    output_port_pos = item.output_port.scenePos()
-                    input_port_pos = item.input_port.scenePos()
+                    output_port_pos = item.get_right_port_position()
+                    input_port_pos = item.get_left_port_position()
                     
                     # Threshold distance to consider a port click (in pixels)
                     threshold = 15
@@ -470,7 +465,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     # Create temporary connection from source output port
                     mouse_scene_pos = self.mapToScene(event.position().toPoint())
                     self._create_temp_connection(
-                        self.source_node.output_port.scenePos(),
+                        self.source_node.get_right_port_position(),
                         mouse_scene_pos
                     )
                 else:
@@ -487,7 +482,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     
                     if target_node != self.source_node:
                         # Emit signal to create the relation
-                        print(f"DEBUG: Emitting relation_created signal with source={self.source_node.entity.lb}, target={target_node.entity.lb}")
+                        logger.debug("Emitting relation_created signal with source=%s, target=%s",
+                                     self.source_node.entity.lb, target_node.entity.lb)
                         self.relation_created.emit(self.source_node, target_node)
                     else:
                         # Clicked on the same node - invalid
@@ -530,7 +526,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
     def _update_temp_connection(self, end_pos: QPointF):
         """Update temporary connection path to follow mouse position."""
         if self.temp_connection and self.source_node:
-            start_pos = self.source_node.output_port.scenePos()
+            start_pos = self.source_node.get_right_port_position()
             path = QPainterPath()
             path.moveTo(start_pos)
             path.lineTo(end_pos)
@@ -560,7 +556,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
         node_class = NODE_CLASS_MAPPING.get(node_type)
         if not node_class:
-            print(f"Unknown node type: {node_type}")
+            logger.warning("Unknown node type: %s", node_type)
             return None
 
         node = node_class(entity, layout)
@@ -608,17 +604,17 @@ class JourneyWorkspace(QGraphicsView, QObject):
             target_node = self._find_node_by_entity_id(target_entity.id)
 
             if not source_node or not target_node:
-                print("Source or target node not found")
+                logger.warning("Source or target node not found")
                 return None
 
-            connection = Connection(connection_layout)
+            connection = Connection(connection_layout, source_node, target_node)
             self.scene.addItem(connection)
-            connection.update_path(source_node, target_node)
+            connection.update_path()
             self._select_item_only(connection)
 
             return connection
         except KeyError:
-            print("Invalid connection data format")
+            logger.warning("Invalid connection data format")
             return None
 
 

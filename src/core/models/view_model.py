@@ -147,8 +147,8 @@ class ConnectionLayout:
         z_index: Z-order for layering
         selected: Whether the connection is currently selected
         label: Optional text label for the connection
-        relation_id: ID of the business relation entity (e.g., Agent_state_rel.id)
-        relation_type: Type of the business relation (e.g., "Agent_state_rel")
+        relation_id: ID of the business relation entity (e.g., State_agent_rel.id)
+        relation_type: Type of the business relation (e.g., "State_agent_rel")
     """
     id: str
     source_node_id: int = -1

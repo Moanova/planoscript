@@ -21,11 +21,11 @@ from this class.
 """
 
 from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem, QGraphicsEllipseItem
-from PySide6.QtCore import QRectF, Qt, QPointF
+from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QFont
 from typing import Optional, Any
 
-from core.models.view_model import NodeLayout, NodeType
+from core.models.view_model import NodeLayout
 
 
 class BaseNode(QGraphicsRectItem):
@@ -101,6 +101,9 @@ class BaseNode(QGraphicsRectItem):
         
         # Initialize ports (empty dict, to be populated by subclasses if needed)
         self.ports = {}
+
+        # Position change observers (connections that need to update when this node moves)
+        self._position_observers = []
         
         # Initialize visual input and output ports
         self.input_port = None  # QGraphicsEllipseItem for input port (left)
@@ -313,10 +316,27 @@ class BaseNode(QGraphicsRectItem):
                 # Update the layout with the constrained position.
                 self.layout.x = constrained_x
                 self.layout.y = constrained_y
-                
-                return QPointF(constrained_x, constrained_y)
-        
+
+                result = QPointF(constrained_x, constrained_y)
+                self._notify_position_observers()
+                return result
+
         return super().itemChange(change, value)
+
+    def register_position_observer(self, callback) -> None:
+        """Register a callback to be called when this node's position changes."""
+        if callback not in self._position_observers:
+            self._position_observers.append(callback)
+
+    def unregister_position_observer(self, callback) -> None:
+        """Remove a previously registered position observer."""
+        if callback in self._position_observers:
+            self._position_observers.remove(callback)
+
+    def _notify_position_observers(self) -> None:
+        """Notify all registered position observers."""
+        for callback in self._position_observers:
+            callback()
 
 
     # -------------------------------------------------------------------------
@@ -367,7 +387,7 @@ class BaseNode(QGraphicsRectItem):
     def get_left_port_position(self) -> QPointF:
         """Get the position of the left connection port (input port)."""
         if self.input_port:
-            return self.input_port.scenePos()
+            return self.input_port.sceneBoundingRect().center()
         rect = self.sceneBoundingRect()
         return QPointF(rect.left(), rect.center().y())
 
@@ -375,7 +395,7 @@ class BaseNode(QGraphicsRectItem):
     def get_right_port_position(self) -> QPointF:
         """Get the position of the right connection port (output port)."""
         if self.output_port:
-            return self.output_port.scenePos()
+            return self.output_port.sceneBoundingRect().center()
         rect = self.sceneBoundingRect()
         return QPointF(rect.right(), rect.center().y())
 
@@ -428,3 +448,72 @@ class BaseNode(QGraphicsRectItem):
     def get_entity_label(self) -> str:
         """Get the current label text."""
         return self.label.toPlainText()
+
+
+class TypedNode(BaseNode):
+    """
+    Base class for nodes with a simple color scheme (e.g., State, Event).
+
+    Subclasses define COLORS, SELECTED_BG_COLOR, SELECTED_BORDER_COLOR,
+    INPUT_PORT_COLOR, OUTPUT_PORT_COLOR, and ENTITY_TYPE_LABEL.
+    The entity is stored as self.entity (set by BaseNode) and also aliased
+    via the _entity property for convenience.
+    """
+
+    COLORS: dict = {}
+    SELECTED_BG_COLOR: QColor = QColor()
+    SELECTED_BORDER_COLOR: QColor = QColor()
+    INPUT_PORT_COLOR: QColor = QColor()
+    OUTPUT_PORT_COLOR: QColor = QColor()
+    ENTITY_TYPE_LABEL: str = ""
+
+    def _update_colors(self) -> None:
+        """Update node colors to use the type-specific scheme."""
+        self.setBrush(QBrush(self.COLORS['bg']))
+        self.setPen(QPen(self.COLORS['border'], 2))
+        if self.label:
+            self.label.setDefaultTextColor(self.COLORS['text'])
+
+    def _update_port_colors(self) -> None:
+        """Update port colors to use the type-specific theme."""
+        if self.input_port:
+            self.input_port.setBrush(QBrush(self.INPUT_PORT_COLOR))
+        if self.output_port:
+            self.output_port.setBrush(QBrush(self.OUTPUT_PORT_COLOR))
+
+    def set_selected_appearance(self, selected: bool) -> None:
+        """Update appearance based on selection state."""
+        if selected:
+            self.setPen(QPen(self.SELECTED_BORDER_COLOR, 2))
+            self.setBrush(QBrush(self.SELECTED_BG_COLOR))
+        else:
+            self._update_colors()
+
+    def update_from_layout(self) -> None:
+        """Update visual properties from layout, re-applying type colors."""
+        super().update_from_layout()
+        self._update_colors()
+        self._update_port_colors()
+
+    def set_description(self, description: str) -> None:
+        """Set the entity's description (stored in the 'note' field)."""
+        self.entity.note = description
+
+    def get_description(self) -> Optional[str]:
+        """Get the entity's description."""
+        return self.entity.note
+
+    def get_full_info(self) -> str:
+        """Get a formatted string with all entity information."""
+        info = f"{self.ENTITY_TYPE_LABEL}: {self.entity.lb}\n"
+        if self.entity.note:
+            info += f"Description: {self.entity.note}\n"
+        return info
+
+    def get_port_position(self, port_name: str) -> QPointF:
+        """Get the scene position of a connection port ('left' or 'right')."""
+        port_name = port_name.lower()
+        if port_name == "left":
+            return self.get_left_port_position()
+        elif port_name == "right":
+            return self.get_right_port_position()

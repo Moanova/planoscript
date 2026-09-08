@@ -8,6 +8,8 @@
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
 
+from core.services.about_service import AboutService
+
 class AboutDialog(QDialog):
     """About Dialog'"""
 

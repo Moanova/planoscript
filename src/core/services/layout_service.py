@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : data_model.py
+# Script       : layout_service.py
 # Version      : 1
 # Date         : 22-07-2026
 # Design       : TSC
@@ -28,15 +28,20 @@ This ensures that:
 """
 
 import json
+import logging
 import re
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from core.models.view_model import (
     WorkspaceLayout,
     NodeLayout,
-    ConnectionLayout
+    ConnectionLayout,
+    PortPosition,
+    ConnectionStyle
 )
 
 
@@ -246,7 +251,7 @@ class LayoutService:
                 )
             return True
         except IOError as e:
-            print(f"Error saving layout to {filepath}: {e}")
+            logger.error("Error saving layout to %s: %s", filepath, e)
             return False
 
     @classmethod
@@ -276,7 +281,7 @@ class LayoutService:
                 data = json.load(f)
             return WorkspaceLayout.from_dict(data)
         except (IOError, json.JSONDecodeError, KeyError) as e:
-            print(f"Error loading layout from {filepath}: {e}")
+            logger.error("Error loading layout from %s: %s", filepath, e)
             return None
 
     @classmethod
@@ -304,7 +309,7 @@ class LayoutService:
             filepath.unlink()
             return True
         except IOError as e:
-            print(f"Error deleting layout {filepath}: {e}")
+            logger.error("Error deleting layout %s: %s", filepath, e)
             return False
 
     @classmethod
@@ -389,7 +394,7 @@ class LayoutService:
             
             return True
         except IOError as e:
-            print(f"Error deleting project layouts {layout_dir}: {e}")
+            logger.error("Error deleting project layouts %s: %s", layout_dir, e)
             return False
 
     @classmethod
@@ -492,10 +497,10 @@ class LayoutService:
         return ConnectionLayout(
             id=connection_id,
             source_node_id=source_node_id,
-            source_port="right",
+            source_port=PortPosition.RIGHT,
             target_node_id=target_node_id,
-            target_port="left",
-            style="straight",
+            target_port=PortPosition.LEFT,
+            style=ConnectionStyle.STRAIGHT,
             color=None,
             thickness=2.0
         )
