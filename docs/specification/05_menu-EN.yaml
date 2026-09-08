@@ -4,7 +4,7 @@
 # Content : Retrospective update to reflect the current implementation in main_window.py (latest redesign)
 
 menu:
-  name: General Mennu
+  name: General Menu
   items:
     - name: Files
       items:

@@ -4,10 +4,11 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Dossiers de travail
+# Dossiers et documents de travail
 ai_sessions/
 projects/
 .vscode/
+code_analysis_report_20260908.md
 
 # Environnements virtuels
 .venv/
