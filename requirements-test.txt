@@ -3,4 +3,5 @@
 
 pytest>=7.4.0
 pywinauto>=0.6.8
+pytest-xvfb
 Pillow>=9.0.0
