@@ -209,7 +209,7 @@
       - `./src/ui/nodes/event_node.py` (EventNode)
     - **Types implémentés** : Agent, État, Événement.
     - **Types non implémentés** : Référence temporelle, Référence spatiale.
-    - **Forme** : Rectangle (120×80 px par défaut).
+    - **Forme** : Rectangle (80×40 px par défaut).
     - **Style** :
       - Arrière-plan : `#f0f0f0` (gris clair).
       - Bordure : `1px solid #808080` (gris moyen).

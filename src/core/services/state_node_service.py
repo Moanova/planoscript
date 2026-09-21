@@ -34,6 +34,46 @@ class StateNodeService:
     """
 
     @staticmethod
+    def would_create_cycle(
+        narrative_map: 'NarrativeMap',
+        source_entity: 'State | Event',
+        target_entity: 'State | Event'
+    ) -> bool:
+        """
+        Check whether creating a relation from source to target would form a
+        direct cycle of length 2 with an already existing relation (RG058).
+
+        A cycle of length 2 occurs when the reverse relation already exists:
+        - Creating State S -> Event E is forbidden if Event E -> State S exists.
+        - Creating Event E -> State S is forbidden if State S -> Event E exists.
+
+        Args:
+            narrative_map: The narrative map containing the State_node list
+            source_entity: The source entity (State or Event)
+            target_entity: The target entity (State or Event)
+
+        Returns:
+            True if the reverse relation already exists, False otherwise
+        """
+        from core.models.data_model import State, Event
+
+        # State -> Event: forbidden if Event E -> State S already exists
+        if isinstance(source_entity, State) and isinstance(target_entity, Event):
+            for node in narrative_map.state_node:
+                if (node.from_event_id == target_entity.id and
+                        node.state_id == source_entity.id):
+                    return True
+
+        # Event -> State: forbidden if State S -> Event E already exists
+        if isinstance(source_entity, Event) and isinstance(target_entity, State):
+            for node in narrative_map.state_node:
+                if (node.state_id == target_entity.id and
+                        node.to_event_id == source_entity.id):
+                    return True
+
+        return False
+
+    @staticmethod
     def create_state_node(
         narrative_map: 'NarrativeMap',
         source_entity: 'State | Event',
@@ -56,7 +96,11 @@ class StateNodeService:
             The created State_node if valid, None otherwise
         """
         from core.models.data_model import State, Event, State_node
-        
+
+        # RG058: forbid direct cycles of length 2 (State <-> Event)
+        if StateNodeService.would_create_cycle(narrative_map, source_entity, target_entity):
+            return None
+
         # Validate entity types
         if isinstance(source_entity, State) and isinstance(target_entity, Event):
             # State -> Event connection

@@ -145,6 +145,10 @@
 - **Description**: A state of type final can only appear in state nodes whose successor event identifier is set to 0.
 - **Classification**: Narrative Map Structure.
 
+## RG058
+- **Description**: A direct bidirectional connection between a State and an Event is forbidden. If a relationship from a State S to an Event E already exists (output port of S connected to the input port of E), creating the reverse relationship from Event E to State S (output port of E connected to the input port of S) is prohibited, and vice versa. This rule prevents direct cycles of length 2 (State → Event → State) in the narrative map graph.
+- **Classification**: Narrative Map Structure.
+
 ---
 
 ## 3. Journey Logic and Membership

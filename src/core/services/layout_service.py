@@ -43,6 +43,12 @@ from core.models.view_model import (
     PortPosition,
     ConnectionStyle
 )
+from config.config_loader import get as _get_config
+
+_NODE_DEFAULT_WIDTH = _get_config("node_default_width", 80.0)
+_NODE_DEFAULT_HEIGHT = _get_config("node_default_height", 40.0)
+_GRID_MINOR_SIZE = _get_config("grid_minor_size", 20)
+_GRID_MAJOR_SIZE = _get_config("grid_major_size", 80)
 
 
 def sanitize_filename(filename: str) -> str:
@@ -431,25 +437,111 @@ class LayoutService:
         )
 
     @classmethod
+    def snap_to_grid(cls, value: float, grid_size: float = None) -> float:
+        """
+        Snap a coordinate value to the nearest grid step (RG040).
+
+        Args:
+            value: The coordinate to snap
+            grid_size: Grid step in pixels (defaults to grid_minor_size from config)
+
+        Returns:
+            The snapped coordinate
+        """
+        if grid_size is None:
+            grid_size = _GRID_MINOR_SIZE
+        if grid_size <= 0:
+            return value
+        return round(value / grid_size) * grid_size
+
+    @staticmethod
+    def _rects_overlap(x1, y1, w1, h1, x2, y2, w2, h2) -> bool:
+        """Check whether two rectangles overlap."""
+        return not (x1 + w1 <= x2 or x2 + w2 <= x1 or
+                    y1 + h1 <= y2 or y2 + h2 <= y1)
+
+    @classmethod
+    def find_non_overlapping_position(
+        cls,
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        existing_rects: list
+    ) -> tuple:
+        """
+        Find a position that does not overlap any existing rectangle (RG044).
+
+        Starting from (x, y), applies lateral translations of grid_major_size
+        until a free spot is found. If the horizontal scan exceeds a reasonable
+        limit, moves down by grid_major_size and resets x.
+
+        Args:
+            x: Initial x position (already snapped to grid)
+            y: Initial y position (already snapped to grid)
+            width: Width of the new node
+            height: Height of the new node
+            existing_rects: List of tuples (x, y, width, height) for existing nodes
+
+        Returns:
+            Tuple (adjusted_x, adjusted_y) that does not overlap any existing rect
+        """
+        if not existing_rects:
+            return x, y
+
+        step = _GRID_MAJOR_SIZE
+        max_attempts = 200  # Safety limit to avoid infinite loops
+        current_x = x
+        current_y = y
+
+        for _ in range(max_attempts):
+            collision = False
+            for ex, ey, ew, eh in existing_rects:
+                if cls._rects_overlap(current_x, current_y, width, height,
+                                      ex, ey, ew, eh):
+                    collision = True
+                    break
+            if not collision:
+                return current_x, current_y
+            # Move right by one grid major step
+            current_x += step
+
+        # If horizontal scan failed, move down and retry
+        current_x = x
+        current_y += step
+        for _ in range(max_attempts):
+            collision = False
+            for ex, ey, ew, eh in existing_rects:
+                if cls._rects_overlap(current_x, current_y, width, height,
+                                      ex, ey, ew, eh):
+                    collision = True
+                    break
+            if not collision:
+                return current_x, current_y
+            current_x += step
+
+        return current_x, current_y
+
+    @classmethod
     def create_node_layout(
         cls,
         node_id: int,
         node_type: str,
         x: float = 100.0,
         y: float = 100.0,
-        width: float = 120.0,
-        height: float = 80.0
+        width: float = _NODE_DEFAULT_WIDTH,
+        height: float = _NODE_DEFAULT_HEIGHT
     ) -> NodeLayout:
         """
         Factory method to create a NodeLayout with sensible defaults.
-        
+
         Args:
             node_id: The business entity ID
             node_type: The type of the node (string from NodeType enum)
             x: X position (default: 100.0)
             y: Y position (default: 100.0)
-            width: Node width (default: 120.0)
-            height: Node height (default: 80.0)
+            width: Node width (default: from config.json)
+            height: Node height (default: from config.json)
             
         Returns:
             A new NodeLayout instance
@@ -463,7 +555,11 @@ class LayoutService:
             node_type_enum = NodeType(node_type)
         except ValueError:
             raise ValueError(f"Invalid node_type: {node_type}. Must be one of {list(NodeType)}")
-        
+
+        # RG040: snap coordinates to the grid
+        x = cls.snap_to_grid(x)
+        y = cls.snap_to_grid(y)
+
         return NodeLayout(
             node_id=node_id,
             node_type=node_type_enum,

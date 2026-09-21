@@ -1,0 +1,8 @@
+Afin de visualiser l'état des données du projet à chaque action qui les met à jour, peux-tu implémenter la journalisation en exploitant les loggers déjà présent dans le code de l'application ?
+1/ Ajouter une configuration de logging dans main.py
+2/ Ajouter une clé log_level dans config.json
+ - "log_level": "DEBUG"   →  les logs s'affichent
+ - "log_level": "WARNING" →  les logs sont masqués (comportement par défaut)
+3/ Ajouter des logs de diagnostic
+ - Dans _create_new_node (main_window.py:497-500) après la création d'un node : logger.debug du contenu du narrative_map (states, events)
+ - Dans _create_state_event_relation (main_window.py:583-586) après la création d'une relation : logger.debug des state_nodes

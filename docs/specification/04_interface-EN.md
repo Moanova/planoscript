@@ -209,7 +209,7 @@
       - `./src/ui/nodes/event_node.py` (EventNode)
     - **Implemented types**: Agent, State, Event.
     - **Not implemented types**: Time Reference, Spatial Reference.
-    - **Shape**: Rectangle (120x80px by default).
+    - **Shape**: Rectangle (80x40px by default).
     - **Style**:
       - Background: `#f0f0f0` (light gray).
       - Border: `1px solid #808080` (medium gray).

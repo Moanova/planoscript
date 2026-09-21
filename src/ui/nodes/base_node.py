@@ -26,6 +26,8 @@ from PySide6.QtGui import QPen, QBrush, QColor, QFont
 from typing import Optional, Any
 
 from core.models.view_model import NodeLayout
+from core.services.layout_service import LayoutService
+from config.config_loader import get as _get_config
 
 
 class BaseNode(QGraphicsRectItem):
@@ -43,9 +45,9 @@ class BaseNode(QGraphicsRectItem):
         ports: Dictionary of connection ports (for future use)
     """
     
-    # Default dimensions
-    DEFAULT_WIDTH = 120.0
-    DEFAULT_HEIGHT = 80.0
+    # Default dimensions (sourced from config.json)
+    DEFAULT_WIDTH = _get_config("node_default_width", 80.0)
+    DEFAULT_HEIGHT = _get_config("node_default_height", 40.0)
     
     # Default colors
     DEFAULT_BG_COLOR = QColor(240, 240, 240)  # Light gray
@@ -312,7 +314,11 @@ class BaseNode(QGraphicsRectItem):
                 
                 constrained_x = max(min_x, min(new_pos.x(), max_x))
                 constrained_y = max(min_y, min(new_pos.y(), max_y))
-                
+
+                # RG040: snap to grid after scene constraints
+                constrained_x = LayoutService.snap_to_grid(constrained_x)
+                constrained_y = LayoutService.snap_to_grid(constrained_y)
+
                 # Update the layout with the constrained position.
                 self.layout.x = constrained_x
                 self.layout.y = constrained_y

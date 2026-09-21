@@ -145,6 +145,10 @@
 - **Description** : Un état de type final ne peut apparaître que dans des noeuds d'état dont l'identifiant d'événement successeur est renseigné à 0.
 - **Classification** : Structure des cartes narratives.
 
+## RG058
+- **Description** : Une connexion bidirectionnelle directe entre un État et un Événement est interdite. Si une relation d'un État S vers un Événement E existe déjà (port de sortie de S connecté au port d'entrée de E), la création de la relation inverse de l'Événement E vers l'État S (port de sortie de E connecté au port d'entrée de S) est interdite, et inversement. Cette règle empêche les cycles directs de longueur 2 (État → Événement → État) dans le graphe de la carte narrative.
+- **Classification** : Structure des cartes narratives.
+
 ---
 
 ## 3. Logique des parcours et appartenance

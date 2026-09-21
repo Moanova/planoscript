@@ -1,5 +1,13 @@
 {
   "recent_projects_path": "./config/recent_projects.json",
   "recent_projects_limit": 10,
-  "change_log_path": "./config/change_log.json"
+  "change_log_path": "./config/change_log.json",
+  "node_default_width": 80.0,
+  "node_default_height": 40.0,
+  "grid_minor_size": 20,
+  "grid_major_size": 80,
+  "grid_minor_color": "#e0e0e0",
+  "grid_major_color": "#808080",
+  "temp_connection_color": "#808080",
+  "log_level": "WARNING"
 }

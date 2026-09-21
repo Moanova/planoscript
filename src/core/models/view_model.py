@@ -25,6 +25,12 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 from enum import Enum
 
+from config.config_loader import get as _get_config
+
+# Node dimensions sourced from config.json (single source of truth).
+_NODE_DEFAULT_WIDTH = _get_config("node_default_width", 80.0)
+_NODE_DEFAULT_HEIGHT = _get_config("node_default_height", 40.0)
+
 
 class NodeType(Enum):
     """
@@ -61,8 +67,8 @@ class NodeLayout:
     node_type: NodeType
     x: float
     y: float
-    width: float = 120.0
-    height: float = 80.0
+    width: float = _NODE_DEFAULT_WIDTH
+    height: float = _NODE_DEFAULT_HEIGHT
     color: Optional[str] = None
     z_index: int = 0
     collapsed: bool = False
@@ -91,8 +97,8 @@ class NodeLayout:
             node_type=NodeType(data['node_type']),
             x=float(data['x']),
             y=float(data['y']),
-            width=float(data.get('width', 120.0)),
-            height=float(data.get('height', 80.0)),
+            width=float(data.get('width', _NODE_DEFAULT_WIDTH)),
+            height=float(data.get('height', _NODE_DEFAULT_HEIGHT)),
             color=data.get('color'),
             z_index=int(data.get('z_index', 0)),
             collapsed=bool(data.get('collapsed', False)),

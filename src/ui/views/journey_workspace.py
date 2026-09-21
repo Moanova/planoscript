@@ -21,10 +21,18 @@ from PySide6.QtCore import Qt, QPointF, Signal, QObject
 from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
 
 from core.models.view_model import NodeType, ConnectionLayout
+from core.services.layout_service import LayoutService
 from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
 from ui.nodes.connection import Connection
+from config.config_loader import get as _get_config
+
+_GRID_MINOR_SIZE = _get_config("grid_minor_size", 20)
+_GRID_MAJOR_SIZE = _get_config("grid_major_size", 80)
+_GRID_MINOR_COLOR = _get_config("grid_minor_color", "#e0e0e0")
+_GRID_MAJOR_COLOR = _get_config("grid_major_color", "#808080")
+_TEMP_CONNECTION_COLOR = _get_config("temp_connection_color", "#808080")
 
 logger = logging.getLogger(__name__)
 
@@ -168,10 +176,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
         margin = 100
         scene_rect.adjust(-margin, -margin, margin, margin)
         
-        grid_size = 20
-        subgrid_size = 80
+        grid_size = _GRID_MINOR_SIZE
+        subgrid_size = _GRID_MAJOR_SIZE
 
-        pen_main = QPen(QColor("#e0e0e0"))
+        pen_main = QPen(QColor(_GRID_MINOR_COLOR))
         pen_main.setWidth(1)
         
         start_x = int(scene_rect.left() - (scene_rect.left() % grid_size))
@@ -186,7 +194,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
             line.setZValue(-1)
             self.grid_lines.append(line)
 
-        pen_sub = QPen(QColor("#808080"))
+        pen_sub = QPen(QColor(_GRID_MAJOR_COLOR))
         pen_sub.setWidth(1)
         
         start_x = int(scene_rect.left() - (scene_rect.left() % subgrid_size))
@@ -518,7 +526,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
         path.lineTo(end_pos)
         
         # Dashed line style for rubber band effect
-        pen = QPen(QColor("#808080"), 2, Qt.DashLine)
+        pen = QPen(QColor(_TEMP_CONNECTION_COLOR), 2, Qt.DashLine)
         self.temp_connection = self.scene.addPath(path, pen)
         self.temp_connection.setZValue(100)  # Ensure it's on top
 
@@ -560,6 +568,20 @@ class JourneyWorkspace(QGraphicsView, QObject):
             return None
 
         node = node_class(entity, layout)
+
+        # RG044: adjust position to avoid overlapping existing nodes
+        existing_rects = []
+        for item in self.scene.items():
+            if hasattr(item, 'entity') and item is not node:
+                r = item.rect()
+                pos = item.pos()
+                existing_rects.append((pos.x(), pos.y(), r.width(), r.height()))
+        adjusted_x, adjusted_y = LayoutService.find_non_overlapping_position(
+            layout.x, layout.y, layout.width, layout.height, existing_rects
+        )
+        layout.x = adjusted_x
+        layout.y = adjusted_y
+
         self.add_item_at(layout.x, layout.y, node)
         self._select_item_only(node)
 
@@ -624,6 +646,15 @@ class JourneyWorkspace(QGraphicsView, QObject):
             if hasattr(item, 'entity') and item.entity.id == entity_id:
                 return item
         return None
+
+    def has_connection_between(self, source_node, target_node) -> bool:
+        """Check if a visual connection already exists between two nodes (RG054)."""
+        for item in self.scene.items():
+            if isinstance(item, Connection):
+                if (item.source_node is source_node and
+                        item.target_node is target_node):
+                    return True
+        return False
 
 
     def _select_item_only(self, item):

@@ -556,7 +556,23 @@ class MainWindow(QMainWindow):
         
         # Get the current narrative map (MVP : one narrative map only per project)
         narrative_map = self.project_service.current_project.narrative_map[0]
-        
+
+        # RG058: check for direct cycle before attempting creation
+        if StateNodeService.would_create_cycle(narrative_map, source_entity, target_entity):
+            self.info_bar.show_message(
+                "Cannot connect: this relation would create a direct cycle "
+                "with the existing reverse relation"
+            )
+            return
+
+        # RG054: refuse duplicate visual connection
+        if isinstance(self.workspace, JourneyWorkspace):
+            if self.workspace.has_connection_between(source_node, target_node):
+                self.info_bar.show_message(
+                    "Cannot connect: a relation already exists between these components"
+                )
+                return
+
         # Create the State_node using the service
         state_node = StateNodeService.create_state_node(
             narrative_map=narrative_map,
