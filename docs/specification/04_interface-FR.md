@@ -67,10 +67,18 @@
       - Chapitres — Non implémenté
     - **Composants...** :
       - Agent — Fonctionnel
-      - État — Fonctionnel
-      - Événement — Fonctionnel
+      - **État** :
+        - Nouveau... — Fonctionnel
+        - Éditer — Non implémenté (actif si un node État est sélectionné)
+        - Supprimer — Non implémenté (actif si un node État est sélectionné)
+      - **Événement** :
+        - Nouveau... — Fonctionnel
+        - Éditer — Non implémenté (actif si un node Événement est sélectionné)
+        - Supprimer — Non implémenté (actif si un node Événement est sélectionné)
     - **Relations...** :
       - Lier État et Événement — Fonctionnel
+      - Éditer — Non implémenté (actif si une relation est sélectionnée)
+      - Supprimer — Non implémenté (actif si une relation est sélectionnée)
 
   - **À propos** :
     - Journal des modifications — Fonctionnel

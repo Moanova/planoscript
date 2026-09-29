@@ -245,6 +245,10 @@
 - **Description** : Lorsqu'un composant est déplacé par l'utilisateur et que ses coordonnées dépassent la partie visible de l'espace de travail, l'application déplace la barre de défilement correspondante (latérale ou verticale) pour maintenir le composant visible selon ses coordonnées courantes.
 - **Classification** : Visualisation et interaction.
 
+## RG059
+- **Description** : La représentation visuelle d'une connexion (relation) entre deux composants ne doit jamais chevaucher un composant qui n'en est ni la source ni la cible. À la création d'une connexion, l'application détecte si le tracé de la connexion est susceptible de traverser un composant tiers et, le cas échéant, ajuste automatiquement le routage de la connexion pour contourner ce composant. Cette détection et ce réajustement sont également effectués lorsqu'un composant est déplacé par l'utilisateur et que sa nouvelle position provoque le chevauchement d'une connexion existante dont il n'est pas extrémité. L'ajustement du routage ne modifie ni les coordonnées des composants ni les données du projet ; il ne porte que sur la représentation graphique de la connexion.
+- **Classification** : Visualisation et interaction.
+
 ---
 
 ## 5. Architecture technique et modèle de données

@@ -97,15 +97,31 @@ menu:
         - name: Components...
           items:
             - name: Agent
-              note: "Implemented - Creates an Agent node in the center of the workspace"
-            - name: State
-              note: "Implemented - Creates a State node in the center of the workspace"
+              note: "Implemented - Creates an Agent node in the center of the workspace"
+            - name: State
+              items:
+                - name: New...
+                  note: "Implemented - Creates a State node in the center of the workspace"
+                - name: Edit
+                  note: "Not implemented - Enabled only when a State node is selected"
+                - name: Delete
+                  note: "Not implemented - Enabled only when a State node is selected"
             - name: Event
-              note: "Implemented - Create an Event node in the center of the workspace"
+              items:
+                - name: New...
+                  note: "Implemented - Creates an Event node in the center of the workspace"
+                - name: Edit
+                  note: "Not implemented - Enabled only when an Event node is selected"
+                - name: Delete
+                  note: "Not implemented - Enabled only when an Event node is selected"
         - name: Relations...
           items:
             - name: Connect State and Event
               note: "Implemented - Activates State-Event relationship creation mode"
+            - name: Edit
+              note: "Not implemented - Enabled only when a relation is selected"
+            - name: Delete
+              note: "Not implemented - Enabled only when a relation is selected"
 
     - name: About
       items:

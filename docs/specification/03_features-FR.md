@@ -158,7 +158,7 @@
 
 ## FN014 : Créer un composant
 - **Description** : Créer un composant de type agent, état ou événement dans la carte narrative.
-- **Références** : SU003 ; menu "Project › Components... › Agent / State / Event".
+- **Références** : SU003 ; menu "Project › Components... › Agent" (création directe), "Project › Components... › State › New..." et "Project › Components... › Event › New...".
 - **Comportement attendu** :
     - En MVP, la création s'effectue exclusivement depuis le menu (pas de barre d'outils).
     - Le composant est créé avec un identifiant entier unique dans la carte, le libellé par défaut du type, et l'icône correspondant à son type.
@@ -171,12 +171,12 @@
 
 ## FN015 : Modifier les attributs d'un composant
 - **Description** : Modifier les attributs éditables d'un composant via son panneau de propriétés.
-- **Références** : SU003.
+- **Références** : SU003 ; menu "Project › Components... › State › Edit" et "Project › Components... › Event › Edit".
 - **Comportement attendu** :
     - Le panneau de propriétés présente les attributs éditables selon le type du composant (agent, état, événement).
     - Le libellé n'est pas contraint à l'unicité au sein de la carte.
     - Toute modification d'attribut marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Non implémenté (panneau de propriétés non défini). L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN016 : Dupliquer un composant
 - **Description** : Dupliquer un composant existant.
@@ -200,12 +200,12 @@
 
 ## FN018 : Supprimer un composant
 - **Description** : Supprimer un composant de la carte narrative.
-- **Références** : SU003.
+- **Références** : SU003 ; menu "Project › Components... › State › Delete" et "Project › Components... › Event › Delete".
 - **Comportement attendu** :
     - Si des données sont associées au composant, une confirmation est demandée.
     - La suppression entraîne la suppression en cascade de toutes les relations reliant le composant aux autres composants.
     - Toute suppression marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Non implémenté. L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN019 : Gérer l'appartenance d'un composant aux parcours
 - **Description** : Modifier la liste des parcours auxquels un composant est rattaché.
@@ -235,22 +235,22 @@
 
 ## FN021 : Annoter et modifier une relation
 - **Description** : Annoter une relation d'un texte libre et modifier ses attributs éditables.
-- **Références** : SU004.
+- **Références** : SU004 ; menu "Project › Relations... › Edit".
 - **Comportement attendu** :
     - L'annotation s'effectue via le panneau de propriétés de la relation.
     - Le libellé de la relation est affiché dans une infobulle au survol de la ligne représentative.
     - Si une modification entraîne un changement de composant source ou cible, l'application émet une alerte, supprime implicitement la relation existante et crée une nouvelle relation avec les nouvelles extrémités.
     - Toute modification marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Non implémenté. L'option de menu est spécifiée mais non implémentée ; elle n'est active que si une relation est sélectionnée dans l'espace de travail.
 
 ## FN022 : Supprimer une relation
 - **Description** : Supprimer une relation entre deux composants.
-- **Références** : SU004.
+- **Références** : SU004 ; menu "Project › Relations... › Delete".
 - **Comportement attendu** :
     - Une confirmation est demandée avant la suppression.
     - La suppression d'une relation est indépendante de celle des composants (hors cascade de FN018).
     - Toute suppression marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Non implémenté. L'option de menu est spécifiée mais non implémentée ; elle n'est active que si une relation est sélectionnée dans l'espace de travail.
 
 ---
 

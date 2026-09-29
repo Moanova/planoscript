@@ -583,6 +583,9 @@ class JourneyWorkspace(QGraphicsView, QObject):
         layout.y = adjusted_y
 
         self.add_item_at(layout.x, layout.y, node)
+        # RG059: register workspace as position observer so that moving
+        # this node re-routes connections it is not part of.
+        node.register_position_observer(lambda n=node: self._on_node_moved(n))
         self._select_item_only(node)
 
         return node
@@ -655,6 +658,24 @@ class JourneyWorkspace(QGraphicsView, QObject):
                         item.target_node is target_node):
                     return True
         return False
+
+    def _on_node_moved(self, moved_node):
+        """
+        Re-route connections affected by a node that is not their endpoint
+        (RG059).
+
+        Called via the position-observer mechanism whenever *moved_node*
+        changes position.  Connections whose source or target IS the moved
+        node already update themselves through their own observer; this
+        method handles the remaining connections that may need to detour
+        around (or no longer detour around) the moved node.
+        """
+        for item in self.scene.items():
+            if not isinstance(item, Connection):
+                continue
+            if item.source_node is moved_node or item.target_node is moved_node:
+                continue
+            item.update_path()
 
 
     def _select_item_only(self, item):

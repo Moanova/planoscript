@@ -67,10 +67,18 @@
       - Chapters - Not implemented
     - **Components...**:
       - Agent - Functional
-      - State - Functional
-      - Event - Functional
+      - **State**:
+        - New... - Functional
+        - Edit - Not implemented (enabled when a State node is selected)
+        - Delete - Not implemented (enabled when a State node is selected)
+      - **Event**:
+        - New... - Functional
+        - Edit - Not implemented (enabled when an Event node is selected)
+        - Delete - Not implemented (enabled when an Event node is selected)
     - **Relations...**:
-      - Link State and Event - Functional
+      - Connect State and Event - Functional
+      - Edit - Not implemented (enabled when a relation is selected)
+      - Delete - Not implemented (enabled when a relation is selected)
 
   - **About**:
     - Change Log - Functional

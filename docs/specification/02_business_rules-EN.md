@@ -245,6 +245,10 @@
 - **Description**: When a component is moved by the user and its coordinates exceed the visible part of the workspace, the application moves the corresponding scroll bar (lateral or vertical) to keep the component visible according to its current coordinates.
 - **Classification**: Visualization and Interaction.
 
+## RG059
+- **Description**: The visual representation of a connection (relation) between two components must never overlap a component that is neither its source nor its target. Upon creation of a connection, the application detects whether the connection path is likely to cross a third-party component and, if so, automatically adjusts the connection routing to circumvent that component. This detection and readjustment are also performed when a component is moved by the user and its new position causes an existing connection, of which it is not an endpoint, to be overlapped. The routing adjustment modifies neither component coordinates nor project data; it affects only the graphical representation of the connection.
+- **Classification**: Visualization and Interaction.
+
 ---
 
 ## 5. Technical Architecture and Data Model

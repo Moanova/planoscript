@@ -22,20 +22,25 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from ui.views.journey_workspace import JourneyWorkspace
+from ui.nodes.connection import Connection
 from ui.widgets.info_bar import InfoBar
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
 from core.models.data_model import State, Event
+from core.models.view_model import NodeType
 from core.services.project_service import ProjectService
 from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
 from core.services.state_node_service import StateNodeService
+from core.services.layout_service import LayoutService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.file_management.load_project_usecase import LoadProjectUseCase
 from usecases.file_management.save_project_usecase import SaveProjectUseCase
 from usecases.file_management.quit_application_usecase import QuitApplicationUseCase
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
+from config.config_loader import get as _get_config
+from config.user_state_loader import get as _get_user_state, set as _set_user_state
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +196,23 @@ class MainWindow(QMainWindow):
         self.components_menu = self.project_menu.addMenu("Components...")
         #self.components_menu.addAction("Agent", lambda: self._create_new_node("Agent"))
         self.components_menu.addAction("Agent", lambda: None)
-        self.components_menu.addAction("State", lambda: self._create_new_node("State"))
-        self.components_menu.addAction("Event", lambda: self._create_new_node("Event"))
+
+        # State submenu (Type → Action)
+        self.state_menu = self.components_menu.addMenu("State")
+        self.menu_actions['state_new'] = self.state_menu.addAction("New...", lambda: self._create_new_node("State"))
+        self.menu_actions['state_edit'] = self.state_menu.addAction("Edit", lambda: self._edit_selected_component("State"))
+        self.menu_actions['state_delete'] = self.state_menu.addAction("Delete", lambda: self._delete_selected_component("State"))
+
+        # Event submenu (Type → Action)
+        self.event_menu = self.components_menu.addMenu("Event")
+        self.menu_actions['event_new'] = self.event_menu.addAction("New...", lambda: self._create_new_node("Event"))
+        self.menu_actions['event_edit'] = self.event_menu.addAction("Edit", lambda: self._edit_selected_component("Event"))
+        self.menu_actions['event_delete'] = self.event_menu.addAction("Delete", lambda: self._delete_selected_component("Event"))
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
         self.relations_menu.addAction("Connect State and Event", lambda: self._start_state_event_relation_creation())
+        self.menu_actions['relation_edit'] = self.relations_menu.addAction("Edit", lambda: self._edit_selected_relation())
+        self.menu_actions['relation_delete'] = self.relations_menu.addAction("Delete", lambda: self._delete_selected_relation())
 
         # About menu (always enabled)
         self.about_menu = self.menu_bar.addMenu("About")
@@ -246,6 +263,21 @@ class MainWindow(QMainWindow):
         if 'save' in self.menu_actions:
             self.menu_actions['save'].setEnabled(has_project and is_modified)
 
+        # Edit/Delete actions: enabled only if a matching item is selected
+        selected = self._get_selected_item()
+        has_state = (selected is not None and hasattr(selected, 'entity')
+                     and isinstance(selected.entity, State))
+        has_event = (selected is not None and hasattr(selected, 'entity')
+                      and isinstance(selected.entity, Event))
+        has_relation = isinstance(selected, Connection)
+
+        self.menu_actions['state_edit'].setEnabled(has_project and has_state)
+        self.menu_actions['state_delete'].setEnabled(has_project and has_state)
+        self.menu_actions['event_edit'].setEnabled(has_project and has_event)
+        self.menu_actions['event_delete'].setEnabled(has_project and has_event)
+        self.menu_actions['relation_edit'].setEnabled(has_project and has_relation)
+        self.menu_actions['relation_delete'].setEnabled(has_project and has_relation)
+
 
     def _show_welcome_message(self):
         """Display welcome message with clickable link"""
@@ -284,6 +316,7 @@ class MainWindow(QMainWindow):
 
         self.create_project_usecase.execute()
         self._init_workspace()
+        self._create_initial_state_visual()
         self.project_opened = True
         self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb}")
         self._update_menu_state()
@@ -293,7 +326,7 @@ class MainWindow(QMainWindow):
 
     def _open_project(self):
         """Open a project from the file system"""
-        default_dir = os.path.expanduser("~")
+        default_dir = self._get_default_project_dir()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open a Project",
@@ -303,6 +336,9 @@ class MainWindow(QMainWindow):
 
         if not file_path:
             return  # Cancelled by user
+
+        # Remember the chosen directory for next time
+        _set_user_state("last_project_dir", os.path.dirname(file_path))
 
         if self.load_project_usecase.execute(file_path):
             self._init_workspace()
@@ -321,12 +357,16 @@ class MainWindow(QMainWindow):
 
     def _init_workspace(self):
         """Initialize workspace with a single JourneyWorkspace."""
-        # Disconnect signal from old workspace if it exists
+        # Disconnect signals from old workspace if it exists
         if hasattr(self, 'workspace') and self.workspace is not None:
             try:
                 self.workspace.relation_created.disconnect()
             except (TypeError, AttributeError):
                 # No connection to disconnect or workspace doesn't have the signal
+                pass
+            try:
+                self.workspace.scene.selectionChanged.disconnect()
+            except (TypeError, AttributeError):
                 pass
 
         # Clear existing layout
@@ -346,6 +386,77 @@ class MainWindow(QMainWindow):
         # Connect workspace signal for relation creation
         if isinstance(self.workspace, JourneyWorkspace):
             self.workspace.relation_created.connect(self._on_relation_created)
+            # Update menu state when selection changes (enables/disables Edit/Delete)
+            self.workspace.scene.selectionChanged.connect(self._update_menu_state)
+
+
+    def _create_initial_state_visual(self):
+        """Create the visual node for the initial state (RG031) in the workspace."""
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        initial_state = next(
+            (s for s in narrative_map.state if s.typ == "Initial"), None
+        )
+        if not initial_state:
+            return
+
+        # Position at the center of the workspace viewport
+        viewport_rect = self.workspace.viewport().rect()
+        scene_pos = self.workspace.mapToScene(
+            viewport_rect.width() / 2,
+            viewport_rect.height() / 2
+        )
+        layout = LayoutService.create_node_layout(
+            node_id=initial_state.id,
+            node_type=NodeType.STATE.value,
+            x=scene_pos.x(),
+            y=scene_pos.y()
+        )
+        self.workspace.create_node_from_data({
+            'success': True,
+            'entity': initial_state,
+            'entity_id': initial_state.id,
+            'layout': layout,
+            'node_type': NodeType.STATE,
+            'narrative_map_id': narrative_map.id,
+            'component_type': 'State'
+        })
+        self.node_count += 1
+
+
+    def _get_default_project_dir(self) -> str:
+        """
+        Resolve the default directory for file dialogs.
+
+        Priority: last used directory (user state) > configured default
+        (config.json) > user home.  The resolved directory is created
+        if it does not exist.
+
+        The configured path supports a leading ``~/`` that is resolved
+        against the user home.  If ``~/Documents`` exists, a relative
+        ``PlanoscriptProjects`` is placed inside it; otherwise it is
+        placed directly under the user home.
+        """
+        last_dir = _get_user_state("last_project_dir")
+        if last_dir and os.path.isdir(last_dir):
+            return last_dir
+
+        home = os.path.expanduser("~")
+        configured = _get_config("projects_default_dir", "~/PlanoscriptProjects")
+        configured = os.path.expanduser(configured)
+
+        # If the configured path is directly under the user home and
+        # ~/Documents exists, nest it inside ~/Documents instead.
+        parent = os.path.dirname(configured)
+        if os.path.normcase(parent) == os.path.normcase(home):
+            documents_dir = os.path.join(home, "Documents")
+            if os.path.isdir(documents_dir):
+                configured = os.path.join(documents_dir, os.path.basename(configured))
+
+        try:
+            os.makedirs(configured, exist_ok=True)
+        except OSError:
+            pass
+        return configured
 
 
     def _save_project(self):
@@ -359,7 +470,7 @@ class MainWindow(QMainWindow):
 
 
     def _save_project_as(self) -> bool:
-        default_dir = os.path.expanduser("~")
+        default_dir = self._get_default_project_dir()
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save as...",
@@ -372,6 +483,9 @@ class MainWindow(QMainWindow):
 
         if not file_path.lower().endswith('.json'):
             file_path += '.json'
+
+        # Remember the chosen directory for next time
+        _set_user_state("last_project_dir", os.path.dirname(file_path))
 
         return self._do_save(file_path)
 
@@ -498,6 +612,10 @@ class MainWindow(QMainWindow):
             self.workspace.create_node_from_data(result)
             self._update_menu_state()
             self.node_count += 1
+            entity = result.get('entity')
+            logger.debug("Node created (%s): %s",
+                         result.get('component_type'),
+                         entity.to_dict() if entity and hasattr(entity, 'to_dict') else entity)
 
 
     def _start_state_event_relation_creation(self):
@@ -581,6 +699,7 @@ class MainWindow(QMainWindow):
         )
         
         if state_node:
+            logger.debug("State_node created: %s", state_node.to_dict())
             # Create visual connection in workspace
             if isinstance(self.workspace, JourneyWorkspace):
                 self.workspace.create_connection_from_data({
@@ -592,6 +711,40 @@ class MainWindow(QMainWindow):
             self.project_service.set_modified(True)
         else:
             self.info_bar.show_message("Error: Cannot create State-Event relation")
+
+
+    # ---------------------------------------------------------------------
+    # Component and relation editing / deletion (not yet implemented)
+    # ---------------------------------------------------------------------
+    def _get_selected_item(self):
+        """Return the single selected item in the workspace, or None."""
+        workspace = getattr(self, 'workspace', None)
+        if not workspace or not hasattr(workspace, 'scene'):
+            return None
+        selected = workspace.scene.selectedItems()
+        if len(selected) == 1:
+            return selected[0]
+        return None
+
+
+    def _edit_selected_component(self, component_type: str):
+        """Edit the currently selected component (not yet implemented)."""
+        self.info_bar.show_message(f"Editing {component_type} is not yet implemented")
+
+
+    def _delete_selected_component(self, component_type: str):
+        """Delete the currently selected component (not yet implemented)."""
+        self.info_bar.show_message(f"Deleting {component_type} is not yet implemented")
+
+
+    def _edit_selected_relation(self):
+        """Edit the currently selected relation (not yet implemented)."""
+        self.info_bar.show_message("Editing relation is not yet implemented")
+
+
+    def _delete_selected_relation(self):
+        """Delete the currently selected relation (not yet implemented)."""
+        self.info_bar.show_message("Deleting relation is not yet implemented")
 
 
     def _show_changelog(self):

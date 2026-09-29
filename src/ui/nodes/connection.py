@@ -32,6 +32,7 @@ from typing import Optional, Any
 
 from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, RelationType
 from core.models.data_model import State_agent_rel
+from core.services.layout_service import LayoutService
 from ui.nodes.base_node import BaseNode
 
 
@@ -59,6 +60,12 @@ class Connection(QGraphicsPathItem):
     
     # Arrow settings
     ARROW_SIZE = 10.0
+
+    # RG059: clearance (pixels) between a routed connection and an obstacle node
+    ROUTE_MARGIN = 20.0
+
+    # RG059: radius of the rounded corners on orthogonal detour paths
+    CORNER_RADIUS = 15.0
     
     def __init__(
         self,
@@ -134,19 +141,24 @@ class Connection(QGraphicsPathItem):
     def update_path(self) -> None:
         """
         Update the connection path based on current node positions.
-        
-        This method calculates the path between the source and target nodes
-        based on their current positions and the connection style.
+
+        RG059: before falling back to the style-based path (straight, curved,
+        arrow), the method checks whether the straight segment between the
+        two port positions crosses a third-party node.  If it does, an
+        orthogonal detour path is produced instead.
         """
         if not self.source_node or not self.target_node:
             return
-        
+
         # Get port positions
         source_pos = self._get_port_position(self.source_node, self.source_port)
         target_pos = self._get_port_position(self.target_node, self.target_port)
-        
-        # Create path based on style
-        if self.layout.style == ConnectionStyle.STRAIGHT:
+
+        # RG059: detect obstacle nodes and route around them if needed
+        obstacle_rects = self._get_obstacle_rects()
+        if obstacle_rects and self._segment_blocked(source_pos, target_pos, obstacle_rects):
+            path = self._create_routed_path(source_pos, target_pos, obstacle_rects)
+        elif self.layout.style == ConnectionStyle.STRAIGHT:
             path = self._create_straight_path(source_pos, target_pos)
         elif self.layout.style == ConnectionStyle.CURVED:
             path = self._create_curved_path(source_pos, target_pos)
@@ -154,7 +166,7 @@ class Connection(QGraphicsPathItem):
             path = self._create_arrow_path(source_pos, target_pos)
         else:  # Default to straight
             path = self._create_straight_path(source_pos, target_pos)
-        
+
         self.setPath(path)
 
 
@@ -240,6 +252,138 @@ class Connection(QGraphicsPathItem):
         """
         # For now, use straight line with arrow - can be enhanced later
         path = self._create_straight_path(start, end)
+        return path
+
+
+    # -------------------------------------------------------------------------
+    # RG059: obstacle detection and orthogonal routing
+    # -------------------------------------------------------------------------
+
+    def _get_obstacle_rects(self) -> list:
+        """
+        Return the scene bounding rects of all nodes in the scene that are
+        neither the source nor the target of this connection.
+        """
+        scene = self.scene()
+        if not scene:
+            return []
+        rects = []
+        for item in scene.items():
+            if not hasattr(item, 'entity'):
+                continue
+            if item is self.source_node or item is self.target_node:
+                continue
+            rects.append(item.sceneBoundingRect())
+        return rects
+
+    @staticmethod
+    def _segment_blocked(start: QPointF, end: QPointF,
+                         obstacle_rects: list) -> bool:
+        """Return True if the straight segment start->end crosses any rect."""
+        straight = QPainterPath()
+        straight.moveTo(start)
+        straight.lineTo(end)
+        for rect in obstacle_rects:
+            if straight.intersects(rect):
+                return True
+        return False
+
+    def _create_routed_path(self, start: QPointF, end: QPointF,
+                            obstacle_rects: list) -> QPainterPath:
+        """
+        Build an orthogonal path with rounded corners that detours above or
+        below the blocking obstacles (RG059).
+
+        The path exits the source horizontally, bridges at *detour_y*
+        (above or below the combined obstacle band), then re-enters the
+        target horizontally.  Waypoints are pushed to the side of the
+        obstacle that is consistent with the connection direction, so the
+        path never traverses its own endpoint nodes.
+        """
+        # Combined bounding rect of all blocking obstacles
+        combined = obstacle_rects[0].normalized()
+        for rect in obstacle_rects[1:]:
+            combined = combined.united(rect.normalized())
+
+        # Choose detour direction: above or below, whichever is closer
+        mid_y = (start.y() + end.y()) / 2
+        if mid_y <= combined.center().y():
+            detour_y = combined.top() - self.ROUTE_MARGIN
+        else:
+            detour_y = combined.bottom() + self.ROUTE_MARGIN
+
+        # Snap detour_y to grid for visual consistency (RG040)
+        detour_y = LayoutService.snap_to_grid(detour_y)
+
+        # Connection direction determines which side of the obstacle each
+        # waypoint is pushed to, so the path never backtracks through its
+        # own endpoint nodes.
+        goes_right = end.x() >= start.x()
+
+        # Source-side waypoint
+        wp1_x = start.x()
+        if combined.left() <= wp1_x <= combined.right():
+            if goes_right:
+                wp1_x = combined.right() + self.ROUTE_MARGIN
+            else:
+                wp1_x = combined.left() - self.ROUTE_MARGIN
+
+        # Target-side waypoint
+        wp2_x = end.x()
+        if combined.left() <= wp2_x <= combined.right():
+            if goes_right:
+                wp2_x = combined.left() - self.ROUTE_MARGIN
+            else:
+                wp2_x = combined.right() + self.ROUTE_MARGIN
+
+        # Clamp corner radius to half the shortest segment so rounded
+        # corners never overlap each other on very short segments.
+        segments = [
+            abs(wp1_x - start.x()),
+            abs(detour_y - start.y()),
+            abs(wp2_x - wp1_x),
+            abs(end.y() - detour_y),
+            abs(end.x() - wp2_x),
+        ]
+        min_seg = min((s for s in segments if s > 0), default=0)
+        r = min(self.CORNER_RADIUS, min_seg / 2) if min_seg else 0
+
+        # Direction sign of each segment: -1, 0, or 1
+        def _sign(v):
+            return (v > 0) - (v < 0)
+
+        s_h1 = _sign(wp1_x - start.x())     # start  → wp1  (horizontal)
+        s_v1 = _sign(detour_y - start.y())   # wp1   → detour (vertical)
+        s_h2 = _sign(wp2_x - wp1_x)         # wp1   → wp2  (horizontal)
+        s_v2 = _sign(end.y() - detour_y)     # wp2   → end  (vertical)
+        s_h3 = _sign(end.x() - wp2_x)       # wp2   → end  (horizontal)
+
+        path = QPainterPath()
+        path.moveTo(start)
+
+        # Segment 1 → corner 1 (horizontal → vertical)
+        path.lineTo(QPointF(wp1_x - r * s_h1, start.y()))
+        path.quadTo(QPointF(wp1_x, start.y()),
+                    QPointF(wp1_x, start.y() + r * s_v1))
+
+        # Segment 2 → corner 2 (vertical → horizontal)
+        path.lineTo(QPointF(wp1_x, detour_y - r * s_v1))
+        path.quadTo(QPointF(wp1_x, detour_y),
+                    QPointF(wp1_x + r * s_h2, detour_y))
+
+        # Segment 3 → corner 3 (horizontal → vertical)
+        path.lineTo(QPointF(wp2_x - r * s_h2, detour_y))
+        path.quadTo(QPointF(wp2_x, detour_y),
+                    QPointF(wp2_x, detour_y + r * s_v2))
+
+        # Segment 4 → corner 4 (vertical → horizontal)
+        path.lineTo(QPointF(wp2_x, end.y() - r * s_v2))
+        path.quadTo(QPointF(wp2_x, end.y()),
+                    QPointF(wp2_x + r * s_h3, end.y()))
+
+        # Segment 5 → end
+        path.lineTo(end)
+
         return path
 
 

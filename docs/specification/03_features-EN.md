@@ -158,7 +158,7 @@
 
 ## FN014 : Create a component
 - **Description** : Create a component of type agent, state, or event in the narrative map.
-- **References** : SU003 ; menu "Project › Components... › Agent / State / Event".
+- **References** : SU003 ; menu "Project › Components... › Agent" (direct creation), "Project › Components... › State › New..." and "Project › Components... › Event › New...".
 - **Expected behavior** :
   - In the MVP, creation is performed exclusively from the menu (no toolbar).
   - The component is created with a unique integer identifier within the map, the default label for the type, and the icon corresponding to its type.
@@ -171,12 +171,12 @@
 
 ## FN015 : Modify the attributes of a component
 - **Description** : Modify the editable attributes of a component via its properties panel.
-- **References** : SU003.
+- **References** : SU003 ; menu "Project › Components... › State › Edit" and "Project › Components... › Event › Edit".
 - **Expected behavior** :
   - The properties panel presents the editable attributes according to the component type (agent, state, event).
   - The label is not subject to uniqueness within the map.
   - Any attribute modification marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Not implemented (properties panel not defined). The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN016 : Duplicate a component
 - **Description** : Duplicate an existing component.
@@ -200,12 +200,12 @@
 
 ## FN018 : Delete a component
 - **Description** : Delete a component from the narrative map.
-- **References** : SU003.
+- **References** : SU003 ; menu "Project › Components... › State › Delete" and "Project › Components... › Event › Delete".
 - **Expected behavior** :
   - If data is associated with the component, a confirmation is requested.
   - Deletion triggers the cascade deletion of all relations connecting the component to other components.
   - Any deletion marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Not implemented. The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN019 : Manage the membership of a component to journeys
 - **Description** : Modify the list of journeys to which a component is attached.
@@ -235,22 +235,22 @@
 
 ## FN021 : Annotate and modify a relation
 - **Description** : Annotate a relation with free text and modify its editable attributes.
-- **References** : SU004.
+- **References** : SU004 ; menu "Project › Relations... › Edit".
 - **Expected behavior** :
   - Annotation is performed via the relation properties panel.
   - The relation label is displayed in a tooltip on hover over the representing line.
   - If a modification results in a change of the source or target component, the application issues a warning, implicitly deletes the existing relation, and creates a new relation with the new endpoints.
   - Any modification marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Not implemented. The menu option is specified but not implemented; it is enabled only when a relation is selected in the workspace.
 
 ## FN022 : Delete a relation
 - **Description** : Delete a relation between two components.
-- **References** : SU004.
+- **References** : SU004 ; menu "Project › Relations... › Delete".
 - **Expected behavior** :
   - A confirmation is requested before deletion.
   - Deletion of a relation is independent of that of the components (outside the cascade of FN018).
   - Any deletion marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Not implemented. The menu option is specified but not implemented; it is enabled only when a relation is selected in the workspace.
 
 ---
 

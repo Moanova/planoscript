@@ -6,10 +6,20 @@
 # Design       : TSC
 # Build        : Mistral Vibe + TSC
 # ---------------------------------------------------------------------
+import logging
 import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
+from config.config_loader import get
 from ui.main_window import MainWindow
+
+# Logging configuration driven by config.json ("log_level").
+# "DEBUG" -> diagnostic logs are shown ; "WARNING" -> masked (default).
+_log_level_name = get("log_level", "WARNING")
+logging.basicConfig(
+    level=getattr(logging, _log_level_name, logging.WARNING),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 APP_KEY = "planoscript-single-instance"
 

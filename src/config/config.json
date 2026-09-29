@@ -9,5 +9,6 @@
   "grid_minor_color": "#e0e0e0",
   "grid_major_color": "#808080",
   "temp_connection_color": "#808080",
-  "log_level": "WARNING"
+  "projects_default_dir": "~/PlanoscriptProjects",
+  "log_level": "DEBUG"
 }
