@@ -27,11 +27,11 @@ from ui.widgets.info_bar import InfoBar
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
 from core.models.data_model import State, Event
-from core.models.view_model import NodeType
+from core.models.view_model import NodeType, RelationType
 from core.services.project_service import ProjectService
 from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
-from core.services.state_node_service import StateNodeService
+from core.services.arc_service import ArcService
 from core.services.layout_service import LayoutService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.file_management.load_project_usecase import LoadProjectUseCase
@@ -342,6 +342,7 @@ class MainWindow(QMainWindow):
 
         if self.load_project_usecase.execute(file_path):
             self._init_workspace()
+            self._populate_workspace(file_path)
             self.project_opened = True
             self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb} ({file_path})")
             self._update_menu_state()
@@ -365,6 +366,10 @@ class MainWindow(QMainWindow):
                 # No connection to disconnect or workspace doesn't have the signal
                 pass
             try:
+                self.workspace.workspace_modified.disconnect()
+            except (TypeError, AttributeError):
+                pass
+            try:
                 self.workspace.scene.selectionChanged.disconnect()
             except (TypeError, AttributeError):
                 pass
@@ -386,6 +391,7 @@ class MainWindow(QMainWindow):
         # Connect workspace signal for relation creation
         if isinstance(self.workspace, JourneyWorkspace):
             self.workspace.relation_created.connect(self._on_relation_created)
+            self.workspace.workspace_modified.connect(self._on_workspace_modified)
             # Update menu state when selection changes (enables/disables Edit/Delete)
             self.workspace.scene.selectionChanged.connect(self._update_menu_state)
 
@@ -459,6 +465,28 @@ class MainWindow(QMainWindow):
         return configured
 
 
+    def _populate_workspace(self, file_path: str):
+        """
+        Load visual layout and rebuild workspace nodes and connections.
+
+        Tries to load a saved WorkspaceLayout from the layout file. If found,
+        restores node positions, connections, zoom, and scroll. If no layout
+        file exists, creates nodes with default positions.
+        """
+        narrative_map = self.project_service.current_project.narrative_map[0]
+
+        workspace_layout = LayoutService.load_workspace_layout(
+            file_path, narrative_map.id
+        )
+
+        if workspace_layout and isinstance(self.workspace, JourneyWorkspace):
+            self.node_count = self.workspace.populate_from_layout(
+                workspace_layout, narrative_map
+            )
+        elif isinstance(self.workspace, JourneyWorkspace):
+            self.node_count = self.workspace.populate_default(narrative_map)
+
+
     def _save_project(self):
         current_project = self.project_service.current_project
 
@@ -495,7 +523,18 @@ class MainWindow(QMainWindow):
         try:
             success = self.save_project_usecase.execute(file_path)
             if success:
+                # Save visual layout alongside the business data
+                if isinstance(self.workspace, JourneyWorkspace):
+                    workspace_layout = self.workspace.collect_workspace_layout()
+                    LayoutService.save_workspace_layout(
+                        file_path,
+                        workspace_layout.narrative_map_id,
+                        workspace_layout
+                    )
                 self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb} ({file_path})")
+                # Refresh menu state: is_modified is now False, so Save
+                # should be disabled until the next modification.
+                self._update_menu_state()
             return success
         except Exception as e:
             QMessageBox.critical(self, "Error Saving the Project", str(e))
@@ -640,7 +679,7 @@ class MainWindow(QMainWindow):
     def _on_relation_created(self, source_node, target_node):
         """
         Callback called when a relation is created via rubber band connection.
-        Creates the business State_node relation and visual connection.
+        Creates the business arc relation and visual connection.
         """
         logger.debug("_on_relation_created called with source=%s, target=%s",
                      source_node.entity.lb if hasattr(source_node, 'entity') else 'None',
@@ -648,9 +687,16 @@ class MainWindow(QMainWindow):
         self._create_state_event_relation(source_node, target_node)
 
 
+    def _on_workspace_modified(self):
+        """Mark project as modified when the workspace is visually changed."""
+        if self.project_opened:
+            self.project_service.set_modified(True)
+            self._update_menu_state()
+
+
     def _create_state_event_relation(self, source_node, target_node):
         """
-        Create a State-Event relation between two nodes using StateNodeService.
+        Create a State-Event relation between two nodes using ArcService.
         """
         # Extract business entities from visual nodes
         if not hasattr(source_node, 'entity') or not hasattr(target_node, 'entity'):
@@ -668,7 +714,7 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message("Error: Only State and Event can be connected")
             return
         
-        if not StateNodeService.can_connect(source_type, target_type):
+        if not ArcService.can_connect(source_type, target_type):
             self.info_bar.show_message("Error: Invalid connection (only State <-> Event allowed)")
             return
         
@@ -676,7 +722,7 @@ class MainWindow(QMainWindow):
         narrative_map = self.project_service.current_project.narrative_map[0]
 
         # RG058: check for direct cycle before attempting creation
-        if StateNodeService.would_create_cycle(narrative_map, source_entity, target_entity):
+        if ArcService.would_create_cycle(narrative_map, source_entity, target_entity):
             self.info_bar.show_message(
                 "Cannot connect: this relation would create a direct cycle "
                 "with the existing reverse relation"
@@ -691,24 +737,35 @@ class MainWindow(QMainWindow):
                 )
                 return
 
-        # Create the State_node using the service
-        state_node = StateNodeService.create_state_node(
+        # Create the arc using the service
+        arc = ArcService.create_arc(
             narrative_map=narrative_map,
             source_entity=source_entity,
             target_entity=target_entity
         )
-        
-        if state_node:
-            logger.debug("State_node created: %s", state_node.to_dict())
+
+        if arc:
+            logger.debug("Arc created: %s", arc.to_dict())
+            # Mark project as modified BEFORE creating the visual connection,
+            # because create_connection_from_data triggers a selection change
+            # which refreshes the menu state via scene.selectionChanged.
+            self.project_service.set_modified(True)
+            # Determine relation type based on direction
+            if source_type == "State":
+                relation_type = RelationType.STATE_TO_EVENT
+            else:
+                relation_type = RelationType.EVENT_TO_STATE
+
             # Create visual connection in workspace
             if isinstance(self.workspace, JourneyWorkspace):
                 self.workspace.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'relation': state_node
+                    'relation': arc,
+                    'relation_type': relation_type
                 })
             self.info_bar.show_message("State-Event relation created")
-            self.project_service.set_modified(True)
+            self._update_menu_state()
         else:
             self.info_bar.show_message("Error: Cannot create State-Event relation")
 
@@ -733,8 +790,57 @@ class MainWindow(QMainWindow):
 
 
     def _delete_selected_component(self, component_type: str):
-        """Delete the currently selected component (not yet implemented)."""
-        self.info_bar.show_message(f"Deleting {component_type} is not yet implemented")
+        """Delete the currently selected component (State or Event)."""
+        item = self._get_selected_item()
+        if item is None:
+            self.info_bar.show_message("No component selected")
+            return
+
+        # Must be a node (has 'entity'), not a Connection
+        if isinstance(item, Connection) or not hasattr(item, 'entity'):
+            self.info_bar.show_message("Selected item is not a component")
+            return
+
+        entity = item.entity
+
+        # Get the narrative map
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+
+        # RG031: the initial state can never be deleted
+        if isinstance(entity, State) and entity.typ == "Initial":
+            self.info_bar.show_message("The initial state cannot be deleted (RG031)")
+            return
+
+        # Determine entity type for arc cleanup
+        if isinstance(entity, State):
+            entity_type = "State"
+            entity_list = narrative_map.state
+        elif isinstance(entity, Event):
+            entity_type = "Event"
+            entity_list = narrative_map.event
+        else:
+            self.info_bar.show_message("Selected component type is not deletable")
+            return
+
+        # Delete all arcs referencing this entity (State_to_event + Event_to_state)
+        ArcService.delete_related_arcs(narrative_map, entity.id, entity_type)
+
+        # Remove the entity from the narrative map's entity list
+        entity_list[:] = [e for e in entity_list if e.id != entity.id]
+
+        # Remove the visual node and its attached connections from the workspace
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.remove_node(item)
+
+        self.node_count -= 1
+
+        # Mark project as modified and update menu state
+        self.project_service.set_modified(True)
+        self.info_bar.show_message(f"{entity_type} deleted")
+        self._update_menu_state()
 
 
     def _edit_selected_relation(self):
@@ -743,8 +849,35 @@ class MainWindow(QMainWindow):
 
 
     def _delete_selected_relation(self):
-        """Delete the currently selected relation (not yet implemented)."""
-        self.info_bar.show_message("Deleting relation is not yet implemented")
+        """Delete the currently selected relation (connection)."""
+        item = self._get_selected_item()
+        if item is None:
+            self.info_bar.show_message("No relation selected")
+            return
+
+        if not isinstance(item, Connection):
+            self.info_bar.show_message("Selected item is not a relation")
+            return
+
+        # Get the narrative map
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+
+        # Delete the business relation entity (arc) from the data model
+        if not item.delete_relation_entity(narrative_map):
+            self.info_bar.show_message("Cannot delete relation: no business entity associated")
+            return
+
+        # Remove the visual connection from the workspace
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.remove_connection(item)
+
+        # Mark project as modified and update menu state
+        self.project_service.set_modified(True)
+        self.info_bar.show_message("Relation deleted")
+        self._update_menu_state()
 
 
     def _show_changelog(self):

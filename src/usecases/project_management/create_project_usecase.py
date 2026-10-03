@@ -6,7 +6,7 @@
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
-from core.models.data_model import Project, State, Journey, State_node
+from core.models.data_model import Project, State, Journey
 from core.services.project_service import ProjectService
 
 class CreateProjectUseCase:
@@ -26,9 +26,6 @@ class CreateProjectUseCase:
         RG022: a default journey is automatically created and activated.
         RG031: each narrative map has one and only one initial state, created
         automatically, present in all journeys, and never deletable.
-        RG052: an isolated state implicitly creates a state node with
-        from_event_id=0, state_id=<new state>, to_event_id=0.
-
         Extracted from execute() so it can be reused by future use cases
         (e.g. CreateNarrativeMapUseCase) without duplication.
         """
@@ -48,11 +45,3 @@ class CreateProjectUseCase:
         )
         narrative_map.state.append(initial_state)
 
-        # RG052: create the implicit state node for the isolated state
-        state_node = State_node(
-            id=narrative_map.get_next_id('state_node'),
-            from_event_id=0,
-            state_id=initial_state.id,
-            to_event_id=0
-        )
-        narrative_map.state_node.append(state_node)

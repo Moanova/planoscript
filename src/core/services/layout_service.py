@@ -30,7 +30,6 @@ This ensures that:
 import json
 import logging
 import re
-import uuid
 from pathlib import Path
 from typing import List, Optional
 
@@ -136,23 +135,24 @@ class LayoutService:
     def _get_project_dir(cls, project_filepath: str) -> Path:
         """
         Get the directory for a project based on its filepath.
-        
+
         The project directory is named after the project file (without extension).
         Example: "/path/to/mon_projet.json" -> "/path/to/mon_projet/"
-        
+
+        The same directory is reused across save/load cycles so that layout
+        files are always found in the same place.
+
         Args:
             project_filepath: Full path to the project JSON file
-            
+
         Returns:
-            Path to the project directory (created if it doesn't exist)
+            Path to the project directory (created by caller if needed)
         """
         filepath = Path(project_filepath).resolve()
         base_dir = filepath.parent
         safe_stem = sanitize_filename(filepath.stem)
-        
-        # Get a unique directory name
-        project_dir = get_safe_dir_name(safe_stem, base_dir)
-        return project_dir
+
+        return base_dir / safe_stem
 
     @classmethod
     def _get_layout_dir(cls, project_filepath: str) -> Path:
@@ -404,16 +404,6 @@ class LayoutService:
             return False
 
     @classmethod
-    def generate_connection_id(cls) -> str:
-        """
-        Generate a unique ID for a new connection.
-        
-        Returns:
-            A unique string ID (UUID4)
-        """
-        return str(uuid.uuid4())
-
-    @classmethod
     def create_empty_layout(
         cls,
         narrative_map_id: str
@@ -430,7 +420,6 @@ class LayoutService:
         return WorkspaceLayout(
             narrative_map_id=narrative_map_id,
             nodes={},
-            connections={},
             zoom_level=1.0,
             scroll_x=0.0,
             scroll_y=0.0
@@ -574,24 +563,18 @@ class LayoutService:
         cls,
         source_node_id: int,
         target_node_id: int,
-        connection_id: Optional[str] = None
     ) -> ConnectionLayout:
         """
         Factory method to create a ConnectionLayout with sensible defaults.
-        
+
         Args:
             source_node_id: Business entity ID of the source node
             target_node_id: Business entity ID of the target node
-            connection_id: Optional unique ID (generated if None)
-            
+
         Returns:
             A new ConnectionLayout instance
         """
-        if connection_id is None:
-            connection_id = cls.generate_connection_id()
-        
         return ConnectionLayout(
-            id=connection_id,
             source_node_id=source_node_id,
             source_port=PortPosition.RIGHT,
             target_node_id=target_node_id,

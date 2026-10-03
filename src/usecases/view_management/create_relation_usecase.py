@@ -9,7 +9,7 @@
 """
 Use Case for creating relations between nodes in the workspace.
 
-This use case handles the creation of relation entities (State_agent_rel, State_node, Journey_node)
+This use case handles the creation of relation entities (State_agent_rel, Event_to_state, State_to_event, Journey_node)
 and their visual layouts (ConnectionLayout), but DOES NOT handle the creation of Qt
 graphic objects (QGraphicsLineItem).
 
@@ -52,7 +52,7 @@ class CreateRelationUseCase:
 
     # Mapping of relation types to entity classes
     # Note: Only State_agent_rel exists in the new data model
-    # State-Event relations are handled directly via StateNodeService
+    # State-Event relations are handled directly via ArcService
     RELATION_MAPPING = {
         "State to Agent": {
             'entity_class': State_agent_rel,

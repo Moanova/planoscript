@@ -94,7 +94,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG017
-- **Description** : La suppression d'un composant (état ou événement) entraîne la suppression automatique de toutes les relations qui le connectent à d'autres composants. Les noeuds d'état qui le référencent via une clé étrangère (événement prédécesseur, état ou événement successeur) sont mis à jour ou supprimés selon les règles de cohérence du graphe de la carte narrative.
+- **Description** : La suppression d'un composant (état ou événement) entraîne la suppression automatique de toutes les relations qui le connectent à d'autres composants. Les arcs état-évènement qui le référencent sont supprimés selon les règles de cohérence du graphe de la carte narrative.
 - **Classification** : Structure des cartes narratives.
 
 ## RG018
@@ -122,11 +122,11 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG033
-- **Description** : La séquence constitutive d'un parcours est définie par la succession d'état à évènement à état, et est matérialisée par un noeud d'état qui renseigne l'identifiant de l'événement précédent, l'identifiant de l'état et l'identifiant de l'événement suivant.
+- **Description** : La séquence constitutive d'un parcours est définie par la succession d'état à évènement à état. Chaque relation orientée entre un état et un évènement est matérialisée par un arc état-évènement qui renseigne l'identifiant de l'état, l'identifiant de l'évènement et le sens de la relation (prédécesseur ou successeur). La succession d'état à évènement à état se reconstitue par chaînage des arcs à travers les états et les évènements qu'ils relient.
 - **Classification** : Structure des cartes narratives.
 
 ## RG034
-- **Description** : Un même composant (état ou événement) peut appartenir à plusieurs parcours sans duplication grâce à la gestion des noeuds d'état.
+- **Description** : Un même composant (état ou événement) peut appartenir à plusieurs parcours sans duplication grâce à la gestion des arcs état-évènement et des nœuds de parcours. Un état est rattaché à un parcours par l'intermédiaire d'un nœud de parcours. Un événement n'est pas rattaché directement à un parcours ; il appartient à un parcours si et seulement si au moins un arc état-évènement le relie à un état qui est lui-même rattaché à ce parcours. Un événement isolé n'appartient donc à aucun parcours.
 - **Classification** : Structure des cartes narratives.
 
 ## RG035
@@ -142,7 +142,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG038
-- **Description** : Un état de type final ne peut apparaître que dans des noeuds d'état dont l'identifiant d'événement successeur est renseigné à 0.
+- **Description** : Un état de type final ne possède aucun arc état-évènement sortant, c'est-à-dire aucun arc le reliant à un évènement en tant que successeur.
 - **Classification** : Structure des cartes narratives.
 
 ## RG058
@@ -162,11 +162,11 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG024
-- **Description** : Tout composant nouvellement créé (état ou événement) est automatiquement rattaché au parcours actuellement activé.
+- **Description** : Tout état nouvellement créé est automatiquement rattaché au parcours actuellement activé. Un événement nouvellement créé n'est rattaché à aucun parcours tant qu'il est isolé, c'est-à-dire non relié par aucune relation entrante ou sortante à un état. Un événement devient rattaché à un parcours dès qu'une relation le relie à un état qui est lui-même rattaché à ce parcours. Inversement, si la dernière relation reliant un événement aux états d'un parcours est supprimée, l'événement est détaché de ce parcours et redevient orphelin de parcours.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG025
-- **Description** : Un composant (état ou événement) peut être rattaché simultanément à plusieurs parcours. Tout composant doit cependant rester rattaché à au moins un parcours à tout moment.
+- **Description** : Un composant (état ou événement) peut être rattaché simultanément à plusieurs parcours. Un état doit cependant rester rattaché à au moins un parcours à tout moment. Un événement, en revanche, peut être orphelin de tout parcours tant qu'il n'est pas engagé dans au moins une relation avec un état ; cette situation ne peut pas se présenter pour un état.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG026
@@ -178,7 +178,7 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG028
-- **Description** : L'utilisateur ne peut pas retirer un composant (état ou événement) de son dernier parcours.
+- **Description** : L'utilisateur ne peut pas retirer un état de son dernier parcours. Un événement peut être retiré de tous ses parcours, auquel cas il devient orphelin de tout parcours jusqu'à ce qu'il soit engagé dans une relation avec un état.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG029
@@ -190,15 +190,11 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG052
-- **Description** : À chaque création d'un état isolé, l'application crée implicitement un noeud d'état avec l'identifiant de l'événement prédécesseur renseigné avec la valeur 0, l'identifiant de l'état renseigné avec la valeur du nouvel état, et l'identifiant de l'événement successeur renseigné avec la valeur 0.
-- **Classification** : Logique des parcours et appartenance.
-
-## RG053
-- **Description** : À chaque création d'un événement isolé, l'application crée implicitement un noeud d'état avec l'identifiant de l'événement prédécesseur renseigné avec la valeur du nouvel événement, l'identifiant d'état renseigné avec la valeur 0, et l'identifiant de l'événement successeur renseigné avec la valeur 0.
+- **Description** : Le concept de parcours n'est pas activé tant qu'aucune relation n'a été établie dans la carte narrative. À la création d'un état isolé, aucun nœud de parcours n'est créé. Le rattachement d'un état à un parcours s'effectue lors de la création d'une relation le reliant à un évènement : un nœud de parcours est alors créé, référençant l'arc correspondant et rattachant l'état au parcours actuellement activé.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG054
-- **Description** : Lorsqu'un utilisateur établit une relation entre un état et un événement, un nouveau noeud d'état est créé s'il n'en existe pas déjà un implicite ; sinon, le noeud d'état préexistant est mis à jour, conformément à la règle de non-duplication de triplet.
+- **Description** : Lorsqu'un utilisateur établit une relation entre un état et un évènement, l'application crée un nouvel arc état-évènement renseignant l'état, l'évènement et le sens de la relation (prédécesseur ou successeur). Deux arcs identiques ne peuvent exister pour le même état, le même évènement et le même sens.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG055
@@ -206,11 +202,7 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG056
-- **Description** : La suppression d'un état ou d'un événement entraîne la suppression en cascade de tous les noeuds d'état qui le référencent, puis de tous les noeuds de parcours.
-- **Classification** : Logique des parcours et appartenance.
-
-## RG057
-- **Description** : Un noeud d'état implicite (dont l'identifiant d'événement successeur ou l'identifiant d'état est renseigné avec la valeur 0) est supprimé automatiquement dès qu'il est mis à jour avec une relation complète, sauf s'il est le point de départ de plusieurs embranchements.
+- **Description** : La suppression d'un état ou d'un évènement entraîne la suppression en cascade de tous les arcs état-évènement qui le référencent, puis de tous les nœuds de parcours qui référencent les arcs supprimés.
 - **Classification** : Logique des parcours et appartenance.
 
 ---
@@ -254,7 +246,7 @@
 ## 5. Architecture technique et modèle de données
 
 ## RG050
-- **Description** : La valeur 0 (zéro) dans un champ de référence prédécesseur ou successeur ('from_event_id', 'to_event_id') signifie l'absence de prédécesseur ou de successeur. Cela correspond au premier ou au dernier élément d'une séquence de carte narrative.
+- **Description** : L'absence de prédécesseur ou de successeur pour un état est matérialisée par l'absence d'arc état-évènement dans le sens correspondant. Un état sans arc entrant est le premier élément d'une séquence ; un état sans arc sortant est le dernier élément.
 - **Classification** : Architecture technique et modèle de données.
 
 ## RG051

@@ -11,7 +11,6 @@
 # Build        : TSC
 # ---------------------------------------------------------------------
 import logging
-import uuid
 
 from PySide6.QtWidgets import (
     QGraphicsView, QGraphicsScene,
@@ -20,7 +19,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QPointF, Signal, QObject
 from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
 
-from core.models.view_model import NodeType, ConnectionLayout
+from core.models.view_model import NodeType, ConnectionLayout, WorkspaceLayout, RelationType
+from core.models.data_model import State, Event
 from core.services.layout_service import LayoutService
 from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
@@ -42,6 +42,9 @@ class JourneyWorkspace(QGraphicsView, QObject):
     
     # Signal emitted when a relation is created between two nodes
     relation_created = Signal(object, object)
+
+    # Signal emitted when a node is moved (for project modification tracking)
+    workspace_modified = Signal()
     
     def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None):
         super().__init__()
@@ -548,9 +551,18 @@ class JourneyWorkspace(QGraphicsView, QObject):
             self.temp_connection = None
 
 
-    def create_node_from_data(self, node_data: dict):
+    def create_node_from_data(self, node_data: dict,
+                              skip_overlap_check: bool = False,
+                              select: bool = True):
         """
         Creates a visual node from the data returned by the use case.
+
+        Args:
+            node_data: Dictionary with 'entity', 'layout', 'node_type' keys
+            skip_overlap_check: Skip RG044 non-overlapping adjustment
+                (used when loading saved positions)
+            select: Select the newly created node (False when loading
+                multiple nodes to avoid spurious selectionChanged signals)
         """
         entity = node_data['entity']
         layout = node_data['layout']
@@ -569,24 +581,26 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
         node = node_class(entity, layout)
 
-        # RG044: adjust position to avoid overlapping existing nodes
-        existing_rects = []
-        for item in self.scene.items():
-            if hasattr(item, 'entity') and item is not node:
-                r = item.rect()
-                pos = item.pos()
-                existing_rects.append((pos.x(), pos.y(), r.width(), r.height()))
-        adjusted_x, adjusted_y = LayoutService.find_non_overlapping_position(
-            layout.x, layout.y, layout.width, layout.height, existing_rects
-        )
-        layout.x = adjusted_x
-        layout.y = adjusted_y
+        if not skip_overlap_check:
+            # RG044: adjust position to avoid overlapping existing nodes
+            existing_rects = []
+            for item in self.scene.items():
+                if hasattr(item, 'entity') and item is not node:
+                    r = item.rect()
+                    pos = item.pos()
+                    existing_rects.append((pos.x(), pos.y(), r.width(), r.height()))
+            adjusted_x, adjusted_y = LayoutService.find_non_overlapping_position(
+                layout.x, layout.y, layout.width, layout.height, existing_rects
+            )
+            layout.x = adjusted_x
+            layout.y = adjusted_y
 
         self.add_item_at(layout.x, layout.y, node)
         # RG059: register workspace as position observer so that moving
         # this node re-routes connections it is not part of.
         node.register_position_observer(lambda n=node: self._on_node_moved(n))
-        self._select_item_only(node)
+        if select:
+            self._select_item_only(node)
 
         return node
 
@@ -607,11 +621,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
             # New format: directly use the visual nodes
             from core.models.view_model import ConnectionLayout, RelationType
             connection_layout = ConnectionLayout(
-                id=str(uuid.uuid4()),
                 source_node_id=source_node.entity.id,
                 target_node_id=target_node.entity.id,
                 relation_id=relation_entity.id if relation_entity else None,
-                relation_type=RelationType.STATE_NODE
+                relation_type=connection_data.get('relation_type', RelationType.STATE_TO_EVENT)
             )
             connection = Connection(connection_layout, source_node, target_node, relation_entity)
             self.scene.addItem(connection)
@@ -650,6 +663,19 @@ class JourneyWorkspace(QGraphicsView, QObject):
                 return item
         return None
 
+    def _find_node_by_entity_id_and_type(self, entity_id: int, entity_class) -> object:
+        """
+        Find a node in the scene by its entity_id AND entity class.
+
+        Needed because entity IDs are unique per type, not globally
+        (State.id=1 and Event.id=1 can coexist).
+        """
+        for item in self.scene.items():
+            if (hasattr(item, 'entity') and item.entity.id == entity_id
+                    and isinstance(item.entity, entity_class)):
+                return item
+        return None
+
     def has_connection_between(self, source_node, target_node) -> bool:
         """Check if a visual connection already exists between two nodes (RG054)."""
         for item in self.scene.items():
@@ -676,6 +702,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
             if item.source_node is moved_node or item.target_node is moved_node:
                 continue
             item.update_path()
+        # Notify that the workspace has been visually modified
+        self.workspace_modified.emit()
 
 
     def _select_item_only(self, item):
@@ -688,6 +716,270 @@ class JourneyWorkspace(QGraphicsView, QObject):
         
         if item.flags() & QGraphicsItem.ItemIsSelectable:
             item.setSelected(True)
+
+
+    def remove_connection(self, connection: Connection) -> bool:
+        """
+        Remove a connection from the scene.
+
+        Args:
+            connection: The Connection item to remove
+
+        Returns:
+            True if the connection was removed, False otherwise
+        """
+        if connection is None:
+            return False
+        self.scene.removeItem(connection)
+        return True
+
+    def remove_node(self, node) -> bool:
+        """
+        Remove a node and all its attached connections from the scene.
+
+        Args:
+            node: The BaseNode (or subclass) to remove
+
+        Returns:
+            True if the node was removed, False otherwise
+        """
+        if node is None:
+            return False
+
+        # Collect all connections attached to this node before removing it
+        connections_to_remove = []
+        for item in self.scene.items():
+            if isinstance(item, Connection):
+                if item.source_node is node or item.target_node is node:
+                    connections_to_remove.append(item)
+
+        for connection in connections_to_remove:
+            self.scene.removeItem(connection)
+
+        self.scene.removeItem(node)
+        return True
+
+
+    # -------------------------------------------------------------------------
+    # Visual layout persistence
+    # -------------------------------------------------------------------------
+
+    def collect_workspace_layout(self) -> WorkspaceLayout:
+        """
+        Collect the current visual layout of the workspace for persistence.
+
+        Iterates over all items in the scene, extracting NodeLayout and
+        ConnectionLayout objects from visual nodes and connections.
+
+        Returns:
+            A WorkspaceLayout ready for serialization
+        """
+        layout = WorkspaceLayout(narrative_map_id=self.narrative_map.id)
+
+        for item in self.scene.items():
+            if isinstance(item, Connection):
+                layout.add_connection(item.layout)
+            elif hasattr(item, 'entity') and hasattr(item, 'layout'):
+                layout.add_node(item.layout)
+
+        layout.zoom_level = self.transform().m11()
+        layout.scroll_x = float(self.horizontalScrollBar().value())
+        layout.scroll_y = float(self.verticalScrollBar().value())
+
+        return layout
+
+
+    def populate_from_layout(self, workspace_layout: WorkspaceLayout,
+                              narrative_map) -> int:
+        """
+        Rebuild visual nodes and connections from a saved WorkspaceLayout.
+
+        Args:
+            workspace_layout: The saved layout to restore
+            narrative_map: The NarrativeMap containing business entities
+
+        Returns:
+            Number of nodes created
+        """
+        node_count = 0
+
+        # Create state nodes (sorted by entity ID for deterministic order)
+        for node_id in sorted(workspace_layout.state_nodes.keys()):
+            node_layout = workspace_layout.state_nodes[node_id]
+            entity = next((s for s in narrative_map.state
+                           if s.id == node_layout.node_id), None)
+            if not entity:
+                logger.warning("State entity not found for node_id=%s", node_layout.node_id)
+                continue
+            self.create_node_from_data({
+                'entity': entity,
+                'layout': node_layout,
+                'node_type': NodeType.STATE,
+                'narrative_map_id': narrative_map.id,
+                'component_type': 'State'
+            }, skip_overlap_check=True, select=False)
+            node_count += 1
+
+        # Create event nodes (sorted by entity ID)
+        for node_id in sorted(workspace_layout.event_nodes.keys()):
+            node_layout = workspace_layout.event_nodes[node_id]
+            entity = next((e for e in narrative_map.event
+                           if e.id == node_layout.node_id), None)
+            if not entity:
+                logger.warning("Event entity not found for node_id=%s", node_layout.node_id)
+                continue
+            self.create_node_from_data({
+                'entity': entity,
+                'layout': node_layout,
+                'node_type': NodeType.EVENT,
+                'narrative_map_id': narrative_map.id,
+                'component_type': 'Event'
+            }, skip_overlap_check=True, select=False)
+            node_count += 1
+
+        # Create connections from each sub-dictionary
+        # Use relation_type to determine entity class, since entity IDs
+        # are unique per type, not globally (State.id=1 and Event.id=1
+        # can coexist).
+        from core.models.data_model import State as StateEntity, Event as EventEntity, Agent as AgentEntity
+
+        RELATION_ENTITY_MAP = {
+            RelationType.STATE_TO_EVENT: ('state_to_event', StateEntity, EventEntity),
+            RelationType.EVENT_TO_STATE: ('event_to_state', EventEntity, StateEntity),
+            RelationType.STATE_AGENT_REL: ('state_agent_rel', StateEntity, AgentEntity),
+        }
+
+        conn_subdicts = [
+            (workspace_layout.state_to_event_connections, RelationType.STATE_TO_EVENT),
+            (workspace_layout.event_to_state_connections, RelationType.EVENT_TO_STATE),
+            (workspace_layout.state_agent_rel_connections, RelationType.STATE_AGENT_REL),
+        ]
+
+        for conn_dict, rel_type in conn_subdicts:
+            attr_name, source_class, target_class = RELATION_ENTITY_MAP[rel_type]
+
+            for conn_layout in conn_dict.values():
+                source_node = self._find_node_by_entity_id_and_type(
+                    conn_layout.source_node_id, source_class
+                )
+                target_node = self._find_node_by_entity_id_and_type(
+                    conn_layout.target_node_id, target_class
+                )
+
+                if not source_node or not target_node:
+                    logger.warning("Source or target node not found for connection")
+                    continue
+
+                relation_entity = next(
+                    (r for r in getattr(narrative_map, attr_name)
+                     if r.id == conn_layout.relation_id),
+                    None
+                )
+
+                self.create_connection_from_data({
+                    'source': source_node,
+                    'target': target_node,
+                    'relation': relation_entity,
+                    'relation_type': rel_type
+                })
+
+        # Restore zoom level
+        if workspace_layout.zoom_level != 1.0:
+            self.resetTransform()
+            self.scale(workspace_layout.zoom_level, workspace_layout.zoom_level)
+
+        # Restore scroll position
+        self.horizontalScrollBar().setValue(int(workspace_layout.scroll_x))
+        self.verticalScrollBar().setValue(int(workspace_layout.scroll_y))
+
+        # Clear selection (no item should be selected after load)
+        self._clear_all_selections()
+
+        return node_count
+
+
+    def populate_default(self, narrative_map) -> int:
+        """
+        Create visual nodes and connections with default positions.
+
+        Used when no saved layout exists. States are placed in a column
+        on the left, events in a column on the right.
+
+        Args:
+            narrative_map: The NarrativeMap containing business entities
+
+        Returns:
+            Number of nodes created
+        """
+        node_count = 0
+
+        state_x = 1800.0
+        event_x = 2200.0
+        start_y = 1800.0
+        step_y = 120.0
+
+        # Create state nodes
+        for i, state in enumerate(narrative_map.state):
+            layout = LayoutService.create_node_layout(
+                node_id=state.id,
+                node_type=NodeType.STATE.value,
+                x=state_x,
+                y=start_y + i * step_y
+            )
+            self.create_node_from_data({
+                'entity': state,
+                'layout': layout,
+                'node_type': NodeType.STATE,
+                'narrative_map_id': narrative_map.id,
+                'component_type': 'State'
+            }, skip_overlap_check=True, select=False)
+            node_count += 1
+
+        # Create event nodes
+        for i, event in enumerate(narrative_map.event):
+            layout = LayoutService.create_node_layout(
+                node_id=event.id,
+                node_type=NodeType.EVENT.value,
+                x=event_x,
+                y=start_y + i * step_y
+            )
+            self.create_node_from_data({
+                'entity': event,
+                'layout': layout,
+                'node_type': NodeType.EVENT,
+                'narrative_map_id': narrative_map.id,
+                'component_type': 'Event'
+            }, skip_overlap_check=True, select=False)
+            node_count += 1
+
+        # Create connections from State_to_event arcs
+        for arc in narrative_map.state_to_event:
+            source_node = self._find_node_by_entity_id_and_type(arc.state_id, State)
+            target_node = self._find_node_by_entity_id_and_type(arc.event_id, Event)
+            if source_node and target_node:
+                self.create_connection_from_data({
+                    'source': source_node,
+                    'target': target_node,
+                    'relation': arc,
+                    'relation_type': RelationType.STATE_TO_EVENT
+                })
+
+        # Create connections from Event_to_state arcs
+        for arc in narrative_map.event_to_state:
+            source_node = self._find_node_by_entity_id_and_type(arc.event_id, Event)
+            target_node = self._find_node_by_entity_id_and_type(arc.state_id, State)
+            if source_node and target_node:
+                self.create_connection_from_data({
+                    'source': source_node,
+                    'target': target_node,
+                    'relation': arc,
+                    'relation_type': RelationType.EVENT_TO_STATE
+                })
+
+        # Clear selection
+        self._clear_all_selections()
+
+        return node_count
 
 
     def _clear_all_selections(self):

@@ -94,7 +94,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG017
-- **Description**: Deleting a component (state or event) triggers the automatic deletion of all relationships connecting it to other components. The state nodes that reference it via a foreign key (predecessor event, state, or successor event) are updated or deleted according to the narrative map graph consistency rules.
+- **Description**: Deleting a component (state or event) triggers the automatic deletion of all relationships connecting it to other components. The state-event edges that reference it are deleted according to the narrative map graph consistency rules.
 - **Classification**: Narrative Map Structure.
 
 ## RG018
@@ -122,11 +122,11 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG033
-- **Description**: The constituent sequence of a journey is defined by the succession of state to event to state, and is materialized by a state node that specifies the identifier of the previous event, the identifier of the state, and the identifier of the next event.
+- **Description**: The constituent sequence of a journey is defined by the succession of state to event to state. Each directed relation between a state and an event is materialized by a state-event edge that specifies the identifier of the state, the identifier of the event, and the direction of the relation (predecessor or successor). The succession of state to event to state is reconstituted by chaining edges through the states and events they connect.
 - **Classification**: Narrative Map Structure.
 
 ## RG034
-- **Description**: The same component (state or event) can belong to multiple journeys without duplication thanks to the management of state nodes.
+- **Description**: The same component (state or event) can belong to multiple journeys without duplication thanks to the management of state-event edges and journey nodes. A state is attached to a journey via a journey node. An event is not directly attached to any journey; it belongs to a journey if and only if at least one state-event edge connects it to a state that is itself attached to that journey. An isolated event therefore belongs to no journey.
 - **Classification**: Narrative Map Structure.
 
 ## RG035
@@ -142,7 +142,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG038
-- **Description**: A state of type final can only appear in state nodes whose successor event identifier is set to 0.
+- **Description**: A state of type final has no outgoing state-event edge, that is, no edge linking it to an event as a successor.
 - **Classification**: Narrative Map Structure.
 
 ## RG058
@@ -162,11 +162,11 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG024
-- **Description**: Any newly created component (state or event) is automatically attached to the currently activated journey.
+- **Description**: A newly created state is automatically attached to the currently activated journey. A newly created event is not attached to any journey as long as it is isolated, that is, not linked by any incoming or outgoing relation to a state. An event becomes attached to a journey as soon as a relation connects it to a state that is itself attached to that journey. Conversely, if the last relation connecting an event to the states of a journey is deleted, the event becomes detached from that journey and returns to an orphan status with no journey.
 - **Classification**: Journey Logic and Membership.
 
 ## RG025
-- **Description**: A component (state or event) can be attached simultaneously to multiple journeys. However, every component must remain attached to at least one journey at all times.
+- **Description**: A component (state or event) can be attached simultaneously to multiple journeys. A state must remain attached to at least one journey at all times. An event, on the other hand, may be orphan of all journeys as long as it is not engaged in at least one relation with a state; this situation cannot arise for a state.
 - **Classification**: Journey Logic and Membership.
 
 ## RG026
@@ -178,7 +178,7 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG028
-- **Description**: The user cannot remove a component (state or event) from its last journey.
+- **Description**: The user cannot remove a state from its last journey. An event can be removed from all its journeys, in which case it becomes orphan of all journeys until it is engaged in a relation with a state.
 - **Classification**: Journey Logic and Membership.
 
 ## RG029
@@ -190,15 +190,11 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG052
-- **Description**: Upon each creation of an isolated state, the application implicitly creates a state node with the predecessor event identifier set to the value 0, the state identifier set to the value of the new state, and the successor event identifier set to the value 0.
-- **Classification**: Journey Logic and Membership.
-
-## RG053
-- **Description**: Upon each creation of an isolated event, the application implicitly creates a state node with the predecessor event identifier set to the value of the new event, the state identifier set to the value 0, and the successor event identifier set to the value 0.
+- **Description**: The journey concept is not activated until a relation has been established in the narrative map. Upon creation of an isolated state, no journey node is created. The attachment of a state to a journey occurs when a relation connecting it to an event is established: a journey node is then created, referencing the corresponding edge and attaching the state to the currently activated journey.
 - **Classification**: Journey Logic and Membership.
 
 ## RG054
-- **Description**: When a user establishes a relationship between a state and an event, a new state node is created if one does not already exist implicitly; otherwise, the pre-existing state node is updated, in accordance with the non-duplication of triplet rule.
+- **Description**: When a user establishes a relationship between a state and an event, the application creates a new state-event edge specifying the state, the event, and the direction of the relation (predecessor or successor). No two identical edges may exist for the same state, event, and direction.
 - **Classification**: Journey Logic and Membership.
 
 ## RG055
@@ -206,11 +202,7 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG056
-- **Description**: Deleting a state or an event triggers the cascading deletion of all state nodes that reference it, then of all journey nodes.
-- **Classification**: Journey Logic and Membership.
-
-## RG057
-- **Description**: An implicit state node (whose successor event identifier or state identifier is set to the value 0) is automatically deleted as soon as it is updated with a complete relationship, unless it is the starting point of several branchings.
+- **Description**: Deleting a state or an event triggers the cascading deletion of all state-event edges that reference it, then of all journey nodes that reference the deleted edges.
 - **Classification**: Journey Logic and Membership.
 
 ---
@@ -254,7 +246,7 @@
 ## 5. Technical Architecture and Data Model
 
 ## RG050
-- **Description**: The value 0 (zero) in a predecessor or successor reference field ('from_event_id', 'to_event_id') means the absence of a predecessor or successor. This corresponds to the first or last element of a narrative map sequence.
+- **Description**: The absence of a predecessor or successor for a state is materialized by the absence of a state-event edge in the corresponding direction. A state with no incoming edge is the first element of a sequence; a state with no outgoing edge is the last element.
 - **Classification**: Technical Architecture and Data Model.
 
 ## RG051

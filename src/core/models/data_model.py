@@ -207,23 +207,22 @@ class State_agent_rel:
 
 
 @dataclass
-class State_node:
+class Event_to_state:
     """
-    Node of state-to-event-to-state relations.
-    Represents connections between events through states.
+    Arc: Event -> State (predecessor relation).
+    Represents a directed arc from an event to a state.
     """
     id: int
-    from_event_id: int  # Predecessor event ID (0 = no predecessor)
-    state_id: int  # State ID of the node (0 = placeholder without state)
-    to_event_id: int  # Successor event ID
+    event_id: int  # Reference to Event.id
+    state_id: int  # Reference to State.id
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
 
     def __post_init__(self):
-        for attr in ['id', 'from_event_id', 'state_id', 'to_event_id']:
+        for attr in ['id', 'event_id', 'state_id']:
             if not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert entity to dictionary for JSON serialization."""
         result = asdict(self)
@@ -232,9 +231,45 @@ class State_node:
         if isinstance(result.get('modification_date_time'), datetime):
             result['modification_date_time'] = result['modification_date_time'].isoformat()
         return result
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'State_node':
+    def from_dict(cls, data: Dict[str, Any]) -> 'Event_to_state':
+        """Create entity from dictionary."""
+        if 'creation_date_time' in data and isinstance(data['creation_date_time'], str):
+            data['creation_date_time'] = datetime.fromisoformat(data['creation_date_time'])
+        if 'modification_date_time' in data and isinstance(data['modification_date_time'], str):
+            data['modification_date_time'] = datetime.fromisoformat(data['modification_date_time'])
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+
+
+@dataclass
+class State_to_event:
+    """
+    Arc: State -> Event (successor relation).
+    Represents a directed arc from a state to an event.
+    """
+    id: int
+    state_id: int  # Reference to State.id
+    event_id: int  # Reference to Event.id
+    creation_date_time: datetime = field(default_factory=datetime.now)
+    modification_date_time: Optional[datetime] = None
+
+    def __post_init__(self):
+        for attr in ['id', 'state_id', 'event_id']:
+            if not isinstance(getattr(self, attr), int):
+                setattr(self, attr, int(getattr(self, attr)))
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert entity to dictionary for JSON serialization."""
+        result = asdict(self)
+        if isinstance(result.get('creation_date_time'), datetime):
+            result['creation_date_time'] = result['creation_date_time'].isoformat()
+        if isinstance(result.get('modification_date_time'), datetime):
+            result['modification_date_time'] = result['modification_date_time'].isoformat()
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'State_to_event':
         """Create entity from dictionary."""
         if 'creation_date_time' in data and isinstance(data['creation_date_time'], str):
             data['creation_date_time'] = datetime.fromisoformat(data['creation_date_time'])
@@ -246,19 +281,29 @@ class State_node:
 @dataclass
 class Journey_node:
     """
-    Node of journey.
-    Links state nodes to journeys.
+    Journey node.
+    Links a step of a journey to its incoming and outgoing arcs.
+    The state is derived from the arcs (Event_to_state.state_id or
+    State_to_event.state_id). At least one arc is always present;
+    the concept of journey is not activated until the first relation exists.
     """
     id: int
-    state_node_id: int  # Reference to State_node.id
     journey_id: int  # Reference to Journey.id
+    sequence_order: int  # Position in the journey sequence
+    event_to_state_id: Optional[int] = None  # Incoming arc (Event_to_state.id); None for initial state
+    state_to_event_id: Optional[int] = None  # Outgoing arc (State_to_event.id); None for final state
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
-    
+
     def __post_init__(self):
-        for attr in ['id', 'state_node_id', 'journey_id']:
+        for attr in ['id', 'journey_id', 'sequence_order']:
             if not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
+        # Optional arc references: convert to int if present and not None
+        for attr in ['event_to_state_id', 'state_to_event_id']:
+            val = getattr(self, attr)
+            if val is not None and not isinstance(val, int):
+                setattr(self, attr, int(val))
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert entity to dictionary for JSON serialization."""
@@ -300,7 +345,8 @@ class NarrativeMap:
 
     # Relations
     state_agent_rel: List[State_agent_rel] = field(default_factory=list)
-    state_node: List[State_node] = field(default_factory=list)
+    event_to_state: List[Event_to_state] = field(default_factory=list)
+    state_to_event: List[State_to_event] = field(default_factory=list)
     journey_node: List[Journey_node] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -313,7 +359,8 @@ class NarrativeMap:
             'event': [e.to_dict() for e in self.event],
             'journey': [j.to_dict() for j in self.journey],
             'state_agent_rel': [r.to_dict() for r in self.state_agent_rel],
-            'state_node': [n.to_dict() for n in self.state_node],
+            'event_to_state': [a.to_dict() for a in self.event_to_state],
+            'state_to_event': [a.to_dict() for a in self.state_to_event],
             'journey_node': [n.to_dict() for n in self.journey_node]
         }
 
@@ -328,7 +375,8 @@ class NarrativeMap:
             event=[Event.from_dict(e) for e in data.get('event', [])],
             journey=[Journey.from_dict(j) for j in data.get('journey', [])],
             state_agent_rel=[State_agent_rel.from_dict(r) for r in data.get('state_agent_rel', [])],
-            state_node=[State_node.from_dict(n) for n in data.get('state_node', [])],
+            event_to_state=[Event_to_state.from_dict(a) for a in data.get('event_to_state', [])],
+            state_to_event=[State_to_event.from_dict(a) for a in data.get('state_to_event', [])],
             journey_node=[Journey_node.from_dict(n) for n in data.get('journey_node', [])]
         )
 
@@ -344,8 +392,10 @@ class NarrativeMap:
             existing_ids = {j.id for j in self.journey}
         elif entity_type == 'state_agent_rel':
             existing_ids = {r.id for r in self.state_agent_rel}
-        elif entity_type == 'state_node':
-            existing_ids = {n.id for n in self.state_node}
+        elif entity_type == 'event_to_state':
+            existing_ids = {a.id for a in self.event_to_state}
+        elif entity_type == 'state_to_event':
+            existing_ids = {a.id for a in self.state_to_event}
         elif entity_type == 'journey_node':
             existing_ids = {n.id for n in self.journey_node}
         

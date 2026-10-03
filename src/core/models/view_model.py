@@ -109,7 +109,8 @@ class NodeLayout:
 class RelationType(Enum):
     """Enumeration of relation types from the business model."""
     STATE_AGENT_REL = "State_agent_rel"
-    STATE_NODE = "State_node"
+    EVENT_TO_STATE = "Event_to_state"
+    STATE_TO_EVENT = "State_to_event"
     #JOURNEY_NODE = "Journey_node"
 
 
@@ -136,13 +137,15 @@ class PortPosition(Enum):
 class ConnectionLayout:
     """
     Represents a visual connection between two nodes in the workspace.
-    
+
     This class stores the visual properties of a connection and references
     the source and target nodes via their IDs. It also maintains links to
     the corresponding business model relation entities.
-    
+
+    The connection is identified by its relation_id (the business arc ID),
+    which is used as the key in the WorkspaceLayout sub-dictionaries.
+
     Attributes:
-        id: Unique identifier for the connection (UUID as string)
         source_node_id: ID of the source business entity
         source_port: Connection port on the source node
         target_node_id: ID of the target business entity
@@ -153,10 +156,9 @@ class ConnectionLayout:
         z_index: Z-order for layering
         selected: Whether the connection is currently selected
         label: Optional text label for the connection
-        relation_id: ID of the business relation entity (e.g., State_agent_rel.id)
-        relation_type: Type of the business relation (e.g., "State_agent_rel")
+        relation_id: ID of the business relation entity (e.g., State_to_event.id)
+        relation_type: Type of the business relation (e.g., "State_to_event")
     """
-    id: str
     source_node_id: int = -1
     source_port: PortPosition = PortPosition.RIGHT
     target_node_id: int = -1
@@ -173,7 +175,6 @@ class ConnectionLayout:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
-            'id': self.id,
             'source_node_id': self.source_node_id,
             'source_port': self.source_port.value,
             'target_node_id': self.target_node_id,
@@ -198,9 +199,8 @@ class ConnectionLayout:
                 relation_type = RelationType(relation_type_value)
             except ValueError:
                 relation_type = None
-        
+
         return cls(
-            id=str(data['id']),
             source_node_id=int(data['source_node_id']),
             source_port=PortPosition(data.get('source_port', 'right')),
             target_node_id=int(data['target_node_id']),
@@ -220,21 +220,29 @@ class ConnectionLayout:
 class WorkspaceLayout:
     """
     Represents the complete visual layout of a workspace (tab).
-    
+
     A WorkspaceLayout contains all the nodes and connections for a specific
     narrative map displayed in a workspace tab. It maintains the visual
     state separately from the business data.
-    
+
     Attributes:
         narrative_map_id: ID of the associated NarrativeMap from the business model
-        nodes: Dictionary mapping business entity IDs to their NodeLayout
-        connections: Dictionary mapping connection IDs to their ConnectionLayout
+        state_nodes: Dict keyed by State.id
+        event_nodes: Dict keyed by Event.id
+        agent_nodes: Dict keyed by Agent.id
+        state_to_event_connections: Dict keyed by State_to_event.id
+        event_to_state_connections: Dict keyed by Event_to_state.id
+        state_agent_rel_connections: Dict keyed by State_agent_rel.id
         zoom_level: Current zoom level of the workspace (1.0 = 100%)
         scroll_position: Current scroll position (x, y) of the workspace
     """
     narrative_map_id: str
-    nodes: Dict[int, NodeLayout] = field(default_factory=dict)
-    connections: Dict[str, ConnectionLayout] = field(default_factory=dict)
+    state_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
+    event_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
+    agent_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
+    state_to_event_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
+    event_to_state_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
+    state_agent_rel_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
     zoom_level: float = 1.0
     scroll_x: float = 0.0
     scroll_y: float = 0.0
@@ -243,8 +251,12 @@ class WorkspaceLayout:
         """Convert to dictionary for JSON serialization."""
         return {
             'narrative_map_id': self.narrative_map_id,
-            'nodes': {k: v.to_dict() for k, v in self.nodes.items()},
-            'connections': {k: v.to_dict() for k, v in self.connections.items()},
+            'state_nodes': {k: v.to_dict() for k, v in self.state_nodes.items()},
+            'event_nodes': {k: v.to_dict() for k, v in self.event_nodes.items()},
+            'agent_nodes': {k: v.to_dict() for k, v in self.agent_nodes.items()},
+            'state_to_event_connections': {k: v.to_dict() for k, v in self.state_to_event_connections.items()},
+            'event_to_state_connections': {k: v.to_dict() for k, v in self.event_to_state_connections.items()},
+            'state_agent_rel_connections': {k: v.to_dict() for k, v in self.state_agent_rel_connections.items()},
             'zoom_level': self.zoom_level,
             'scroll_x': self.scroll_x,
             'scroll_y': self.scroll_y
@@ -255,57 +267,107 @@ class WorkspaceLayout:
         """Create a WorkspaceLayout from a dictionary."""
         return cls(
             narrative_map_id=str(data['narrative_map_id']),
-            nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('nodes', {}).items()},
-            connections={k: ConnectionLayout.from_dict(v) for k, v in data.get('connections', {}).items()},
+            state_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('state_nodes', {}).items()},
+            event_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('event_nodes', {}).items()},
+            agent_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('agent_nodes', {}).items()},
+            state_to_event_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('state_to_event_connections', {}).items()},
+            event_to_state_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('event_to_state_connections', {}).items()},
+            state_agent_rel_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('state_agent_rel_connections', {}).items()},
             zoom_level=float(data.get('zoom_level', 1.0)),
             scroll_x=float(data.get('scroll_x', 0.0)),
             scroll_y=float(data.get('scroll_y', 0.0))
         )
 
-    def get_node_layout(self, node_id: int) -> Optional[NodeLayout]:
-        """Get the layout for a specific node by its business entity ID."""
-        return self.nodes.get(node_id)
+    def get_node_layout(self, node_type: NodeType, node_id: int) -> Optional[NodeLayout]:
+        """Get the layout for a specific node by its type and entity ID."""
+        if node_type == NodeType.STATE:
+            return self.state_nodes.get(node_id)
+        elif node_type == NodeType.EVENT:
+            return self.event_nodes.get(node_id)
+        elif node_type == NodeType.AGENT:
+            return self.agent_nodes.get(node_id)
+        return None
 
-    def get_connection_layout(self, connection_id: str) -> Optional[ConnectionLayout]:
-        """Get the layout for a specific connection by its ID."""
-        return self.connections.get(connection_id)
+    def get_connection_layout(self, relation_type: RelationType, relation_id: int) -> Optional[ConnectionLayout]:
+        """Get the layout for a specific connection by its relation type and ID."""
+        if relation_type == RelationType.STATE_TO_EVENT:
+            return self.state_to_event_connections.get(relation_id)
+        elif relation_type == RelationType.EVENT_TO_STATE:
+            return self.event_to_state_connections.get(relation_id)
+        elif relation_type == RelationType.STATE_AGENT_REL:
+            return self.state_agent_rel_connections.get(relation_id)
+        return None
 
     def add_node(self, node_layout: NodeLayout) -> None:
-        """Add or update a node layout."""
-        self.nodes[node_layout.node_id] = node_layout
+        """Add or update a node layout, routed by node type."""
+        if node_layout.node_type == NodeType.STATE:
+            self.state_nodes[node_layout.node_id] = node_layout
+        elif node_layout.node_type == NodeType.EVENT:
+            self.event_nodes[node_layout.node_id] = node_layout
+        elif node_layout.node_type == NodeType.AGENT:
+            self.agent_nodes[node_layout.node_id] = node_layout
 
-    def remove_node(self, node_id: int) -> bool:
+    def remove_node(self, node_type: NodeType, node_id: int) -> bool:
         """Remove a node layout and all its connections."""
-        if node_id not in self.nodes:
+        node_dict = None
+        if node_type == NodeType.STATE:
+            node_dict = self.state_nodes
+        elif node_type == NodeType.EVENT:
+            node_dict = self.event_nodes
+        elif node_type == NodeType.AGENT:
+            node_dict = self.agent_nodes
+
+        if not node_dict or node_id not in node_dict:
             return False
-        
+
         # Remove all connections involving this node
-        connection_ids_to_remove = [
-            conn_id for conn_id, conn in self.connections.items()
-            if conn.source_node_id == node_id or conn.target_node_id == node_id
-        ]
-        for conn_id in connection_ids_to_remove:
-            del self.connections[conn_id]
-        
+        for conn_dict in [self.state_to_event_connections,
+                         self.event_to_state_connections,
+                         self.state_agent_rel_connections]:
+            conn_ids_to_remove = [
+                cid for cid, conn in conn_dict.items()
+                if conn.source_node_id == node_id or conn.target_node_id == node_id
+            ]
+            for cid in conn_ids_to_remove:
+                del conn_dict[cid]
+
         # Remove the node
-        del self.nodes[node_id]
+        del node_dict[node_id]
         return True
 
     def add_connection(self, connection_layout: ConnectionLayout) -> None:
-        """Add or update a connection layout."""
-        self.connections[connection_layout.id] = connection_layout
+        """Add or update a connection layout, routed by relation_type."""
+        if connection_layout.relation_type == RelationType.STATE_TO_EVENT:
+            self.state_to_event_connections[connection_layout.relation_id] = connection_layout
+        elif connection_layout.relation_type == RelationType.EVENT_TO_STATE:
+            self.event_to_state_connections[connection_layout.relation_id] = connection_layout
+        elif connection_layout.relation_type == RelationType.STATE_AGENT_REL:
+            self.state_agent_rel_connections[connection_layout.relation_id] = connection_layout
 
-    def remove_connection(self, connection_id: str) -> bool:
-        """Remove a connection layout."""
-        if connection_id in self.connections:
-            del self.connections[connection_id]
-            return True
+    def remove_connection(self, relation_type: RelationType, relation_id: int) -> bool:
+        """Remove a connection layout by its relation type and ID."""
+        if relation_type == RelationType.STATE_TO_EVENT:
+            if relation_id in self.state_to_event_connections:
+                del self.state_to_event_connections[relation_id]
+                return True
+        elif relation_type == RelationType.EVENT_TO_STATE:
+            if relation_id in self.event_to_state_connections:
+                del self.event_to_state_connections[relation_id]
+                return True
+        elif relation_type == RelationType.STATE_AGENT_REL:
+            if relation_id in self.state_agent_rel_connections:
+                del self.state_agent_rel_connections[relation_id]
+                return True
         return False
 
     def clear(self) -> None:
         """Clear all nodes and connections from the layout."""
-        self.nodes.clear()
-        self.connections.clear()
+        self.state_nodes.clear()
+        self.event_nodes.clear()
+        self.agent_nodes.clear()
+        self.state_to_event_connections.clear()
+        self.event_to_state_connections.clear()
+        self.state_agent_rel_connections.clear()
         self.zoom_level = 1.0
         self.scroll_x = 0.0
         self.scroll_y = 0.0

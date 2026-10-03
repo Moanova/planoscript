@@ -20,7 +20,7 @@ supports various connection styles (straight, curved, arrows, etc.).
 
 The connection automatically updates its path when the connected nodes are moved,
 and maintains synchronization with the business model relation entities
-(e.g., State_agent_rel, State_node, Journey_node).
+(e.g., State_agent_rel, Event_to_state, State_to_event, Journey_node).
 """
 from datetime import datetime
 import math
@@ -670,9 +670,8 @@ class Connection(QGraphicsPathItem):
             narrative_map.state_agent_rel.append(relation)
             self.set_relation_entity(relation)
         else:
-            # State_node and Journey_node are graph nodes, not simple
-            # source-target relations. They are created via StateNodeService,
-            # not via this method.
+            # Event_to_state and State_to_event arcs are created via
+            # ArcService, not via this method.
             return None
 
         return self.relation_entity
@@ -703,9 +702,13 @@ class Connection(QGraphicsPathItem):
             narrative_map.state_agent_rel = [
                 rel for rel in narrative_map.state_agent_rel if rel.id != relation_id
             ]
-        elif relation_type == RelationType.STATE_NODE:
-            narrative_map.state_node = [
-                rel for rel in narrative_map.state_node if rel.id != relation_id
+        elif relation_type == RelationType.EVENT_TO_STATE:
+            narrative_map.event_to_state = [
+                rel for rel in narrative_map.event_to_state if rel.id != relation_id
+            ]
+        elif relation_type == RelationType.STATE_TO_EVENT:
+            narrative_map.state_to_event = [
+                rel for rel in narrative_map.state_to_event if rel.id != relation_id
             ]
         else:
             return False
