@@ -26,8 +26,8 @@ from datetime import datetime
 import math
 
 from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QPen, QColor, QPainterPath
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QPen, QColor, QPainterPath, QPainterPathStroker
 from typing import Optional, Any
 
 from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, RelationType
@@ -60,6 +60,9 @@ class Connection(QGraphicsPathItem):
     
     # Arrow settings
     ARROW_SIZE = 10.0
+
+    # Width (pixels) of the invisible clickable area around the line (see shape())
+    HIT_AREA_WIDTH = 12.0
 
     # RG059: clearance (pixels) between a routed connection and an obstacle node
     ROUTE_MARGIN = 20.0
@@ -98,6 +101,9 @@ class Connection(QGraphicsPathItem):
         
         # Enable selection
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+
+        # Enable hover events (blue line feedback, same as nodes)
+        self.setAcceptHoverEvents(True)
         
         # Set z-value to ensure connections are behind nodes
         self.setZValue(-1)
@@ -387,16 +393,64 @@ class Connection(QGraphicsPathItem):
         return path
 
 
+    def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
+        """
+        Handle item changes (e.g., selection).
+
+        Wired the same way as BaseNode: the connection switches to the
+        selection pen as soon as its selection state changes, so the
+        user gets immediate visual feedback.
+        """
+        if change == QGraphicsItem.ItemSelectedChange:
+            self.layout.selected = bool(value)
+            self.set_selected_appearance(bool(value))
+        return super().itemChange(change, value)
+
+
+    def shape(self) -> QPainterPath:
+        """
+        Return a wider hit area than the visual line.
+
+        The default shape of a QGraphicsPathItem only covers the pen
+        width (2 px), which makes a connection nearly impossible to
+        click. Stroke the path with a generous, invisible width instead:
+        this drives hit testing (selection and context menu) while the
+        on-screen appearance is unchanged.
+        """
+        stroker = QPainterPathStroker()
+        stroker.setWidth(self.HIT_AREA_WIDTH)
+        stroker.setJoinStyle(Qt.RoundJoin)
+        stroker.setCapStyle(Qt.RoundCap)
+        return stroker.createStroke(self.path()).simplified()
+
+
+    def boundingRect(self) -> QRectF:
+        """
+        Extend the default bounding rect so the wider hit area (see
+        shape()) stays within it. The scene indexes items by bounding
+        rect and would otherwise miss clicks in the outer band.
+        """
+        margin = self.HIT_AREA_WIDTH / 2
+        rect = super().boundingRect()
+        return rect.adjusted(-margin, -margin, margin, margin)
+
+
     def paint(self, painter, option, widget=None) -> None:
         """
         Paint the connection with optional arrowhead.
-        
-        This overrides the default paint method to add arrowheads
-        when the style includes arrows.
+
+        The line is drawn manually instead of calling
+        QGraphicsPathItem::paint: the default implementation adds a
+        dashed selection rectangle around the whole bounding box, which
+        hugs a rectangular node's contour but not a line. The dashed
+        selection feedback is therefore applied to the line itself (see
+        set_selected_appearance), matching the node behaviour.
         """
         # Draw the line
-        super().paint(painter, option, widget)
-        
+        painter.setPen(self.pen())
+        painter.setBrush(self.brush())
+        painter.drawPath(self.path())
+
         # Draw arrowhead if needed
         if self.layout.style in [ConnectionStyle.ARROW, ConnectionStyle.CURVED_ARROW]:
             self._draw_arrowhead(painter)
@@ -461,24 +515,69 @@ class Connection(QGraphicsPathItem):
         painter.drawPath(arrow_path)
 
 
+    def _restore_layout_pen(self) -> None:
+        """
+        Restore the normal pen from the layout properties.
+
+        Do not call _init_appearance() here: it calls setSelected(),
+        which would recurse while itemChange(ItemSelectedChange) is
+        being processed.
+        """
+        if self.layout.color and self.layout.thickness > 0:
+            color = QColor(self.layout.color)
+            if color.isValid():
+                self.setPen(QPen(color, self.layout.thickness))
+            else:
+                self.setPen(self.DEFAULT_PEN)
+        else:
+            self.setPen(self.DEFAULT_PEN)
+
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the connection's appearance based on selection state.
-        
+
+        Selected: dashed line in the connection's original color (the
+        selection keeps the item's own color, like the node contours;
+        blue appears on hover only). Deselected: normal pen.
+
         Args:
             selected: Whether the connection is selected
         """
         if selected:
-            # Use selected pen (thicker and blue)
-            current_pen = self.pen()
-            selected_pen = QPen(
-                self.DEFAULT_SELECTED_PEN.color(),
-                current_pen.width() + 1
-            )
+            # Original-color dashed pen, same width as the normal line
+            # for a finer rendering. Rebuild the pen from the layout
+            # (not from the current pen, which may be the hover pen) so
+            # it stays stable across hover/selection sequences.
+            self._restore_layout_pen()
+            selected_pen = QPen(self.pen())
+            selected_pen.setStyle(Qt.DashLine)
             self.setPen(selected_pen)
         else:
-            # Restore normal pen
-            self._init_appearance()
+            self._restore_layout_pen()
+
+
+    def hoverEnterEvent(self, event) -> None:
+        """
+        Handle hover enter events: draw the line in blue while not
+        selected (same feedback as the nodes' blue border on hover).
+        """
+        if not self.isSelected():
+            width = self.layout.thickness or self.DEFAULT_PEN.width()
+            self.setPen(QPen(self.DEFAULT_SELECTED_PEN.color(), width))
+        super().hoverEnterEvent(event)
+
+
+    def hoverLeaveEvent(self, event) -> None:
+        """
+        Handle hover leave events: restore the normal pen, or keep the
+        dashed selected pen if the connection is selected.
+        """
+        if self.isSelected():
+            self.set_selected_appearance(True)
+        else:
+            self._restore_layout_pen()
+        super().hoverLeaveEvent(event)
 
 
     def update_layout(self) -> None:

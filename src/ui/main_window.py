@@ -310,9 +310,19 @@ class MainWindow(QMainWindow):
     # ---------------------------------------------------------------------
     def _create_project(self):
         """Create a new project"""
-        # Close current project with confirmation if needed
-        if not self._close_project():
-            return
+        # RG060: Check if the current project is modified before creating a new one
+        if self.project_service.is_modified:
+            reply = QMessageBox.question(
+                self,
+                "Confirmation",
+                "The current project has been modified. Do you want to save it before creating a new one?",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+            )
+
+            if reply == QMessageBox.Cancel:
+                return  # Cancel creation
+            if reply == QMessageBox.Yes and not self._save_project():
+                return  # Save failed or was cancelled
 
         self.create_project_usecase.execute()
         self._init_workspace()
@@ -326,6 +336,20 @@ class MainWindow(QMainWindow):
 
     def _open_project(self):
         """Open a project from the file system"""
+        # RG060: Check if the current project is modified before opening a new one
+        if self.project_service.is_modified:
+            reply = QMessageBox.question(
+                self,
+                "Confirmation",
+                "The current project has been modified. Do you want to save it before opening a new one?",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+            )
+
+            if reply == QMessageBox.Cancel:
+                return  # Cancel opening
+            if reply == QMessageBox.Yes and not self._save_project():
+                return  # Save failed or was cancelled
+
         default_dir = self._get_default_project_dir()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -384,7 +408,8 @@ class MainWindow(QMainWindow):
         # Single workspace (MVP : journey view only)
         self.workspace = JourneyWorkspace(
             narrative_map=self.project_service.current_project.narrative_map[0],
-            info_bar=self.info_bar
+            info_bar=self.info_bar,
+            main_window=self
         )
         self.middle_layout.addWidget(self.workspace)
         

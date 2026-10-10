@@ -14,9 +14,10 @@ import logging
 
 from PySide6.QtWidgets import (
     QGraphicsView, QGraphicsScene,
-    QGraphicsEllipseItem, QGraphicsItem
+    QGraphicsEllipseItem, QGraphicsItem,
+    QMenu
 )
-from PySide6.QtCore import Qt, QPointF, Signal, QObject
+from PySide6.QtCore import Qt, QPointF, Signal, QObject, QEvent
 from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
 
 from core.models.view_model import NodeType, ConnectionLayout, WorkspaceLayout, RelationType
@@ -46,11 +47,16 @@ class JourneyWorkspace(QGraphicsView, QObject):
     # Signal emitted when a node is moved (for project modification tracking)
     workspace_modified = Signal()
     
-    def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None):
+    def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None, main_window=None):
         super().__init__()
 
         self.narrative_map = narrative_map
         self.info_bar = info_bar
+        self.main_window = main_window
+
+        # Enable context menu
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
 
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
@@ -311,6 +317,20 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
+
+
+    def viewportEvent(self, event):
+        """
+        Swallow Qt's delayed automatic tooltip event.
+
+        Node tooltips are shown instantly by the items themselves (see
+        BaseNode.hoverEnterEvent). Letting the automatic mechanism run
+        would pop a second tooltip at the cursor position when the
+        mouse rests, on top of the one already displayed.
+        """
+        if event.type() == QEvent.ToolTip:
+            return True
+        return super().viewportEvent(event)
 
 
     def mousePressEvent(self, event):
@@ -988,3 +1008,59 @@ class JourneyWorkspace(QGraphicsView, QObject):
             if (item.flags() & QGraphicsItem.ItemIsSelectable and 
                 item.isEnabled()):
                 item.setSelected(False)
+
+    def show_context_menu(self, pos):
+        """Show context menu for nodes, connections, or empty area."""
+        # No context menu while a relation creation is in progress
+        if self.relation_creation_mode:
+            return
+
+        # Convert click position to scene coordinates.
+        # customContextMenuRequested delivers view coordinates while
+        # mapToScene expects viewport coordinates.
+        scene_pos = self.mapToScene(self.viewport().mapFrom(self, pos))
+        item = self.scene.itemAt(scene_pos, self.transform())
+
+        # If the clicked item is a child of a node (e.g., a port), get the parent node
+        if item and not isinstance(item, (StateNode, EventNode, Connection)):
+            parent = item.parentItem()
+            if isinstance(parent, (StateNode, EventNode)):
+                item = parent
+
+        # Select the item under the cursor so menu actions operate on
+        # the item the user actually clicked on
+        if isinstance(item, (StateNode, EventNode, Connection)):
+            self._select_item_only(item)
+        else:
+            self._clear_all_selections()
+
+        menu = QMenu(self)
+        handlers = {}
+
+        if isinstance(item, StateNode):
+            # Context menu for State nodes
+            handlers[menu.addAction("Edit State")] = lambda: self.main_window._edit_selected_component("State")
+            handlers[menu.addAction("Delete State")] = lambda: self.main_window._delete_selected_component("State")
+
+        elif isinstance(item, EventNode):
+            # Context menu for Event nodes
+            handlers[menu.addAction("Edit Event")] = lambda: self.main_window._edit_selected_component("Event")
+            handlers[menu.addAction("Delete Event")] = lambda: self.main_window._delete_selected_component("Event")
+
+        elif isinstance(item, Connection):
+            # Context menu for Connections
+            handlers[menu.addAction("Edit Relation")] = lambda: self.main_window._edit_selected_relation()
+            handlers[menu.addAction("Delete Relation")] = lambda: self.main_window._delete_selected_relation()
+
+        else:
+            # Context menu for empty area
+            handlers[menu.addAction("New State")] = lambda: self.main_window._create_new_node("State")
+            handlers[menu.addAction("New Event")] = lambda: self.main_window._create_new_node("Event")
+            handlers[menu.addAction("Connect State and Event")] = lambda: self.main_window._start_state_event_relation_creation()
+
+        # Show the menu at the cursor position and run the handler matching
+        # the chosen action (None if the menu was dismissed)
+        chosen = menu.exec(self.mapToGlobal(pos))
+        handler = handlers.get(chosen)
+        if handler:
+            handler()

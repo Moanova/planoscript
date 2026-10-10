@@ -20,7 +20,7 @@ All concrete node types (AgentNode, StateNode, EventNode) should inherit
 from this class.
 """
 
-from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem, QGraphicsEllipseItem
+from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem, QGraphicsEllipseItem, QToolTip
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QFont
 from typing import Optional, Any
@@ -276,6 +276,18 @@ class BaseNode(QGraphicsRectItem):
         """Handle hover enter events."""
         # Visual feedback for hover
         self.setPen(QPen(QColor(0, 120, 215), 2))  # Blue border on hover
+        # Tooltip: display the entity's label (lb) IMMEDIATELY,
+        # bypassing the system hover delay (~1s). The workspace
+        # swallows Qt's delayed automatic tooltip event (see
+        # JourneyWorkspace.viewportEvent), which would otherwise pop a
+        # second tooltip at the cursor when the mouse rests.
+        lb = getattr(self.entity, 'lb', None) if self.entity is not None else None
+        if lb:
+            # Also set the tooltip on the item: if the automatic
+            # mechanism ever runs anyway, it re-shows this tooltip
+            # instead of hiding the one displayed below.
+            self.setToolTip(str(lb))
+            QToolTip.showText(event.screenPos(), str(lb))
         super().hoverEnterEvent(event)
 
 
@@ -284,6 +296,8 @@ class BaseNode(QGraphicsRectItem):
         # Restore normal appearance
         if not self.isSelected():
             self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
+        # Hide the tooltip shown on hover
+        QToolTip.hideText()
         super().hoverLeaveEvent(event)
 
 
