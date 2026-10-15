@@ -366,6 +366,53 @@ class LayoutService:
         return layouts
 
     @classmethod
+    def delete_stale_layouts(
+        cls,
+        project_filepath: str,
+        keep_ids: List[str]
+    ) -> int:
+        """
+        Delete layout files that do not belong to the given narrative map IDs.
+
+        Called after a successful save over an existing project file, so that
+        layouts left over from a previously saved project (which was
+        overwritten) are removed. Only the layouts of the narrative maps
+        actually belonging to the saved project must remain.
+
+        Args:
+            project_filepath: Full path to the project JSON file
+            keep_ids: narrative_map_id strings whose layouts must be kept
+
+        Returns:
+            Number of deleted layout files, or -1 on error
+        """
+        if not project_filepath:
+            raise ValueError("project_filepath cannot be empty")
+
+        layout_dir = cls._get_layout_dir(project_filepath)
+        if not layout_dir.exists():
+            return 0
+
+        # Sanitize keep_ids the same way _get_layout_filepath does,
+        # so the comparison matches the filenames on disk
+        keep_filenames = {
+            narrative_map_id.replace("/", "_").replace("\\", "_") + ".json"
+            for narrative_map_id in keep_ids
+        }
+
+        deleted = 0
+        try:
+            for filepath in layout_dir.glob("*.json"):
+                if filepath.name not in keep_filenames:
+                    filepath.unlink()
+                    deleted += 1
+                    logger.debug("Stale layout deleted: %s", filepath)
+            return deleted
+        except IOError as e:
+            logger.error("Error deleting stale layouts in %s: %s", layout_dir, e)
+            return -1
+
+    @classmethod
     def delete_project_layouts(
         cls,
         project_filepath: str

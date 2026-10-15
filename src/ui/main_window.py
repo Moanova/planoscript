@@ -559,6 +559,14 @@ class MainWindow(QMainWindow):
                         workspace_layout.narrative_map_id,
                         workspace_layout
                     )
+                    # Remove layouts left over from a project previously saved
+                    # under the same file (MVP: one narrative map per project)
+                    stale = LayoutService.delete_stale_layouts(
+                        file_path,
+                        [workspace_layout.narrative_map_id]
+                    )
+                    if stale:
+                        logger.debug("Deleted %d stale layout file(s) for %s", stale, file_path)
                 self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb} ({file_path})")
                 # Refresh menu state: is_modified is now False, so Save
                 # should be disabled until the next modification.
