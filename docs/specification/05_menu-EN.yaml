@@ -92,12 +92,12 @@ menu:
           items:
             - name: Journey
               note: "Not implemented - Tab present in TabBar but not connected"
-            - name: Relations
-              note: "Specified (SU009) - Agents view (agents × states matrix) - Not implemented"
+            - name: Agents
+              note: "Specified (SU009) - Agents view (agents × states matrix) - Not implemented; the former 'Relations' tab is a leftover from an earlier version and is removed from the MVP"
         - name: Components...
           items:
             - name: Agent
-              note: "Implemented - Creates an Agent node in the center of the workspace"
+              note: "Not implemented - Menu entry currently disabled; agent management specified in FN031 (SU008, SU009)"
             - name: State
               items:
                 - name: New...

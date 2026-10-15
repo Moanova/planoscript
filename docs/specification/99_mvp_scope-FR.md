@@ -17,7 +17,8 @@ Le MVP doit permettre de vérifier que la représentation graphique apporte une 
 |---|---|---|
 | Projet          | Créer, ouvrir, enregistrer, enregistrer sous, fermer un projet         | SU001 |
 | Carte narrative | Une carte narrative unique par projet                                  | SU002 |
-| Composants      | Créer, déplacer, sélectionner et afficher les cinq types de composants | SU003 |
+| Composants      | Créer, déplacer, sélectionner et afficher les trois types de composants (agent, état, événement) | SU003 |
+| Agents          | Gérer les agents du projet et les associations agent-état ; vue agents (matrice agents × états) | SU008, SU009 |
 | Relations       | Créer et afficher les relations initialement supportées                | SU004 |
 | Visualisation   | Vue Parcours, grille, déplacement, défilement                          | SU006 |
 | Persistance     | Sauvegarde locale des données et de la mise en page                    | RG003 |
@@ -36,7 +37,7 @@ Le MVP doit permettre de vérifier que la représentation graphique apporte une 
 - Les barres latérales d'outils ne seront pas implémentées.
 - Le zoom de la visualisation de la carte n'est pas disponible.
 - Les données narratives et les informations de mise en page doivent pouvoir être restaurées après fermeture et réouverture du projet.
-- La vue alternative des relations entre agents ne s'est pas disponible ; ele sera implémentée dans une version ultérieure.
+- La vue des relations entre agents (relations d'agent à agent) n'est pas disponible ; si elle est réalisée un jour, elle constituera un troisième espace de travail distinct. La vue agents (matrice des associations agent-état) fait en revanche partie du MVP (SU008, SU009).
 - L'export technique pour réimport dans un autre projet n'est pas disponible.
 - La lecture par événements de l'export n'est pas disponible ; elle sera implémentée dans une version ultérieure.
 - La cohérence de parcours n'est pas analysée : les enchaînements brisés ne seront donc pas détectés.

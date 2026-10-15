@@ -336,7 +336,7 @@
 - **References** : SU008; state context menu "Associate agents..." (journey view); agents × states matrix (agents view); RG063.
 - **Expected behavior** :
     - From the journey view, the state context menu opens a dialog listing all the project agents with their current association status for this state (checked/unchecked). Checking associates, unchecking dissociates.
-    - The dialog allows creating a new agent and associating it in a single operation.
+    - The dialog allows creating a new agent and associating it in a single operation; creation follows the rules of FN031 (identifier, label, type, note), the dialog being only an additional entry point.
     - From the agents view, editing is done by checking/unchecking the matrix cell.
     - The application prevents creating a duplicate association (RG063).
     - Agents associated with a state are represented by badges on the state node in the journey view.
@@ -351,7 +351,7 @@
     - An agent belongs to the project; it is characterized by an integer identifier unique within the project, a label, a type (subject or object) and an optional note.
     - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation.
     - Any agent creation, modification or deletion marks the project as modified.
-- **Status** : Partially implemented (creation of an agent node in the center of the workspace — project-level attachment and dedicated agent management are not implemented).
+- **Status** : Not implemented (the AgentNode graphic class exists, but the agent creation menu entry is disabled and no dedicated agent management is in place).
 
 ## FN032 : Switch between the journey view and the agents view (cross-navigation)
 
@@ -370,9 +370,9 @@
 - Multi-map operations: creation, duplication, deletion, and navigation between multiple narrative maps of the same project (SU001, SU002 — MVP: one single map per project).
 - Import of a narrative map from a standalone file (SU002 — removed from the MVP by decision of 08-09-2026).
 - Technical map export intended for re-import (SU007 — postponed, due to the exclusion of import).
-- Reading export "by events" and "by agent relationships" (SU007).
+- Reading export "by events" and "by agent relationships" (SU007 — agent-to-agent relations).
 - Zoom of the visualization space (SU006).
 - "Components" and "journeys" toolbars (SU003, SU005 — menu actions only).
 - Journey consistency analysis (SU005).
 - "Edit" menu (undo, redo, history, cut, copy, paste, delete): absent from user stories and not implemented; to be decided (menu removal or later specification).
-- Alternative "Relations" view between agents (SU006).
+- View of relations between agents (agent-to-agent relations) (SU006) — distinct workspace, outside MVP.

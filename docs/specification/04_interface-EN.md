@@ -63,10 +63,9 @@
   - **Project**:
     - **View**:
       - Journey - Not implemented
-      - Relations - Not implemented
-      - Chapters - Not implemented
+      - Agents - Not implemented (SU009; the Relations and Chapters entries are leftovers removed from the MVP)
     - **Components...**:
-      - Agent - Functional
+      - Agent - Not implemented (menu entry disabled; agent management specified in FN031)
       - **State**:
         - New... - Functional
         - Edit - Not implemented (enabled when a State node is selected)
@@ -157,8 +156,8 @@
 
 - **Elements**:
   - "Journeys" tab - **Active by default**
-  - "Relations" tab - *Not implemented*
-  - "Chapters" tab - *Not implemented*
+  - "Agents" tab - *Not implemented* (second workspace, agents × states matrix - SU009)
+  - The "Relations" and "Chapters" tabs are leftovers from an earlier version: they are not part of the MVP and are removed from the specification.
 
 - **Tab Style**:
   - Background: `#f8f8f8`.
@@ -245,10 +244,10 @@
 ### 6.bis. Agents View (Secondary Workspace) - *Not implemented*
 
 - **File** : `./src/ui/views/agents_workspace.py` (to be created)
-- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Relations" tab of the tab bar.
+- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar.
 - **Representation** : Agents × states matrix.
   - One row per project agent; one column per state of the current narrative map.
-  - The column order follows the map flow order, or the activated journey order if the journey filter is active.
+  - The column order follows a management rule to be determined (see SU009).
   - Each column displays the state label (truncated according to the current display rules) and its type (state type icon/color).
   - A checked cell materializes an agent-state association (SU008). Editing is done by checking/unchecking the cell.
 - **Focus contract (cross-view navigation, P2)** :
@@ -361,8 +360,7 @@
 - [ ] Modification history
 - [ ] Map Export/Import
 - [ ] Recent projects
-- [ ] "Relations" view
-- [ ] "Chapters" view
+- [ ] "Agents" view (agents × states matrix, SU008/SU009)
 - [ ] Deletion of nodes/relations
 
 

@@ -169,7 +169,7 @@
     - Les barres d'outils de composants et de parcours ne sont pas disponibles.
     - Le zoom n'est pas disponible.
     - L'application cible exclusivement les PC sous Windows.
-    - La vue alternative des relations entre agents ne s'est pas disponible ; ele sera implémentée dans une version ultérieure.
+    - La vue des relations entre agents (relations d'agent à agent) n'est pas disponible ; si elle est réalisée un jour, elle constituera un troisième espace de travail distinct. La vue agents (matrice des associations agent-état, SU009) fait partie du MVP.
 	
 
 ## SU007 : Exporter une carte narrative
@@ -196,7 +196,7 @@
 - **Périmètre MVP** :
     - L'export technique pour réimport dans un autre projet n'est pas disponible.
     - La lecture par événements n'est pas disponible ; elle sera implémentée dans une version ultérieure.
-    - La lecture par relations entre agents n'est pas disponible ; elle sera implémentée dans une version ultérieure.
+    - La lecture par relations entre agents (relations d'agent à agent) n'est pas disponible ; elle sera implémentée dans une version ultérieure.
 
 ## SU008 : Gérer les associations agent-état
 
@@ -227,8 +227,9 @@
     - Toute association, dissociation ou création d'agent marque la carte, et donc le projet, comme modifiés.
 
 - **Périmètre MVP** :
-    - La vue agents et la matrice agents × états ne sont pas implémentées dans le MVP ; seul le point d'entrée « vue parcours » (menu contextuel d'un état) est spécifié pour le MVP.
+    - Les associations agent-état font partie du MVP ; les deux points d'entrée (vue parcours et matrice de la vue agents) sont spécifiés pour le MVP.
     - La note optionnelle portée par la relation agent-état n'est pas éditable dans le MVP.
+    - Les relations entre agents (graphe d'interactions agent-agent) sont exclues du modèle de données applicatif et du MVP : un agent n'est jamais directement relié à un autre agent.
 
 ## SU009 : Gérer la vue agents
 
@@ -237,7 +238,7 @@
 - **Complément** :
     - La vue agents est un espace de travail distinct de la vue parcours, présenté dans la barre d'onglets sous l'onglet « Relations ». Les états et les événements forment un graphe de flux (d'un état initial vers des états finaux) ; la relation agent-état est une relation d'appartenance, représentée par une matrice et non par un graphe de flux.
     - La vue agents se présente sous la forme d'une matrice agents × états : une ligne par agent du projet, une colonne par état de la carte narrative courante.
-    - L'ordre des colonnes reprend l'ordre des états selon le flux de la carte, ou selon le parcours activé si le filtre de parcours est actif. Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type.
+    - L'ordre des colonnes suit une règle de gestion à déterminer (candidats : ordre de création des états, ordre selon le parcours activé si le filtre de parcours est actif). Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type. La règle définitive sera ajoutée au document des règles de gestion avant l'implémentation de la vue agents.
     - Une cellule cochée matérialise l'association entre l'agent de la ligne et l'état de la colonne. L'édition s'effectue en cochant/décochant la cellule.
     - Les agents sont portés par le projet : la vue agents est unique pour l'ensemble du projet, contrairement à la vue parcours qui est liée à une carte narrative.
     - L'application autorise l'édition sans contrôle de complétude : un état peut temporairement n'être associé à aucun agent (philosophie identique à la règle des états finaux manquants en cours d'édition). Des règles de complétude pourront être ajoutées ultérieurement sous forme d'avertissements non bloquants.
@@ -253,12 +254,13 @@
     - La matrice affiche une ligne par agent du projet et une colonne par état de la carte courante.
     - L'utilisateur peut cocher/décocher une cellule pour associer/dissocier un agent et un état.
     - Les associations modifiées depuis la vue parcours sont immédiatement répercutées dans la matrice, et réciproquement.
-    - L'ordre des colonnes suit l'ordre du flux ou du parcours activé, selon l'état du filtre de parcours.
+    - L'ordre des colonnes respecte la règle de gestion dédiée (à déterminer).
     - L'utilisateur peut créer, renommer, modifier ou supprimer un agent depuis la vue agents.
     - (P2) L'utilisateur peut basculer vers la vue agents ciblée sur un état depuis le menu contextuel de cet état dans la vue parcours.
     - (P2) L'utilisateur peut basculer vers la vue parcours ciblée sur les états d'un agent depuis la vue agents.
     - Le focus de navigation ne marque pas le projet comme modifié et n'est pas conservé entre les sessions.
 
 - **Périmètre MVP** :
-    - La vue agents n'est pas implémentée dans le MVP ; cette spécification constitue la conception cible de la version ultérieure.
-    - La navigation croisée entre vues est reportée en P2.
+    - La vue agents (matrice agents × états) fait partie du MVP et sera implémentée en tant que second espace de travail.
+    - La navigation croisée entre vues est reportée en priorité P2 ; le contrat de focus est néanmoins spécifié dès la conception pour éviter toute refonte ultérieure.
+    - Les relations entre agents sont exclues : la vue agents ne représente que les associations agent-état.

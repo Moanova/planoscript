@@ -63,10 +63,9 @@
   - **Projet** :
     - **Vue** :
       - Parcours — Non implémenté
-      - Relations — Non implémenté
-      - Chapitres — Non implémenté
+      - Agents — Non implémenté (SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
     - **Composants...** :
-      - Agent — Fonctionnel
+      - Agent — Non implémenté (entrée de menu désactivée ; gestion des agents spécifiée dans FN031)
       - **État** :
         - Nouveau... — Fonctionnel
         - Éditer — Non implémenté (actif si un node État est sélectionné)
@@ -157,8 +156,8 @@
 
 - **Éléments** :
   - Onglet « Parcours » — **Actif par défaut**
-  - Onglet « Relations » — *Non implémenté*
-  - Onglet « Chapitres » — *Non implémenté*
+  - Onglet « Agents » — *Non implémenté* (second espace de travail, matrice agents × états — SU009)
+  - Les onglets « Relations » et « Chapitres » sont des reliquats d'une version antérieure : ils ne font pas partie du MVP et sont retirés de la spécification.
 
 - **Style des onglets** :
   - Arrière-plan : `#f8f8f8`.
@@ -245,10 +244,10 @@
 ### 6.bis. Vue agents (Espace de travail secondaire) — *Non implémentée*
 
 - **Fichier** : `./src/ui/views/agents_workspace.py` (à créer)
-- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Relations » de la barre d'onglets.
+- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Agents » de la barre d'onglets.
 - **Représentation** : Matrice agents × états.
   - Une ligne par agent du projet ; une colonne par état de la carte narrative courante.
-  - L'ordre des colonnes suit l'ordre du flux de la carte, ou du parcours activé si le filtre de parcours est actif.
+  - L'ordre des colonnes suit une règle de gestion à déterminer (voir SU009).
   - Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type (icône/couleur du type d'état).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cochant/décochant la cellule.
 - **Contrat de focus (navigation croisée, P2)** :
@@ -361,8 +360,7 @@
 - [ ] Historique des modifications
 - [ ] Export/Import de carte
 - [ ] Projets récents
-- [ ] Vue « Relations »
-- [ ] Vue « Chapitres »
+- [ ] Vue « Agents » (matrice agents × états, SU008/SU009)
 - [ ] Suppression de nœuds/relations
 
 

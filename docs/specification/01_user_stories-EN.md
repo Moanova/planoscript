@@ -169,7 +169,7 @@
     - The component and journey toolbars are not available.
     - Zoom is not available.
     - The application exclusively targets PCs running Windows.
-    - The alternative view of relationships between agents is not available; it will be implemented in a later version.
+    - The view of relations between agents (agent-to-agent relations) is not available; if it is ever built, it will be a distinct third workspace. The agents view (agent-state association matrix, SU009) is part of the MVP.
 
 
 ## SU007: Export a Narrative Map
@@ -196,7 +196,7 @@
 - **MVP scope**:
     - The technical export for re-import into another project is not available.
     - Reading by events is not available; it will be implemented in a later version.
-    - Reading by relationships between agents is not available; it will be implemented in a later version.
+    - Reading by relations between agents (agent-to-agent relations) is not available; it will be implemented in a later version.
 
 ## SU008 : Manage agent-state associations
 
@@ -227,8 +227,9 @@
     - Any association, dissociation or agent creation marks the map, and therefore the project, as modified.
 
 - **MVP scope** :
-    - The agents view and the agents × states matrix are not implemented in the MVP; only the "journey view" entry point (state context menu) is specified for the MVP.
+    - Agent-state associations are part of the MVP; both entry points (journey view and agents view matrix) are specified for the MVP.
     - The optional note carried by the agent-state relation is not editable in the MVP.
+    - Relations between agents (agent-agent interaction graph) are excluded from the application data model and from the MVP: an agent is never directly linked to another agent.
 
 ## SU009 : Manage the agents view
 
@@ -237,7 +238,7 @@
 - **Complément** :
     - The agents view is a workspace distinct from the journey view, presented in the tab bar under the "Relations" tab. States and events form a flow graph (from an initial state to final states); the agent-state relation is a membership relation, represented by a matrix and not by a flow graph.
     - The agents view takes the form of an agents × states matrix: one row per project agent, one column per state of the current narrative map.
-    - The column order follows the order of the states along the map flow, or along the activated journey if the journey filter is active. Each column displays the state label (truncated according to the current display rules) and its type.
+    - The column order follows a management rule to be determined (candidates: state creation order, activated journey order if the journey filter is active). Each column displays the state label (truncated according to the current display rules) and its type. The final rule will be added to the business rules document before the agents view is implemented.
     - A checked cell materializes the association between the row agent and the column state. Editing is done by checking/unchecking the cell.
     - Agents are carried by the project: the agents view is unique for the whole project, unlike the journey view which is tied to a narrative map.
     - The application allows editing without completeness control: a state may temporarily be associated with no agent (same philosophy as missing final states during editing). Completeness rules may be added later as non-blocking warnings.
@@ -253,12 +254,13 @@
     - The matrix displays one row per project agent and one column per state of the current map.
     - The user can check/uncheck a cell to associate/dissociate an agent and a state.
     - Associations modified from the journey view are immediately reflected in the matrix, and conversely.
-    - The column order follows the flow order or the activated journey order, depending on the journey filter state.
+    - The column order follows the dedicated management rule (to be determined).
     - The user can create, rename, modify or delete an agent from the agents view.
     - (P2) The user can switch to the agents view focused on a state from that state's context menu in the journey view.
     - (P2) The user can switch to the journey view focused on an agent's states from the agents view.
     - The navigation focus does not mark the project as modified and is not persisted between sessions.
 
 - **MVP scope** :
-    - The agents view is not implemented in the MVP; this specification is the target design of a later version.
-    - Cross-view navigation is postponed to P2.
+    - The agents view (agents × states matrix) is part of the MVP and will be implemented as a second workspace.
+    - Cross-view navigation is postponed to priority P2; the focus contract is nevertheless specified at design time to avoid any later rework.
+    - Relations between agents are excluded: the agents view only represents agent-state associations.

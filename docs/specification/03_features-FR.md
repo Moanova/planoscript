@@ -157,7 +157,7 @@
 # Composants de la carte narrative
 
 ## FN014 : Créer un composant
-- **Description** : Créer un composant de type agent, état ou événement dans la carte narrative.
+- **Description** : Créer un composant de type agent, état ou événement dans la carte narrative (les trois types de composants du modèle de données ; les références spatiales et temporelles des versions antérieures ont été retirées).
 - **Références** : SU003 ; menu "Project › Components... › Agent" (création directe), "Project › Components... › State › New..." et "Project › Components... › Event › New...".
 - **Comportement attendu** :
     - En MVP, la création s'effectue exclusivement depuis le menu (pas de barre d'outils).
@@ -336,7 +336,7 @@
 - **Références** : SU008 ; menu contextuel d'un état « Associer des agents... » (vue parcours) ; matrice agents × états (vue agents) ; RG063.
 - **Comportement attendu** :
     - Depuis la vue parcours, le menu contextuel d'un état ouvre un dialogue listant tous les agents du projet avec leur statut d'association courant pour cet état (coché/décoché). Cocher associe, décocher dissocie.
-    - Le dialogue permet de créer un nouvel agent et de l'associer en une seule opération.
+    - Le dialogue permet de créer un nouvel agent et de l'associer en une seule opération ; la création suit les règles de FN031 (identifiant, libellé, type, note), le dialogue n'étant qu'un point d'entrée supplémentaire.
     - Depuis la vue agents, l'édition s'effectue en cochant/décochant la cellule de la matrice.
     - L'application empêche la création d'une association en double (RG063).
     - Les agents associés à un état sont représentés par des badges sur le node de l'état dans la vue parcours.
@@ -351,7 +351,7 @@
     - Un agent appartient au projet ; il est caractérisé par un identifiant entier unique au sein du projet, un libellé, un type (sujet ou objet) et une note optionnelle.
     - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable.
     - Toute création, modification ou suppression d'agent marque le projet comme modifié.
-- **État** : Partiellement implémenté (création d'un node agent au centre de l'espace de travail — le rattachement au projet et la gestion dédiée des agents ne sont pas implémentés).
+- **État** : Non implémenté (le node graphique AgentNode existe, mais l'entrée de menu de création d'agent est désactivée et aucune gestion dédiée des agents n'est en place).
 
 ## FN032 : Basculer entre la vue parcours et la vue agents (navigation croisée)
 
@@ -371,9 +371,9 @@
 - Opérations multi-cartes : création, duplication, suppression et navigation entre plusieurs cartes narratives d'un même projet (SU001, SU002 — MVP : une seule carte par projet).
 - Import de carte narrative depuis un fichier autonome (SU002 — retiré du MVP par décision du 08-09-2026).
 - Export technique de carte destiné à la réimportation (SU007 — reporté, de fait de l'exclusion de l'import).
-- Export de lecture "par événements" et "par relations entre agents" (SU007).
+- Export de lecture "par événements" et "par relations entre agents" (SU007 — relations d'agent à agent).
 - Zoom de l'espace de visualisation (SU006).
 - Barres d'outils "composants" et "parcours" (SU003, SU005 — actions par menu uniquement).
 - Analyse de cohérence des parcours (SU005).
 - Menu "Edit" (annuler, rétablir, historique, couper, copier, coller, supprimer) : absent des user stories et non implémenté ; à trancher (retrait du menu ou spécification ultérieure).
-- Vue alternative "Relations" entre agents (SU006).
+- Vue des relations entre agents (relations d'agent à agent) (SU006) — espace de travail distinct, hors MVP.

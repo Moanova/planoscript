@@ -17,7 +17,8 @@ The MVP must verify that the graphical representation provides real value for st
 |---|---|---|
 | Project         | Create, open, save, save as, close a project                           | SU001 |
 | Narrative map   | One unique narrative map per project                                   | SU002 |
-| Components      | Create, move, select and display the five types of components          | SU003 |
+| Components      | Create, move, select and display the three component types (agent, state, event) | SU003 |
+| Agents          | Manage project agents and agent-state associations; agents view (agents × states matrix) | SU008, SU009 |
 | Relationships   | Create and display the initially supported relationships               | SU004 |
 | Visualization   | Journey view, grid, panning, scrolling                                 | SU006 |
 | Persistence     | Local saving of data and layout                                        | RG003 |
@@ -36,7 +37,7 @@ The MVP must verify that the graphical representation provides real value for st
 - Tool sidebars will not be implemented.
 - Map visualization zoom is not available.
 - Narrative data and layout information must be restorable after closing and reopening the project.
-- The alternative view of relationships between agents is not available; it will be implemented in a later version.
+- The view of relations between agents (agent-to-agent relations) is not available; if it is ever built, it will be a distinct third workspace. The agents view (agent-state association matrix) is however part of the MVP (SU008, SU009).
 - Technical export for re-import into another project is not available.
 - Event-based reading of the export is not available; it will be implemented in a later version.
 - Journey consistency is not analyzed: broken sequences will therefore not be detected.
