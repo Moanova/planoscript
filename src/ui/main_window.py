@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QMenuBar, QMenu, QLabel,
     QMessageBox, QGridLayout, QFileDialog
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPoint
 
 from ui.views.journey_workspace import JourneyWorkspace
 from ui.nodes.connection import Connection
@@ -39,6 +39,8 @@ from usecases.file_management.save_project_usecase import SaveProjectUseCase
 from usecases.file_management.quit_application_usecase import QuitApplicationUseCase
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
+from usecases.view_management.update_component_usecase import UpdateComponentUseCase
+from ui.dialogs.component_dialog import ComponentDialog
 from config.config_loader import get as _get_config
 from config.user_state_loader import get as _get_user_state, set as _set_user_state
 
@@ -66,6 +68,7 @@ class MainWindow(QMainWindow):
         self.save_project_usecase = SaveProjectUseCase(self.project_service)
         self.quit_usecase = QuitApplicationUseCase(self.project_service)
         self.create_node_usecase = CreateNodeUseCase(self.project_service)
+        self.update_component_usecase = UpdateComponentUseCase(self.project_service)
         self.create_relation_usecase = CreateRelationUseCase(self.project_service)
         self.about_service = AboutService()
         self.change_log_service = ChangeLogService()
@@ -810,8 +813,40 @@ class MainWindow(QMainWindow):
 
 
     def _edit_selected_component(self, component_type: str):
-        """Edit the currently selected component (not yet implemented)."""
-        self.info_bar.show_message(f"Editing {component_type} is not yet implemented")
+        """Edit the data of the currently selected component (State or Event)."""
+        item = self._get_selected_item()
+        if item is None:
+            self.info_bar.show_message("No component selected")
+            return
+        if isinstance(item, Connection) or not hasattr(item, 'entity'):
+            self.info_bar.show_message("Selected item is not a component")
+            return
+        entity = item.entity
+        # Check consistency between the menu entry and the selected entity
+        actual_type = "State" if isinstance(entity, State) else "Event" if isinstance(entity, Event) else None
+        if actual_type != component_type:
+            self.info_bar.show_message(f"Selected component is not a {component_type}")
+            return
+        # Open the edition dialog centered on the workspace
+        dialog = ComponentDialog(entity, self)
+        if hasattr(self, 'workspace') and self.workspace is not None:
+            workspace_center = self.workspace.viewport().rect().center()
+            dialog.move(self.workspace.mapToGlobal(workspace_center) - QPoint(dialog.width() // 2, dialog.height() // 2))
+        if dialog.exec() != ComponentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.update_component_usecase.execute(
+            entity=entity,
+            lb=values['lb'],
+            note=values['note'],
+            typ=values.get('typ')
+        )
+        if result and result.get('success'):
+            item.update_entity_data()
+            self.info_bar.show_message(f"{component_type} updated")
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message(f"Cannot update {component_type}: invalid data")
 
 
     def _delete_selected_component(self, component_type: str):

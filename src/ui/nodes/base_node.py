@@ -143,6 +143,25 @@ class BaseNode(QGraphicsRectItem):
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
 
 
+    def update_entity_data(self) -> None:
+        """
+        Refresh the visual representation after the entity data was updated.
+
+        Refreshes the label text and the tooltip from the current entity
+        attributes (lb, typ, note).
+        """
+        lb = getattr(self.entity, 'lb', None)
+        if lb is not None:
+            self.label.setPlainText(str(lb))
+        typ = getattr(self.entity, 'typ', None)
+        note = getattr(self.entity, 'note', None)
+        tooltip = str(lb) if lb else ''
+        if typ:
+            tooltip += f"\nType: {typ}"
+        if note:
+            tooltip += f"\n{note}"
+        self.setToolTip(tooltip)
+
     def _init_ports(self) -> None:
         """
         Initialize visual input and output ports as ellipse items.
