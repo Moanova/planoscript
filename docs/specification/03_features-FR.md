@@ -328,6 +328,44 @@
 
 ---
 
+# Agents et associations agent-état
+
+## FN030 : Associer des agents à un état
+
+- **Description** : Associer ou dissocier un ou plusieurs agents à un état de la carte narrative, depuis la vue parcours ou depuis la vue agents.
+- **Références** : SU008 ; menu contextuel d'un état « Associer des agents... » (vue parcours) ; matrice agents × états (vue agents) ; RG063.
+- **Comportement attendu** :
+    - Depuis la vue parcours, le menu contextuel d'un état ouvre un dialogue listant tous les agents du projet avec leur statut d'association courant pour cet état (coché/décoché). Cocher associe, décocher dissocie.
+    - Le dialogue permet de créer un nouvel agent et de l'associer en une seule opération.
+    - Depuis la vue agents, l'édition s'effectue en cochant/décochant la cellule de la matrice.
+    - L'application empêche la création d'une association en double (RG063).
+    - Les agents associés à un état sont représentés par des badges sur le node de l'état dans la vue parcours.
+    - Toute association ou dissociation marque la carte, et donc le projet, comme modifiés.
+- **État** : Non implémenté.
+
+## FN031 : Gérer les agents du projet
+
+- **Description** : Créer, renommer, modifier ou supprimer un agent du projet.
+- **Références** : SU008, SU009 ; menu "Project › Components... › Agent" ; vue agents.
+- **Comportement attendu** :
+    - Un agent appartient au projet ; il est caractérisé par un identifiant entier unique au sein du projet, un libellé, un type (sujet ou objet) et une note optionnelle.
+    - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable.
+    - Toute création, modification ou suppression d'agent marque le projet comme modifié.
+- **État** : Partiellement implémenté (création d'un node agent au centre de l'espace de travail — le rattachement au projet et la gestion dédiée des agents ne sont pas implémentés).
+
+## FN032 : Basculer entre la vue parcours et la vue agents (navigation croisée)
+
+- **Description** : Basculer d'une vue à l'autre en ciblant une entité (état ou agent) afin d'examiner ses relations dans l'autre représentation.
+- **Références** : SU009 ; RG067 ; menu contextuel d'un état « Voir dans la vue agents » (vue parcours) ; menu contextuel d'un agent « Voir dans la vue parcours » (vue agents).
+- **Comportement attendu** :
+    - Depuis la vue parcours, « Voir dans la vue agents » bascule vers la vue agents et met en évidence la colonne de l'état ciblé (surbrillance + défilement).
+    - Depuis la vue agents, « Voir dans la vue parcours » bascule vers la vue parcours et met en évidence l'ensemble des états associés à l'agent ciblé ; le reste du graphe est atténué.
+    - Le focus est un état visuel temporaire (RG067) : un clic dans le vide ou la touche Échap le relâche.
+    - La navigation ne marque ni la carte ni le projet comme modifiés.
+- **État** : Non implémenté (priorité P2 ; le contrat de focus est spécifié dès la conception).
+
+---
+
 # Hors périmètre MVP (reportées)
 
 - Opérations multi-cartes : création, duplication, suppression et navigation entre plusieurs cartes narratives d'un même projet (SU001, SU002 — MVP : une seule carte par projet).

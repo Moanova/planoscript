@@ -197,3 +197,68 @@
     - The technical export for re-import into another project is not available.
     - Reading by events is not available; it will be implemented in a later version.
     - Reading by relationships between agents is not available; it will be implemented in a later version.
+
+## SU008 : Manage agent-state associations
+
+- **Description** : As an author, I can associate an agent with zero, one or several states, and conversely associate a state with zero, one or several agents, in order to define who takes part in each step of my narrative.
+
+- **Complément** :
+    - An agent is a data element belonging to the project (not to a narrative map). A state belongs to a narrative map. The agent-state association is carried by the narrative map within the state-agent relation table.
+    - The agent-state relation is non-directional and carries an optional note.
+    - The same agent can be associated with 0, 1 or n distinct states. The same state can be associated with 0, 1 or n distinct agents.
+    - Between a given agent and a given state, only one association can exist (no duplicate).
+    - The agent-state relation is independent of journeys: it depends only on the components it connects.
+    - Agent-state associations are edited from two distinct entry points, both persistent:
+        1. From the journey view: the context menu of a state offers "Associate agents...". A dedicated dialog lists all the agents of the project with their current association status (checked/unchecked) for this state; checking associates, unchecking dissociates. The dialog also allows creating a new agent and associating it in a single operation.
+        2. From the agents view (agents × states matrix): the cell at the intersection of an agent and a state materializes the association; checking the cell associates, unchecking it dissociates.
+    - Both entry points modify the same business data. Any association or dissociation is immediately reflected in the other view.
+    - Agents associated with a state are represented in the journey view by agent badges displayed on the state node.
+
+- **Acceptance criteria** :
+    - The user can associate an agent with a state from the state's context menu in the journey view.
+    - The user can associate an agent with a state from the agents view matrix.
+    - The user can dissociate an agent from a state from either entry point.
+    - The user can create a new agent from the journey view association dialog and immediately associate it with the current state.
+    - The application prevents creating a duplicate association between an agent and a state.
+    - Deleting an agent cascades the deletion of all its associations with states, with prior confirmation.
+    - Deleting a state cascades the deletion of all its associations with agents.
+    - Associations created or removed from one view are immediately visible in the other view.
+    - Any agent associated with at least one state is visible as a badge on that state node in the journey view.
+    - Any association, dissociation or agent creation marks the map, and therefore the project, as modified.
+
+- **MVP scope** :
+    - The agents view and the agents × states matrix are not implemented in the MVP; only the "journey view" entry point (state context menu) is specified for the MVP.
+    - The optional note carried by the agent-state relation is not editable in the MVP.
+
+## SU009 : Manage the agents view
+
+- **Description** : As an author, I can view and edit the associations between the project agents and the states of the narrative map in a second dedicated workspace, in order to manage agents independently of the sequence graph.
+
+- **Complément** :
+    - The agents view is a workspace distinct from the journey view, presented in the tab bar under the "Relations" tab. States and events form a flow graph (from an initial state to final states); the agent-state relation is a membership relation, represented by a matrix and not by a flow graph.
+    - The agents view takes the form of an agents × states matrix: one row per project agent, one column per state of the current narrative map.
+    - The column order follows the order of the states along the map flow, or along the activated journey if the journey filter is active. Each column displays the state label (truncated according to the current display rules) and its type.
+    - A checked cell materializes the association between the row agent and the column state. Editing is done by checking/unchecking the cell.
+    - Agents are carried by the project: the agents view is unique for the whole project, unlike the journey view which is tied to a narrative map.
+    - The application allows editing without completeness control: a state may temporarily be associated with no agent (same philosophy as missing final states during editing). Completeness rules may be added later as non-blocking warnings.
+    - The management rules of the (agent-state) matrix are defined in SU008.
+    - Cross-view navigation (P2):
+        - From the journey view, the context menu of a state offers "Show in agents view": the application switches to the agents view and highlights the column of that state (highlight + scroll).
+        - From the agents view, the context menu of an agent (or a double-click on its row) offers "Show in journey view": the application switches to the journey view and highlights all the states associated with that agent (the relevant nodes are highlighted, the rest of the graph is dimmed).
+        - The common contract for both views is a "focus on an entity" method (single entity or a set derived from the model). The focus is a temporary visual state: it does not mark the project as modified and is not persisted in the graphical metadata. A click on empty space or the Escape key releases the focus.
+        - This cross-navigation is postponed to priority P2; the focus contract is nevertheless specified at design time to avoid any later rework.
+
+- **Acceptance criteria** :
+    - The user can switch between the journey view and the agents view via the tab bar.
+    - The matrix displays one row per project agent and one column per state of the current map.
+    - The user can check/uncheck a cell to associate/dissociate an agent and a state.
+    - Associations modified from the journey view are immediately reflected in the matrix, and conversely.
+    - The column order follows the flow order or the activated journey order, depending on the journey filter state.
+    - The user can create, rename, modify or delete an agent from the agents view.
+    - (P2) The user can switch to the agents view focused on a state from that state's context menu in the journey view.
+    - (P2) The user can switch to the journey view focused on an agent's states from the agents view.
+    - The navigation focus does not mark the project as modified and is not persisted between sessions.
+
+- **MVP scope** :
+    - The agents view is not implemented in the MVP; this specification is the target design of a later version.
+    - Cross-view navigation is postponed to P2.

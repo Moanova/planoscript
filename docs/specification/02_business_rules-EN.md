@@ -269,3 +269,23 @@
 ## RG062
 - **Description**: The type "Initial" can never be selected for a state other than the initial state of the narrative map. When creating or editing a state, the type "Initial" is not offered among the selectable values.
 - **Classification**: Narrative Map Structure.
+
+## RG063
+- **Description**: Between a given agent and a given state of the same narrative map, only one association can exist. Any attempt to create a duplicate association is ignored or refused by the application.
+- **Classification**: Narrative Map Structure.
+
+## RG064
+- **Description**: Deleting an agent cascades the deletion of all agent-state associations referencing its identifier. An informational message is displayed if the agent is associated with at least one state.
+- **Classification**: Narrative Map Structure.
+
+## RG065
+- **Description**: Deleting a state cascades the deletion of all agent-state associations referencing its identifier. An informational message is displayed if the state is associated with at least one agent.
+- **Classification**: Narrative Map Structure.
+
+## RG066
+- **Description**: Agent-state associations are independent of journeys: they depend only on the components (agent, state) they connect. Filtering the display by journey does not affect agent-state associations, only their visibility in the journey view.
+- **Classification**: Narrative Map Structure.
+
+## RG067
+- **Description**: The cross-view navigation focus (journey view, agents view) is a temporary visual state: it does not mark the map or the project as modified, and is not persisted in the graphical metadata or between sessions.
+- **Classification**: Visualization and Interaction.

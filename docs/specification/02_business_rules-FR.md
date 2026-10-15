@@ -270,3 +270,23 @@
 ## RG062
 - **Description** : Le type "Initial" ne peut jamais être sélectionné pour un état autre que l'état initial de la carte narrative. Lors de la création ou de l'édition d'un état, le type "Initial" n'est pas proposé parmi les valeurs sélectionnables.
 - **Classification** : Structure des cartes narratives.
+
+## RG063
+- **Description** : Entre un agent et un état donnés d'une même carte narrative, il ne peut exister qu'une seule association. Toute tentative de création d'une association en double est ignorée ou refusée par l'application.
+- **Classification** : Structure des cartes narratives.
+
+## RG064
+- **Description** : La suppression d'un agent supprime en cascade toutes les associations agent-état qui référencent son identifiant. Un message d'information est affiché si l'agent est associé à au moins un état.
+- **Classification** : Structure des cartes narratives.
+
+## RG065
+- **Description** : La suppression d'un état supprime en cascade toutes les associations agent-état qui référencent son identifiant. Un message d'information est affiché si l'état est associé à au moins un agent.
+- **Classification** : Structure des cartes narratives.
+
+## RG066
+- **Description** : Les associations agent-état sont indépendantes des parcours : elles ne dépendent que des composants (agent, état) qu'elles relient. Le filtrage de l'affichage par parcours n'affecte pas les associations agent-état, uniquement leur visibilité dans la vue parcours.
+- **Classification** : Structure des cartes narratives.
+
+## RG067
+- **Description** : Le focus de navigation croisée entre les vues (vue parcours, vue agents) est un état visuel temporaire : il ne marque ni la carte ni le projet comme modifiés, et n'est pas conservé dans les métadonnées graphiques ni entre les sessions.
+- **Classification** : Visualisation et interaction.

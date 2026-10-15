@@ -242,6 +242,23 @@
       - Devrait avoir un arrière-plan blanc semi-transparent pour la lisibilité.
 
 
+### 6.bis. Vue agents (Espace de travail secondaire) — *Non implémentée*
+
+- **Fichier** : `./src/ui/views/agents_workspace.py` (à créer)
+- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Relations » de la barre d'onglets.
+- **Représentation** : Matrice agents × états.
+  - Une ligne par agent du projet ; une colonne par état de la carte narrative courante.
+  - L'ordre des colonnes suit l'ordre du flux de la carte, ou du parcours activé si le filtre de parcours est actif.
+  - Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type (icône/couleur du type d'état).
+  - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cochant/décochant la cellule.
+- **Contrat de focus (navigation croisée, P2)** :
+  - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne ; agent cible → surbrillance de la ligne et, dans la vue parcours, surbrillance des nodes des états associés avec atténuation du reste du graphe).
+  - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
+- **Rôles** :
+  - Afficher les associations agent-état de la carte courante.
+  - Éditer les associations (cocher/décocher).
+  - Créer, renommer, modifier, supprimer des agents du projet.
+  - (P2) Navigation croisée vers la vue parcours ciblée sur les états d'un agent.
 ### 7. Barre d'informations (Bas gauche)
 - **Fichier** : `./src/ui/widgets/info_bar.py`
 - **Description** : Affiche des informations contextuelles sur l'objet sélectionné.

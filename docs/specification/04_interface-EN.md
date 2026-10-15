@@ -242,6 +242,23 @@
       - Should have a semi-transparent white background for readability.
 
 
+### 6.bis. Agents View (Secondary Workspace) - *Not implemented*
+
+- **File** : `./src/ui/views/agents_workspace.py` (to be created)
+- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Relations" tab of the tab bar.
+- **Representation** : Agents × states matrix.
+  - One row per project agent; one column per state of the current narrative map.
+  - The column order follows the map flow order, or the activated journey order if the journey filter is active.
+  - Each column displays the state label (truncated according to the current display rules) and its type (state type icon/color).
+  - A checked cell materializes an agent-state association (SU008). Editing is done by checking/unchecking the cell.
+- **Focus contract (cross-view navigation, P2)** :
+  - Method common to both views: "focus on an entity" (target state → column highlight + scroll; target agent → row highlight and, in the journey view, highlight of the associated state nodes with the rest of the graph dimmed).
+  - The focus is a temporary visual state (RG067): no modified marking, no persistence. A click on empty space or the Escape key releases it.
+- **Roles** :
+  - Display the agent-state associations of the current map.
+  - Edit associations (check/uncheck).
+  - Create, rename, modify, delete project agents.
+  - (P2) Cross-navigation to the journey view focused on an agent's states.
 ### 7. Information Bar (Bottom Left)
 - **File**: `./src/ui/widgets/info_bar.py`
 - **Description**: Displays contextual information about the selected object.

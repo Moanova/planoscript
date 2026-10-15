@@ -197,3 +197,68 @@
     - L'export technique pour réimport dans un autre projet n'est pas disponible.
     - La lecture par événements n'est pas disponible ; elle sera implémentée dans une version ultérieure.
     - La lecture par relations entre agents n'est pas disponible ; elle sera implémentée dans une version ultérieure.
+
+## SU008 : Gérer les associations agent-état
+
+- **Description** : En tant qu'auteur, je peux associer un agent à zéro, un ou plusieurs états, et réciproquement associer un état à zéro, un ou plusieurs agents, afin de définir qui intervient dans chaque étape de mon récit.
+
+- **Complément** :
+    - Un agent est un élément de données appartenant au projet (et non à une carte narrative). Un état appartient à une carte narrative. L'association agent-état est portée par la carte narrative au sein de la table des relations état-agent.
+    - La relation agent-état est non orientée et porte une note optionnelle.
+    - Un même agent peut être associé à 0, 1 ou n états distincts. Un même état peut être associé à 0, 1 ou n agents distincts.
+    - Entre un agent et un état donnés, il ne peut exister qu'une seule association (pas de doublon).
+    - La relation agent-état est indépendante des parcours : elle ne dépend que des composants qu'elle relie.
+    - Les associations agent-état sont éditées depuis deux points d'entrée distincts, tous deux persistants :
+        1. Depuis la vue parcours : le menu contextuel d'un état propose « Associer des agents... ». Un dialogue dédié liste l'ensemble des agents du projet avec leur état d'association courant (coché/décoché) pour cet état ; cocher associe, décocher dissocie. Le dialogue permet également de créer un nouvel agent et de l'associer en une seule opération.
+        2. Depuis la vue agents (matrice agents × états) : la cellule à l'intersection d'un agent et d'un état matérialise l'association ; cocher la cellule associe, la décocher dissocie.
+    - Les deux points d'entrée modifient la même donnée métier. Toute association ou dissociation est immédiatement répercutée dans l'autre vue.
+    - Les agents associés à un état sont représentés dans la vue parcours par des badges d'agents affichés sur le node de l'état.
+
+- **Critères d'acceptation** :
+    - L'utilisateur peut associer un agent à un état depuis le menu contextuel de l'état dans la vue parcours.
+    - L'utilisateur peut associer un agent à un état depuis la matrice de la vue agents.
+    - L'utilisateur peut dissocier un agent d'un état depuis l'un ou l'autre point d'entrée.
+    - L'utilisateur peut créer un nouvel agent depuis le dialogue d'association de la vue parcours et l'associer immédiatement à l'état courant.
+    - L'application empêche la création d'une association en double entre un agent et un état.
+    - La suppression d'un agent supprime en cascade toutes ses associations avec les états, avec confirmation préalable.
+    - La suppression d'un état supprime en cascade toutes ses associations avec les agents.
+    - Les associations créées ou supprimées depuis une vue sont immédiatement visibles dans l'autre vue.
+    - Tout agent associé à au moins un état est visible sous forme de badge sur le node de cet état dans la vue parcours.
+    - Toute association, dissociation ou création d'agent marque la carte, et donc le projet, comme modifiés.
+
+- **Périmètre MVP** :
+    - La vue agents et la matrice agents × états ne sont pas implémentées dans le MVP ; seul le point d'entrée « vue parcours » (menu contextuel d'un état) est spécifié pour le MVP.
+    - La note optionnelle portée par la relation agent-état n'est pas éditable dans le MVP.
+
+## SU009 : Gérer la vue agents
+
+- **Description** : En tant qu'auteur, je peux visualiser et éditer les associations entre les agents du projet et les états de la carte narrative dans un second espace de travail dédié, afin de gérer les agents indépendamment du graphe des enchaînements.
+
+- **Complément** :
+    - La vue agents est un espace de travail distinct de la vue parcours, présenté dans la barre d'onglets sous l'onglet « Relations ». Les états et les événements forment un graphe de flux (d'un état initial vers des états finaux) ; la relation agent-état est une relation d'appartenance, représentée par une matrice et non par un graphe de flux.
+    - La vue agents se présente sous la forme d'une matrice agents × états : une ligne par agent du projet, une colonne par état de la carte narrative courante.
+    - L'ordre des colonnes reprend l'ordre des états selon le flux de la carte, ou selon le parcours activé si le filtre de parcours est actif. Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type.
+    - Une cellule cochée matérialise l'association entre l'agent de la ligne et l'état de la colonne. L'édition s'effectue en cochant/décochant la cellule.
+    - Les agents sont portés par le projet : la vue agents est unique pour l'ensemble du projet, contrairement à la vue parcours qui est liée à une carte narrative.
+    - L'application autorise l'édition sans contrôle de complétude : un état peut temporairement n'être associé à aucun agent (philosophie identique à la règle des états finaux manquants en cours d'édition). Des règles de complétude pourront être ajoutées ultérieurement sous forme d'avertissements non bloquants.
+    - Les règles de gestion de la matrice (agent-état) sont définies dans SU008.
+    - Navigation croisée entre vues (P2) :
+        - Depuis la vue parcours, le menu contextuel d'un état propose « Voir dans la vue agents » : l'application bascule vers la vue agents et met en évidence la colonne de cet état (surbrillance + défilement).
+        - Depuis la vue agents, le menu contextuel d'un agent (ou un double-clic sur sa ligne) propose « Voir dans la vue parcours » : l'application bascule vers la vue parcours et met en évidence l'ensemble des états associés à cet agent (les nodes concernés passent en surbrillance, le reste du graphe est atténué).
+        - Le contrat commun aux deux vues est une méthode « mettre le focus sur une entité » (entité simple ou ensemble dérivé du modèle). Le focus est un état visuel temporaire : il ne marque pas le projet comme modifié et n'est pas conservé dans les métadonnées graphiques. Un clic dans le vide ou la touche Échap relâche le focus.
+        - Ces navigations croisées sont reportées en priorité P2 ; le contrat de focus est néanmoins spécifié dès la conception pour éviter toute refonte ultérieure.
+
+- **Critères d'acceptation** :
+    - L'utilisateur peut basculer entre la vue parcours et la vue agents via la barre d'onglets.
+    - La matrice affiche une ligne par agent du projet et une colonne par état de la carte courante.
+    - L'utilisateur peut cocher/décocher une cellule pour associer/dissocier un agent et un état.
+    - Les associations modifiées depuis la vue parcours sont immédiatement répercutées dans la matrice, et réciproquement.
+    - L'ordre des colonnes suit l'ordre du flux ou du parcours activé, selon l'état du filtre de parcours.
+    - L'utilisateur peut créer, renommer, modifier ou supprimer un agent depuis la vue agents.
+    - (P2) L'utilisateur peut basculer vers la vue agents ciblée sur un état depuis le menu contextuel de cet état dans la vue parcours.
+    - (P2) L'utilisateur peut basculer vers la vue parcours ciblée sur les états d'un agent depuis la vue agents.
+    - Le focus de navigation ne marque pas le projet comme modifié et n'est pas conservé entre les sessions.
+
+- **Périmètre MVP** :
+    - La vue agents n'est pas implémentée dans le MVP ; cette spécification constitue la conception cible de la version ultérieure.
+    - La navigation croisée entre vues est reportée en P2.

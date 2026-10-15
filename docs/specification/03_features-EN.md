@@ -328,6 +328,44 @@
 
 ---
 
+# Agents and agent-state associations
+
+## FN030 : Associate agents with a state
+
+- **Description** : Associate or dissociate one or several agents with a state of the narrative map, from the journey view or from the agents view.
+- **References** : SU008; state context menu "Associate agents..." (journey view); agents × states matrix (agents view); RG063.
+- **Expected behavior** :
+    - From the journey view, the state context menu opens a dialog listing all the project agents with their current association status for this state (checked/unchecked). Checking associates, unchecking dissociates.
+    - The dialog allows creating a new agent and associating it in a single operation.
+    - From the agents view, editing is done by checking/unchecking the matrix cell.
+    - The application prevents creating a duplicate association (RG063).
+    - Agents associated with a state are represented by badges on the state node in the journey view.
+    - Any association or dissociation marks the map, and therefore the project, as modified.
+- **Status** : Not implemented.
+
+## FN031 : Manage project agents
+
+- **Description** : Create, rename, modify or delete a project agent.
+- **References** : SU008, SU009; menu "Project › Components... › Agent"; agents view.
+- **Expected behavior** :
+    - An agent belongs to the project; it is characterized by an integer identifier unique within the project, a label, a type (subject or object) and an optional note.
+    - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation.
+    - Any agent creation, modification or deletion marks the project as modified.
+- **Status** : Partially implemented (creation of an agent node in the center of the workspace — project-level attachment and dedicated agent management are not implemented).
+
+## FN032 : Switch between the journey view and the agents view (cross-navigation)
+
+- **Description** : Switch from one view to the other while targeting an entity (state or agent) in order to examine its relations in the other representation.
+- **References** : SU009; RG067; state context menu "Show in agents view" (journey view); agent context menu "Show in journey view" (agents view).
+- **Expected behavior** :
+    - From the journey view, "Show in agents view" switches to the agents view and highlights the column of the target state (highlight + scroll).
+    - From the agents view, "Show in journey view" switches to the journey view and highlights all the states associated with the target agent; the rest of the graph is dimmed.
+    - The focus is a temporary visual state (RG067): a click on empty space or the Escape key releases it.
+    - The navigation does not mark the map or the project as modified.
+- **Status** : Not implemented (priority P2; the focus contract is specified at design time).
+
+---
+
 # Outside MVP scope (postponed)
 - Multi-map operations: creation, duplication, deletion, and navigation between multiple narrative maps of the same project (SU001, SU002 — MVP: one single map per project).
 - Import of a narrative map from a standalone file (SU002 — removed from the MVP by decision of 08-09-2026).
