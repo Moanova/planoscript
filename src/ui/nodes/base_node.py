@@ -126,11 +126,14 @@ class BaseNode(QGraphicsRectItem):
         self.setRect(0, 0, self.rect().width(), self.rect().height())
 
 
+    # Temporary rule: node label display truncated to 8 characters
+    LABEL_MAX_DISPLAY_LENGTH = 8
+
     def _init_label(self) -> None:
         """Initialize the label with the entity's name."""
         # Get entity label (lb field is common to all entities)
         label_text = getattr(self.entity, 'lb', 'Unnamed')
-        self.label.setPlainText(label_text)
+        self.label.setPlainText(self.format_label_for_display(label_text))
         
         # Set label font and color
         self.label.setFont(self.TITLE_FONT)
@@ -143,6 +146,19 @@ class BaseNode(QGraphicsRectItem):
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
 
 
+    @classmethod
+    def format_label_for_display(cls, lb) -> str:
+        """
+        Format a label for node display.
+
+        Temporary rule: the displayed label is truncated to the first
+        LABEL_MAX_DISPLAY_LENGTH characters.
+        """
+        text = str(lb) if lb else ''
+        if len(text) > cls.LABEL_MAX_DISPLAY_LENGTH:
+            return text[:cls.LABEL_MAX_DISPLAY_LENGTH]
+        return text
+
     def update_entity_data(self) -> None:
         """
         Refresh the visual representation after the entity data was updated.
@@ -152,7 +168,7 @@ class BaseNode(QGraphicsRectItem):
         """
         lb = getattr(self.entity, 'lb', None)
         if lb is not None:
-            self.label.setPlainText(str(lb))
+            self.label.setPlainText(self.format_label_for_display(lb))
         typ = getattr(self.entity, 'typ', None)
         note = getattr(self.entity, 'note', None)
         tooltip = str(lb) if lb else ''

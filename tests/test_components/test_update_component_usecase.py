@@ -57,13 +57,13 @@ def test_update_state_valid(usecase, project_service):
     state = _make_state()
     project_service.current_project.narrative_map[0].state.append(state)
 
-    result = usecase.execute(entity=state, lb="Hero arrives", typ="Initial", note="Opening scene")
+    result = usecase.execute(entity=state, lb="Hero arrives", typ="Relation", note="Opening scene")
 
     assert result is not None and result['success'] is True
     assert result['entity'] is state
     assert result['component_type'] == "State"
     assert state.lb == "Hero arrives"
-    assert state.typ == "Initial"
+    assert state.typ == "Relation"
     assert state.note == "Opening scene"
 
 
@@ -160,3 +160,31 @@ def test_project_marked_modified(usecase, project_service):
     state = _make_state()
     usecase.execute(entity=state, lb="Renamed")
     assert project_service.is_modified is True
+
+
+# ---------------------------------------------------------------------
+# RG061 / RG062 : initial state type rules
+# ---------------------------------------------------------------------
+
+def test_rg061_initial_state_type_cannot_be_modified(usecase):
+    state = State(id=1, lb="Initial state", typ="Initial")
+    result = usecase.execute(entity=state, lb="Renamed", typ="Action")
+    assert result is None
+    assert state.typ == "Initial"
+    # The label must not be modified either when the update is refused
+    assert state.lb == "Initial state"
+
+
+def test_rg061_initial_state_label_and_note_can_be_modified(usecase):
+    state = State(id=1, lb="Initial state", typ="Initial")
+    result = usecase.execute(entity=state, lb="Renamed", note="Note", typ="Initial")
+    assert result is not None and result['success'] is True
+    assert state.typ == "Initial"
+    assert state.lb == "Renamed"
+
+
+def test_rg062_initial_type_not_selectable_for_other_states(usecase):
+    state = State(id=2, lb="Action state", typ="Action")
+    result = usecase.execute(entity=state, lb="Renamed", typ="Initial")
+    assert result is None
+    assert state.typ == "Action"

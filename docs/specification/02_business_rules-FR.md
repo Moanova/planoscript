@@ -81,8 +81,192 @@
 - **Description** : L'opération d'export ne marque pas la carte narrative ni le projet comme modifiés.
 - **Classification** : Gestion du projet et cycle de vie.
 
+---
+
+## 2. Structure des cartes narratives
+
+## RG015
+- **Description** : Une carte narrative contient toujours au moins un parcours.
+- **Classification** : Structure des cartes narratives.
+
+## RG016
+- **Description** : La suppression d'une carte narrative est irréversible et entraîne la suppression de tous les composants (états et événements), relations et parcours qu'elle contient.
+- **Classification** : Structure des cartes narratives.
+
+## RG017
+- **Description** : La suppression d'un composant (état ou événement) entraîne la suppression automatique de toutes les relations qui le connectent à d'autres composants. Les arcs état-évènement qui le référencent sont supprimés selon les règles de cohérence du graphe de la carte narrative.
+- **Classification** : Structure des cartes narratives.
+
+## RG018
+- **Description** : La suppression d'un parcours est impossible s'il s'agit du dernier parcours de la carte.
+- **Classification** : Structure des cartes narratives.
+
+## RG019
+- **Description** : Chaque entité (projet, carte narrative) possède un identifiant stable (UUID).
+- **Classification** : Structure des cartes narratives.
+
+## RG020
+- **Description** : Chaque composant, relation et parcours possède un identifiant entier unique au sein de sa carte narrative. Le même identifiant peut exister dans deux cartes distinctes.
+- **Classification** : Structure des cartes narratives.
+
+## RG021
+- **Description** : Le libellé d'un composant ou d'un parcours n'est pas contraint à l'unicité au sein d'une même carte narrative.
+- **Classification** : Structure des cartes narratives.
+
+## RG031
+- **Description** : Chaque carte narrative possède un et un seul état initial. Cet état initial se retrouve obligatoirement dans tous les parcours. Tous les parcours commencent à cet état initial. Cet état est créé automatiquement par l'application et ne peut jamais être supprimé.
+- **Classification** : Structure des cartes narratives.
+
+## RG032
+- **Description** : Chaque parcours valide et complet se termine par un état final. Cet état final peut être spécifique à chaque parcours, contrairement à l'état initial qui est commun à tous les parcours. En cours d'édition, un parcours peut temporairement ne pas comporter d'état final.
+- **Classification** : Structure des cartes narratives.
+
+## RG033
+- **Description** : La séquence constitutive d'un parcours est définie par la succession d'état à évènement à état. Chaque relation orientée entre un état et un évènement est matérialisée par un arc état-évènement qui renseigne l'identifiant de l'état, l'identifiant de l'évènement et le sens de la relation (prédécesseur ou successeur). La succession d'état à évènement à état se reconstitue par chaînage des arcs à travers les états et les évènements qu'ils relient.
+- **Classification** : Structure des cartes narratives.
+
+## RG034
+- **Description** : Un même composant (état ou événement) peut appartenir à plusieurs parcours sans duplication grâce à la gestion des arcs état-évènement et des nœuds de parcours. Un état est rattaché à un parcours par l'intermédiaire d'un nœud de parcours. Un événement n'est pas rattaché directement à un parcours ; il appartient à un parcours si et seulement si au moins un arc état-évènement le relie à un état qui est lui-même rattaché à ce parcours. Un événement isolé n'appartient donc à aucun parcours.
+- **Classification** : Structure des cartes narratives.
+
+## RG035
+- **Description** : La séquence constitutive d'un parcours autorise qu'un même état ait plusieurs évènements prédécesseurs et successeurs, ainsi qu'un même événement ait plusieurs états prédécesseurs et successeurs.
+- **Classification** : Structure des cartes narratives.
+
+## RG036
+- **Description** : La suppression d'un parcours supprime obligatoirement toutes les entrées des noeuds de parcours qui portent son identifiant.
+- **Classification** : Structure des cartes narratives.
+
+## RG037
+- **Description** : La suppression d'un état ou d'un événement entraîne la suppression en cascade des références associées dans toutes les tables de données où son identifiant est utilisé comme clé étrangère. Un message d'information est affiché si le composant est référencé par au moins un autre élément.
+- **Classification** : Structure des cartes narratives.
+
+## RG038
+- **Description** : Un état de type final ne possède aucun arc état-évènement sortant, c'est-à-dire aucun arc le reliant à un évènement en tant que successeur.
+- **Classification** : Structure des cartes narratives.
+
 ## RG060
-- **Description** : Avant de remplacer le projet courant (ex: ouverture d'un nouveau projet, création d'un nouveau projet, fermeture de l'application), l'application doit vérifier si le projet courant est modifié et non sauvegardé. Si c'est le cas, une alerte est affichée pour proposer à l'utilisateur de sauvegarder, ignorer les modifications, ou annuler l'opération.
-- **Classification** : Gestion du projet et cycle de vie.
+- **Description** : Le type de l'état initial d'une carte narrative ne peut jamais être modifié. L'état initial conserve définitivement le type "Initial".
+- **Classification** : Structure des cartes narratives.
+
+## RG061
+- **Description** : Le type "Initial" ne peut jamais être sélectionné pour un état autre que l'état initial de la carte narrative. Lors de la création ou de l'édition d'un état, le type "Initial" n'est pas proposé parmi les valeurs sélectionnables.
+- **Classification** : Structure des cartes narratives.
+
+## RG058
+- **Description** : Une connexion bidirectionnelle directe entre un État et un Événement est interdite. Si une relation d'un État S vers un Événement E existe déjà (port de sortie de S connecté au port d'entrée de E), la création de la relation inverse de l'Événement E vers l'État S (port de sortie de E connecté au port d'entrée de S) est interdite, et inversement. Cette règle empêche les cycles directs de longueur 2 (État → Événement → État) dans le graphe de la carte narrative.
+- **Classification** : Structure des cartes narratives.
 
 ---
+
+## 3. Logique des parcours et appartenance
+
+## RG022
+- **Description** : À la création d'une carte narrative, un parcours par défaut est automatiquement créé et activé.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG023
+- **Description** : Lors de la création d'un nouveau parcours, celui-ci devient automatiquement le parcours activé.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG024
+- **Description** : Tout état nouvellement créé est automatiquement rattaché au parcours actuellement activé. Un événement nouvellement créé n'est rattaché à aucun parcours tant qu'il est isolé, c'est-à-dire non relié par aucune relation entrante ou sortante à un état. Un événement devient rattaché à un parcours dès qu'une relation le relie à un état qui est lui-même rattaché à ce parcours. Inversement, si la dernière relation reliant un événement aux états d'un parcours est supprimée, l'événement est détaché de ce parcours et redevient orphelin de parcours.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG025
+- **Description** : Un composant (état ou événement) peut être rattaché simultanément à plusieurs parcours. Un état doit cependant rester rattaché à au moins un parcours à tout moment. Un événement, en revanche, peut être orphelin de tout parcours tant qu'il n'est pas engagé dans au moins une relation avec un état ; cette situation ne peut pas se présenter pour un état.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG026
+- **Description** : Les relations entre composants (état ou événement) n'ont pas de rattachement direct aux parcours. Une relation est implicite au sein d'un parcours si et seulement si ses deux composants extrémités sont tous deux rattachés à ce parcours.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG027
+- **Description** : L'appartenance d'un composant (état ou événement) à un ou plusieurs parcours est gérée via une liste à choix multiples dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG028
+- **Description** : L'utilisateur ne peut pas retirer un état de son dernier parcours. Un événement peut être retiré de tous ses parcours, auquel cas il devient orphelin de tout parcours jusqu'à ce qu'il soit engagé dans une relation avec un état.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG029
+- **Description** : Il existe toujours un parcours par défaut. Les noeuds orphelins après suppression d'un parcours sont automatiquement basculés vers le parcours par défaut.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG030
+- **Description** : Lorsque l'utilisateur retire un composant (état ou événement) d'un parcours, l'application vérifie si ce composant est relié à un autre composant toujours rattaché à ce parcours. Si c'est le cas, l'application lève une alerte : l'utilisateur peut annuler le retrait, ou confirmer la suppression de la relation incohérente.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG052
+- **Description** : Le concept de parcours n'est pas activé tant qu'aucune relation n'a été établie dans la carte narrative. À la création d'un état isolé, aucun nœud de parcours n'est créé. Le rattachement d'un état à un parcours s'effectue lors de la création d'une relation le reliant à un évènement : un nœud de parcours est alors créé, référençant l'arc correspondant et rattachant l'état au parcours actuellement activé.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG054
+- **Description** : Lorsqu'un utilisateur établit une relation entre un état et un évènement, l'application crée un nouvel arc état-évènement renseignant l'état, l'évènement et le sens de la relation (prédécesseur ou successeur). Deux arcs identiques ne peuvent exister pour le même état, le même évènement et le même sens.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG055
+- **Description** : Un seul parcours peut être défini comme le parcours par défaut de sa carte narrative. Si le parcours par défaut est supprimé, l'application désigne automatiquement le plus ancien parcours restant comme nouveau parcours par défaut.
+- **Classification** : Logique des parcours et appartenance.
+
+## RG056
+- **Description** : La suppression d'un état ou d'un évènement entraîne la suppression en cascade de tous les arcs état-évènement qui le référencent, puis de tous les nœuds de parcours qui référencent les arcs supprimés.
+- **Classification** : Logique des parcours et appartenance.
+
+---
+
+## 4. Visualisation et interaction
+
+## RG039
+- **Description** : La position d'un composant (état ou événement) est définie par des coordonnées (x, y) conservées dans un fichier de métadonnées graphiques associé au fichier de données du projet.
+- **Classification** : Visualisation et interaction.
+
+## RG040
+- **Description** : Les composants (état ou événement) s'alignent automatiquement sur la grille d'alignement lors de leur création et de leur déplacement.
+- **Classification** : Visualisation et interaction.
+
+## RG041
+- **Description** : La modification du niveau de zoom ou de la position des barres de défilement ne constitue pas une modification de la carte ni du projet.
+- **Classification** : Visualisation et interaction.
+
+## RG042
+- **Description** : À tout moment, soit tous les parcours, soit un seul parcours sont/est visualisé dans l'espace de représentation, selon l'activation ou non du filtre de parcours.
+- **Classification** : Visualisation et interaction.
+
+## RG043
+- **Description** : À tout moment, un seul composant est sélectionné dans l'espace de travail. La création ou le clic sur un composant le sélectionne et déselectionne le précédent. Un clic sur l'espace de travail en dehors de tout composant déselectionne le composant actuel.
+- **Classification** : Visualisation et interaction.
+
+## RG044
+- **Description** : Un composant ne peut être créé à des coordonnées qui chevauchent celles d'un composant existant. L'application vérifie la position avant la création et ajuste les coordonnées du nouveau composant pour éviter tout chevauchement, en appliquant une translation latérale ou verticale selon les caractéristiques de l'espace de représentation graphique.
+- **Classification** : Visualisation et interaction.
+
+## RG045
+- **Description** : Lorsqu'un composant est déplacé par l'utilisateur et que ses coordonnées dépassent la partie visible de l'espace de travail, l'application déplace la barre de défilement correspondante (latérale ou verticale) pour maintenir le composant visible selon ses coordonnées courantes.
+- **Classification** : Visualisation et interaction.
+
+## RG059
+- **Description** : La représentation visuelle d'une connexion (relation) entre deux composants ne doit jamais chevaucher un composant qui n'en est ni la source ni la cible. À la création d'une connexion, l'application détecte si le tracé de la connexion est susceptible de traverser un composant tiers et, le cas échéant, ajuste automatiquement le routage de la connexion pour contourner ce composant. Cette détection et ce réajustement sont également effectués lorsqu'un composant est déplacé par l'utilisateur et que sa nouvelle position provoque le chevauchement d'une connexion existante dont il n'est pas extrémité. L'ajustement du routage ne modifie ni les coordonnées des composants ni les données du projet ; il ne porte que sur la représentation graphique de la connexion.
+- **Classification** : Visualisation et interaction.
+
+---
+
+## 5. Architecture technique et modèle de données
+
+## RG050
+- **Description** : L'absence de prédécesseur ou de successeur pour un état est matérialisée par l'absence d'arc état-évènement dans le sens correspondant. Un état sans arc entrant est le premier élément d'une séquence ; un état sans arc sortant est le dernier élément.
+- **Classification** : Architecture technique et modèle de données.
+
+## RG051
+- **Description** : Les métadonnées de représentation graphique sont stockées dans un fichier dédié associé au fichier de données du projet.
+- **Classification** : Architecture technique et modèle de données.
+
+## 2. Structure des cartes narratives
+
+## RG061
+- **Description** : Le type de l'état initial d'une carte narrative ne peut jamais être modifié. L'état initial conserve définitivement le type "Initial".
+- **Classification** : Structure des cartes narratives.
+
+## RG062
+- **Description** : Le type "Initial" ne peut jamais être sélectionné pour un état autre que l'état initial de la carte narrative. Lors de la création ou de l'édition d'un état, le type "Initial" n'est pas proposé parmi les valeurs sélectionnables.
+- **Classification** : Structure des cartes narratives.

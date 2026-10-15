@@ -8,7 +8,8 @@
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QComboBox,
-    QTextEdit, QPushButton, QHBoxLayout, QLabel)
+    QTextEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy)
+from PySide6.QtCore import Qt
 from core.models.data_model import State, Event
 
 
@@ -24,6 +25,8 @@ class ComponentDialog(QDialog):
     """
 
     STATE_TYPES = ["Initial", "Action", "Relation", "Final"]
+    EDITABLE_STATE_TYPES = ["Action", "Relation", "Final"]  # RG062: "Initial" is reserved for the initial state
+    DISPLAY_LABEL_MAX_LENGTH = 8  # Temporary rule: display truncated to 8 characters
 
     def __init__(self, entity, parent=None):
         super().__init__(parent)
@@ -34,10 +37,14 @@ class ComponentDialog(QDialog):
 
     def _setup_ui(self):
         self.setWindowTitle(f"Edit {self.component_type}")
-        self.setMinimumWidth(350)
+        self.setModal(True)
+        self.setMinimumSize(525, 420)  # Temporary rule: 150% of the original dimensions
         self.layout = QVBoxLayout(self)
         self.form = QFormLayout()
-        self.layout.addLayout(self.form)
+        self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        # Fields stay at the same position; only the note field grows vertically
+        self.layout.addLayout(self.form, stretch=1)
+        self.layout.setAlignment(self.form, Qt.AlignTop)
         self._add_buttons()
 
     def _setup_content(self):
@@ -49,18 +56,24 @@ class ComponentDialog(QDialog):
         # Type field (State only)
         if self.component_type == "State":
             self.typ_combo = QComboBox()
-            self.typ_combo.addItems(self.STATE_TYPES)
-            current_typ = getattr(self.entity, 'typ', 'Action')
-            index = self.typ_combo.findText(current_typ)
-            if index >= 0:
-                self.typ_combo.setCurrentIndex(index)
+            entity_typ = getattr(self.entity, 'typ', 'Action')
+            if entity_typ == "Initial":
+                # RG061: the initial state type can never be modified
+                self.typ_combo.addItem("Initial")
+                self.typ_combo.setEnabled(False)
+            else:
+                # RG062: "Initial" is not selectable for other states
+                self.typ_combo.addItems(self.EDITABLE_STATE_TYPES)
+                index = self.typ_combo.findText(entity_typ)
+                if index >= 0:
+                    self.typ_combo.setCurrentIndex(index)
             self.form.addRow("Type:", self.typ_combo)
 
         # Note field
         self.note_edit = QTextEdit()
-        self.note_edit.setMaximumHeight(80)
         note = getattr(self.entity, 'note', None) or ""
         self.note_edit.setPlainText(note)
+        self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.form.addRow("Note:", self.note_edit)
 
         # Inline validation message (hidden by default)

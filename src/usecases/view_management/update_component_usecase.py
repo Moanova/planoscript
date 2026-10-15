@@ -104,6 +104,14 @@ class UpdateComponentUseCase:
             if new_typ not in self.STATE_TYPES:
                 logger.warning("Update refused: invalid State.typ %s", typ)
                 return None
+            # RG061: the initial state type can never be modified
+            if entity.typ == "Initial" and new_typ != "Initial":
+                logger.warning("Update refused: initial state type cannot be modified (RG061)")
+                return None
+            # RG062: the "Initial" type is reserved for the initial state
+            if entity.typ != "Initial" and new_typ == "Initial":
+                logger.warning("Update refused: type 'Initial' is not selectable (RG062)")
+                return None
 
         # 5. Update the entity attributes
         entity.lb = new_lb
