@@ -5,10 +5,12 @@ Règles de travail pour tout agent IA intervenant sur ce dépôt.
 ## Vue d'ensemble
 
 Planoscript est un éditeur graphique de "narrative maps" (scripts narratifs) :
-application desktop PySide6 (Python >= 3.10) composée d'états (States) et
-d'événements (Events) reliés par des arcs, avec sauvegarde JSON et layout
-visuel persistant. MVP : une seule vue (Journey), un seul NarrativeMap par
-projet, sélection unique (pas de rubber band multi-sélection).
+application desktop PySide6 (Python >= 3.10) composée d'états (States),
+d'événements (Events) et d'agents reliés par des arcs, avec sauvegarde JSON
+et layout visuel persistant. MVP : deux espaces de travail — vue Parcours
+(Journey) et vue Agents (matrice agents × états, SU008/SU009) —, un seul
+NarrativeMap par projet, sélection unique (pas de rubber band
+multi-sélection).
 
 ## Commandes
 
@@ -65,6 +67,17 @@ src/
   par `self.menu_actions['clé'] = ... addAction(..., lambda: None)` : les
   conserver lors des refactors de menus (les épiques EPC01-EPC03 réactiveront
   certaines d'entre elles).
+
+## Documentation à recharger en début de séance
+
+Au début de chaque séance de travail, recharger dans le contexte (sans que
+cela dispense de relire la section ciblée au moment d'une modification) :
+
+- Tous les documents de `docs/specification/` (versions FR ou EN au choix, le
+  contenu est identique) : user stories, règles de gestion, features,
+  interface, menu, data model, périmètre MVP.
+- `docs/project/kanban.md` (état des tâches, dépendances, fichier de détail
+  de la tâche en cours dans `docs/project/tasks/`).
 
 ## Suivi de projet
 
