@@ -24,18 +24,18 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 ## To do
 
 - [ ] **EPC01 — Gérer les agents du projet** (FN031, SU008/SU009)
-  - [ ] TSK01 — Créer et modifier un agent : entité Agent portée par le projet, identifiant unique projet, type (sujet/objet), réactivation de l'entrée de menu, dialogue d'édition
-  - [ ] TSK02 — Supprimer un agent avec confirmation et suppression en cascade des associations agent-état (RG064) → #TSK01
+  - [x] TSK01 — Créer et modifier un agent : entité Agent portée par le projet, identifiant unique projet, type (sujet/objet), réactivation de l'entrée de menu, dialogue d'édition
+  - [x] TSK02 — Supprimer un agent avec confirmation et suppression en cascade des associations agent-état (RG064) → #TSK01
 - [ ] **EPC02 — Associer des agents à un état** (FN030, SU008)
-  - [ ] TSK03 — Use case d'association agent-état : associer/dissocier, unicité (RG063), cascades (RG064/RG065) — sans UI → #TSK01
-  - [ ] TSK04 — Dialogue « Associer des agents... » depuis le menu contextuel d'un état (liste à cocher, création d'agent intégrée) → #TSK01, #TSK03
-  - [ ] TSK05 — Badges d'agents sur les nodes d'état dans la vue parcours (affichage + rafraîchissement) → #TSK03
+  - [x] TSK03 — Use case d'association agent-état : associer/dissocier, unicité (RG063), cascades (RG064/RG065) — sans UI → #TSK01
+  - [x] TSK04 — Dialogue « Associer des agents... » depuis le menu contextuel d'un état (liste à cocher, création d'agent intégrée) → #TSK01, #TSK03
+  - [x] TSK05 — Badges d'agents sur les nodes d'état dans la vue parcours (affichage + rafraîchissement) → #TSK03
 - [ ] **EPC03 — Implémenter la vue agents** (SU009, second espace de travail, onglet « Agents »)
-  - [ ] TSK06 — Déterminer la règle de gestion de l'ordre des colonnes de la matrice (conception ; à ajouter aux règles de gestion avant implémentation)
-  - [ ] TSK07 — Bascule d'espace de travail : barre d'onglets Parcours ↔ Agents
-  - [ ] TSK08 — Affichage de la matrice agents × états en lecture seule → #TSK06, #TSK07
-  - [ ] TSK09 — Édition des cellules de la matrice (cocher/décocher → use case d'association) → #TSK08, #TSK03
-  - [ ] TSK10 — (P2) Navigation croisée entre vues avec focus (RG067) → #TSK08
+  - [x] TSK06 — Déterminer la règle de gestion de l'ordre des colonnes de la matrice (conception ; à ajouter aux règles de gestion avant implémentation)
+  - [x] TSK07 — Bascule d'espace de travail : barre d'onglets Parcours ↔ Agents
+  - [x] TSK08 — Affichage de la matrice agents × états en lecture seule → #TSK06, #TSK07
+  - [x] TSK09 — Édition des cellules de la matrice (cocher/décocher → use case d'association) → #TSK08, #TSK03
+  - [x] TSK10 — (P2) Navigation croisée entre vues avec focus (RG067) → #TSK08
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
 - [ ] SU004 — Éditer une relation : annotation via panneau de propriétés (FN021)
@@ -51,6 +51,16 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## Done
 
+- [x] TSK10 — Navigation croisée entre vues avec focus RG067 (EPC03, SU009/FN032) — deux sens, Échap/clic relâchent, aucune persistance ni marquage modifié (détail dans `tasks/TSK10_cross_view_navigation.md`)
+- [x] TSK09 — Édition des cellules de la matrice (EPC03, SU008/FN030) — cellClicked → use cases, signal associationChanged, symétrie parcours/matrice (détail dans `tasks/TSK09_matrix_cell_edition.md`)
+- [x] TSK08 — Affichage de la matrice agents × états en lecture seule (EPC03, SU009) — QTableWidget, ordre RG068 persisté, rafraîchissement croisé (détail dans `tasks/TSK08_agents_matrix.md`)
+- [x] TSK07 — Bascule d'espace de travail (EPC03, SU009) — TabBar Journey/Agents, QStackedWidget, placeholder vue agents (détail dans `tasks/TSK07_workspace_tabs.md`)
+- [x] TSK06 — Règle de gestion de l'ordre des colonnes de la matrice (EPC03, conception) — RG068 rédigée (FR/EN), SU009 mise à jour (détail dans `tasks/TSK06_matrix_column_order.md`)
+- [x] TSK05 — Badges d'agents sur les nodes d'état (EPC02, FN030) — pastille unique compteur bas-droit non interactive, infobulle, rafraîchissement (détail dans `tasks/TSK05_agent_badges.md`)
+- [x] TSK04 — Dialogue « Associer des agents... » (EPC02, FN030) — liste à cocher à application immédiate, création d'agent intégrée, double point d'entrée (détail dans `tasks/TSK04_agent_association_dialog.md`)
+- [x] TSK03 — Use case d'association agent-état sans UI (EPC02, FN030) — RG063 idempotente, dissociation, cascade RG065 (détail dans `tasks/TSK03_agent_state_association.md`)
+- [x] TSK02 — Supprimer un agent avec confirmation et cascade RG064 (EPC01, FN031) — confirmation UI, message d'information, tests unitaires (détail dans `tasks/TSK02_agent_delete.md`)
+- [x] TSK01 — Créer et modifier un agent (EPC01, FN031) — création/édition via dialogues, tests unitaires et persistance (détail dans `tasks/TSK01_agent_create_edit.md`)
 - [x] Conception — Évaluer et ajuster le contenu de AGENTS.md (vue d'ensemble alignée sur le MVP agents, rechargement des specs et du kanban en début de séance, suivi kanban, stubs de menus)
 
 - [x] SU003 — Création des composants State et Event (menu + menu contextuel, position centre de l'espace de travail)

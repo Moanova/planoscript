@@ -238,7 +238,7 @@
 - **Complément** :
     - The agents view is a workspace distinct from the journey view, presented in the tab bar under the "Relations" tab. States and events form a flow graph (from an initial state to final states); the agent-state relation is a membership relation, represented by a matrix and not by a flow graph.
     - The agents view takes the form of an agents × states matrix: one row per project agent, one column per state of the current narrative map.
-    - The column order follows a management rule to be determined (candidates: state creation order, activated journey order if the journey filter is active). Each column displays the state label (truncated according to the current display rules) and its type. The final rule will be added to the business rules document before the agents view is implemented.
+    - The column order is defined by business rule RG068: by default, state creation order (ascending ID); the user can reorder the columns, the custom order being kept in the project graphical metadata across sessions; the initial state always occupies the first column and cannot be moved; any newly created state appears at the end of the order. The rows (agents) follow the same rule. Each column displays the state label (truncated according to the current display rules) and its type.
     - A checked cell materializes the association between the row agent and the column state. Editing is done by checking/unchecking the cell.
     - Agents are carried by the project: the agents view is unique for the whole project, unlike the journey view which is tied to a narrative map.
     - The application allows editing without completeness control: a state may temporarily be associated with no agent (same philosophy as missing final states during editing). Completeness rules may be added later as non-blocking warnings.
@@ -254,7 +254,7 @@
     - The matrix displays one row per project agent and one column per state of the current map.
     - The user can check/uncheck a cell to associate/dissociate an agent and a state.
     - Associations modified from the journey view are immediately reflected in the matrix, and conversely.
-    - The column order follows the dedicated management rule (to be determined).
+    - The column order respects business rule RG068 (default creation order, persistent manual reordering, initial state always in the first column).
     - The user can create, rename, modify or delete an agent from the agents view.
     - (P2) The user can switch to the agents view focused on a state from that state's context menu in the journey view.
     - (P2) The user can switch to the journey view focused on an agent's states from the agents view.

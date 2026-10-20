@@ -22,7 +22,7 @@ ensures:
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from enum import Enum
 
 from config.config_loader import get as _get_config
@@ -37,7 +37,6 @@ class NodeType(Enum):
     Enumeration of all possible node types that can be displayed in the workspace.
     Each type corresponds to an entity in the business model (data_model.py).
     """
-    AGENT = "Agent"
     STATE = "State"
     EVENT = "Event"
     #JOURNEY = "Journey"
@@ -229,23 +228,27 @@ class WorkspaceLayout:
         narrative_map_id: ID of the associated NarrativeMap from the business model
         state_nodes: Dict keyed by State.id
         event_nodes: Dict keyed by Event.id
-        agent_nodes: Dict keyed by Agent.id
         state_to_event_connections: Dict keyed by State_to_event.id
         event_to_state_connections: Dict keyed by Event_to_state.id
         state_agent_rel_connections: Dict keyed by State_agent_rel.id
         zoom_level: Current zoom level of the workspace (1.0 = 100%)
         scroll_position: Current scroll position (x, y) of the workspace
+        agents_view_column_order: Custom order of the agents view matrix
+            columns (State IDs, RG068); empty = creation order
+        agents_view_row_order: Custom order of the agents view matrix rows
+            (Agent IDs, RG068); empty = creation order
     """
     narrative_map_id: str
     state_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
     event_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
-    agent_nodes: Dict[int, NodeLayout] = field(default_factory=dict)
     state_to_event_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
     event_to_state_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
     state_agent_rel_connections: Dict[int, ConnectionLayout] = field(default_factory=dict)
     zoom_level: float = 1.0
     scroll_x: float = 0.0
     scroll_y: float = 0.0
+    agents_view_column_order: List[int] = field(default_factory=list)
+    agents_view_row_order: List[int] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -253,13 +256,14 @@ class WorkspaceLayout:
             'narrative_map_id': self.narrative_map_id,
             'state_nodes': {k: v.to_dict() for k, v in self.state_nodes.items()},
             'event_nodes': {k: v.to_dict() for k, v in self.event_nodes.items()},
-            'agent_nodes': {k: v.to_dict() for k, v in self.agent_nodes.items()},
             'state_to_event_connections': {k: v.to_dict() for k, v in self.state_to_event_connections.items()},
             'event_to_state_connections': {k: v.to_dict() for k, v in self.event_to_state_connections.items()},
             'state_agent_rel_connections': {k: v.to_dict() for k, v in self.state_agent_rel_connections.items()},
             'zoom_level': self.zoom_level,
             'scroll_x': self.scroll_x,
-            'scroll_y': self.scroll_y
+            'scroll_y': self.scroll_y,
+            'agents_view_column_order': list(self.agents_view_column_order),
+            'agents_view_row_order': list(self.agents_view_row_order)
         }
 
     @classmethod
@@ -269,13 +273,14 @@ class WorkspaceLayout:
             narrative_map_id=str(data['narrative_map_id']),
             state_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('state_nodes', {}).items()},
             event_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('event_nodes', {}).items()},
-            agent_nodes={int(k): NodeLayout.from_dict(v) for k, v in data.get('agent_nodes', {}).items()},
             state_to_event_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('state_to_event_connections', {}).items()},
             event_to_state_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('event_to_state_connections', {}).items()},
             state_agent_rel_connections={int(k): ConnectionLayout.from_dict(v) for k, v in data.get('state_agent_rel_connections', {}).items()},
             zoom_level=float(data.get('zoom_level', 1.0)),
             scroll_x=float(data.get('scroll_x', 0.0)),
-            scroll_y=float(data.get('scroll_y', 0.0))
+            scroll_y=float(data.get('scroll_y', 0.0)),
+            agents_view_column_order=[int(i) for i in data.get('agents_view_column_order', [])],
+            agents_view_row_order=[int(i) for i in data.get('agents_view_row_order', [])]
         )
 
     def get_node_layout(self, node_type: NodeType, node_id: int) -> Optional[NodeLayout]:
@@ -284,8 +289,6 @@ class WorkspaceLayout:
             return self.state_nodes.get(node_id)
         elif node_type == NodeType.EVENT:
             return self.event_nodes.get(node_id)
-        elif node_type == NodeType.AGENT:
-            return self.agent_nodes.get(node_id)
         return None
 
     def get_connection_layout(self, relation_type: RelationType, relation_id: int) -> Optional[ConnectionLayout]:
@@ -304,8 +307,6 @@ class WorkspaceLayout:
             self.state_nodes[node_layout.node_id] = node_layout
         elif node_layout.node_type == NodeType.EVENT:
             self.event_nodes[node_layout.node_id] = node_layout
-        elif node_layout.node_type == NodeType.AGENT:
-            self.agent_nodes[node_layout.node_id] = node_layout
 
     def remove_node(self, node_type: NodeType, node_id: int) -> bool:
         """Remove a node layout and all its connections."""
@@ -314,8 +315,6 @@ class WorkspaceLayout:
             node_dict = self.state_nodes
         elif node_type == NodeType.EVENT:
             node_dict = self.event_nodes
-        elif node_type == NodeType.AGENT:
-            node_dict = self.agent_nodes
 
         if not node_dict or node_id not in node_dict:
             return False
@@ -364,7 +363,6 @@ class WorkspaceLayout:
         """Clear all nodes and connections from the layout."""
         self.state_nodes.clear()
         self.event_nodes.clear()
-        self.agent_nodes.clear()
         self.state_to_event_connections.clear()
         self.event_to_state_connections.clear()
         self.state_agent_rel_connections.clear()

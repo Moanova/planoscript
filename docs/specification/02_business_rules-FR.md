@@ -287,6 +287,10 @@
 - **Description** : Les associations agent-état sont indépendantes des parcours : elles ne dépendent que des composants (agent, état) qu'elles relient. Le filtrage de l'affichage par parcours n'affecte pas les associations agent-état, uniquement leur visibilité dans la vue parcours.
 - **Classification** : Structure des cartes narratives.
 
+## RG068
+- **Description** : Les colonnes de la matrice agents × états de la vue agents sont ordonnées par défaut par ordre de création des états (identifiant croissant). L'utilisateur peut réordonner les colonnes ; cet ordre personnalisé est rémanent : il est conservé dans les métadonnées graphiques (fichier de mise en page) associées au projet, entre les sessions. L'état initial occupe toujours la première colonne et ne peut pas être déplacé (RG031 : tous les parcours commencent à cet état). Tout état nouvellement créé apparaît en fin d'ordre. En cas d'anomalie dans l'ordre sauvegardé (état absent ou inconnu), l'application applique l'ordre de création en repli. L'ordre des colonnes ne constitue pas une donnée narrative : sa modification ne marque pas la carte comme modifiée. Les lignes (agents) suivent la même règle : ordre de création par défaut, réordonnancement manuel rémanent autorisé.
+- **Classification** : Visualisation et interaction.
+
 ## RG067
 - **Description** : Le focus de navigation croisée entre les vues (vue parcours, vue agents) est un état visuel temporaire : il ne marque ni la carte ni le projet comme modifiés, et n'est pas conservé dans les métadonnées graphiques ni entre les sessions.
 - **Classification** : Visualisation et interaction.

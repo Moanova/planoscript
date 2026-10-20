@@ -23,7 +23,6 @@ from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
 from core.models.view_model import NodeType, ConnectionLayout, WorkspaceLayout, RelationType
 from core.models.data_model import State, Event
 from core.services.layout_service import LayoutService
-from ui.nodes.agent_node import AgentNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
 from ui.nodes.connection import Connection
@@ -46,6 +45,9 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
     # Signal emitted when a node is moved (for project modification tracking)
     workspace_modified = Signal()
+    # Emitted when the user requests to show a state in the agents view
+    # (TSK10, cross-view navigation)
+    focusStateInAgentsViewRequested = Signal(int)  # state_id
     
     def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None, main_window=None):
         super().__init__()
@@ -341,6 +343,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
         """
         item = self.itemAt(event.position().toPoint())
         
+        # RG067: clicking empty space releases the navigation focus
+        if item is None and self.has_focus():
+            self.clear_focus()
+        
         # In relation creation mode, handle port selection
         if self.relation_creation_mode and event.button() == Qt.LeftButton:
             self._handle_relation_port_selection(item, event)
@@ -589,7 +595,6 @@ class JourneyWorkspace(QGraphicsView, QObject):
         node_type = node_data['node_type']
 
         NODE_CLASS_MAPPING = {
-            NodeType.AGENT: AgentNode,
             NodeType.STATE: StateNode,
             NodeType.EVENT: EventNode
         }
@@ -622,7 +627,40 @@ class JourneyWorkspace(QGraphicsView, QObject):
         if select:
             self._select_item_only(node)
 
+        # TSK05: initialize the agent badge of state nodes
+        if isinstance(node, StateNode):
+            self.refresh_state_badge(node)
+
         return node
+
+    def refresh_state_badge(self, state_node: StateNode) -> None:
+        """
+        Refresh the agent badge of a state node (TSK05, SU008).
+
+        Computes the agents associated with the state from the current
+        project data and updates the badge count and tooltip line.
+        """
+        if not self.narrative_map or not self.main_window:
+            return
+        project = getattr(self.main_window, 'project_service', None)
+        current = project.current_project if project else None
+        if not current:
+            return
+        from usecases.agent_association.associate_agent_state_usecase import (
+            AssociateAgentStateUseCase
+        )
+        associated_labels = []
+        for agent in current.agent:
+            if AssociateAgentStateUseCase.find_association(
+                    self.narrative_map, agent.id, state_node.entity.id) is not None:
+                associated_labels.append(agent.lb)
+        state_node.refresh_agent_badge(len(associated_labels), associated_labels)
+
+    def refresh_all_state_badges(self) -> None:
+        """Refresh the agent badge of every state node in the scene."""
+        for item in self.scene.items():
+            if isinstance(item, StateNode):
+                self.refresh_state_badge(item)
 
 
     def create_connection_from_data(self, connection_data: dict):
@@ -1040,6 +1078,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
         if isinstance(item, StateNode):
             # Context menu for State nodes
             handlers[menu.addAction("Edit State")] = lambda: self.main_window._edit_selected_component("State")
+            handlers[menu.addAction("Associate agents...")] = lambda: self.main_window._associate_agents_to_state(item.entity)
+            handlers[menu.addAction("Show in agents view")] = lambda: self.focusStateInAgentsViewRequested.emit(item.entity.id)
             # RG031: the initial state can never be deleted, so the Delete
             # State entry stays disabled when the initial state is selected
             delete_state = menu.addAction("Delete State")

@@ -286,6 +286,10 @@
 - **Description**: Agent-state associations are independent of journeys: they depend only on the components (agent, state) they connect. Filtering the display by journey does not affect agent-state associations, only their visibility in the journey view.
 - **Classification**: Narrative Map Structure.
 
+## RG068
+- **Description**: The columns of the agents × states matrix of the agents view are ordered by default by state creation order (ascending ID). The user can reorder the columns; this custom order is persistent: it is kept in the graphical metadata (layout file) associated with the project, across sessions. The initial state always occupies the first column and cannot be moved (RG031: all journeys begin at this state). Any newly created state appears at the end of the order. In case of an anomaly in the saved order (missing or unknown state), the application falls back to creation order. The column order is not narrative data: modifying it does not mark the map as modified. The rows (agents) follow the same rule: default creation order, persistent manual reordering allowed.
+- **Classification**: Visualization and Interaction.
+
 ## RG067
 - **Description**: The cross-view navigation focus (journey view, agents view) is a temporary visual state: it does not mark the map or the project as modified, and is not persisted in the graphical metadata or between sessions.
 - **Classification**: Visualization and Interaction.

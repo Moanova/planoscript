@@ -238,7 +238,7 @@
 - **Complément** :
     - La vue agents est un espace de travail distinct de la vue parcours, présenté dans la barre d'onglets sous l'onglet « Relations ». Les états et les événements forment un graphe de flux (d'un état initial vers des états finaux) ; la relation agent-état est une relation d'appartenance, représentée par une matrice et non par un graphe de flux.
     - La vue agents se présente sous la forme d'une matrice agents × états : une ligne par agent du projet, une colonne par état de la carte narrative courante.
-    - L'ordre des colonnes suit une règle de gestion à déterminer (candidats : ordre de création des états, ordre selon le parcours activé si le filtre de parcours est actif). Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type. La règle définitive sera ajoutée au document des règles de gestion avant l'implémentation de la vue agents.
+    - L'ordre des colonnes est défini par la règle de gestion RG068 : par défaut, ordre de création des états (identifiant croissant) ; l'utilisateur peut réordonner les colonnes, cet ordre personnalisé étant conservé dans les métadonnées graphiques du projet entre les sessions ; l'état initial occupe toujours la première colonne et ne peut pas être déplacé ; tout état nouvellement créé apparaît en fin d'ordre. Les lignes (agents) suivent la même règle. Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type.
     - Une cellule cochée matérialise l'association entre l'agent de la ligne et l'état de la colonne. L'édition s'effectue en cochant/décochant la cellule.
     - Les agents sont portés par le projet : la vue agents est unique pour l'ensemble du projet, contrairement à la vue parcours qui est liée à une carte narrative.
     - L'application autorise l'édition sans contrôle de complétude : un état peut temporairement n'être associé à aucun agent (philosophie identique à la règle des états finaux manquants en cours d'édition). Des règles de complétude pourront être ajoutées ultérieurement sous forme d'avertissements non bloquants.
@@ -254,7 +254,7 @@
     - La matrice affiche une ligne par agent du projet et une colonne par état de la carte courante.
     - L'utilisateur peut cocher/décocher une cellule pour associer/dissocier un agent et un état.
     - Les associations modifiées depuis la vue parcours sont immédiatement répercutées dans la matrice, et réciproquement.
-    - L'ordre des colonnes respecte la règle de gestion dédiée (à déterminer).
+    - L'ordre des colonnes respecte la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel rémanent, état initial toujours en première colonne).
     - L'utilisateur peut créer, renommer, modifier ou supprimer un agent depuis la vue agents.
     - (P2) L'utilisateur peut basculer vers la vue agents ciblée sur un état depuis le menu contextuel de cet état dans la vue parcours.
     - (P2) L'utilisateur peut basculer vers la vue parcours ciblée sur les états d'un agent depuis la vue agents.

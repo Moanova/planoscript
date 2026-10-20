@@ -16,7 +16,7 @@ workspace. It inherits from QGraphicsRectItem and adds functionality for:
 - Handling selection and movement
 - Supporting connection ports
 
-All concrete node types (AgentNode, StateNode, EventNode) should inherit
+All concrete node types (StateNode, EventNode) should inherit
 from this class.
 """
 
@@ -36,7 +36,7 @@ class BaseNode(QGraphicsRectItem):
     
     This class combines a QGraphicsRectItem with business entity data and
     visual layout information. It serves as the foundation for all node types
-    (Agent, State, Event, etc.).
+    (State, Event, etc.).
     
     Attributes:
         entity: The business entity this node represents (Agent, State, Event)
@@ -71,7 +71,7 @@ class BaseNode(QGraphicsRectItem):
         Initialize a base node with a business entity and its layout.
         
         Args:
-            entity: The business entity (Agent, State, Event, etc.)
+            entity: The business entity (State, Event, etc.)
             layout: The NodeLayout containing visual properties
         """
         # Initialize QGraphicsRectItem with position and size from layout

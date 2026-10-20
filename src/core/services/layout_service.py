@@ -630,3 +630,45 @@ class LayoutService:
             color=None,
             thickness=2.0
         )
+
+
+def resolve_matrix_order(entities, saved_order, pinned_first_id=None):
+    """Resolve the display order of the agents view matrix (RG068).
+
+    Pure logic, free of any Qt dependency.
+
+    Args:
+        entities: Iterable of business entities (Agent or State), each
+            with an `id` attribute. Creation order (ascending ID) is
+            the default and the fallback order.
+        saved_order: Custom order previously saved by the user (list of
+            entity IDs); empty list = no custom order.
+        pinned_first_id: ID of the entity pinned to the first position
+            (the initial state for columns, RG068/RG031); None for rows.
+
+    Returns:
+        List of entities, ordered as follows:
+        - the pinned entity first (when present among the entities);
+        - then the entities of the saved order, in that order;
+        - then the entities missing from the saved order, by ascending
+          ID (fallback to creation order, RG068);
+        - unknown IDs of the saved order are ignored.
+    """
+    by_id = {entity.id: entity for entity in entities}
+
+    ordered = []
+    if pinned_first_id is not None and pinned_first_id in by_id:
+        ordered.append(by_id[pinned_first_id])
+
+    for entity_id in saved_order:
+        entity = by_id.get(entity_id)
+        if entity is None or entity in ordered:
+            continue
+        ordered.append(entity)
+
+    remaining = sorted(
+        (entity for entity in by_id.values() if entity not in ordered),
+        key=lambda entity: entity.id)
+    ordered.extend(remaining)
+
+    return ordered

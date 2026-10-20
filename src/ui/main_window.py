@@ -17,11 +17,13 @@ import os
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QMenuBar, QMenu, QLabel,
-    QMessageBox, QGridLayout, QFileDialog
+    QMessageBox, QGridLayout, QFileDialog, QStackedWidget
 )
 from PySide6.QtCore import Qt, QPoint
 
 from ui.views.journey_workspace import JourneyWorkspace
+from ui.views.agents_workspace import AgentsWorkspace
+from ui.widgets.tab_bar import TabBar
 from ui.nodes.connection import Connection
 from ui.widgets.info_bar import InfoBar
 from ui.dialogs.about_dialog import AboutDialog
@@ -34,13 +36,22 @@ from core.services.change_log_service import ChangeLogService
 from core.services.arc_service import ArcService
 from core.services.layout_service import LayoutService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
+from usecases.project_management.create_agent_usecase import CreateAgentUseCase
+from usecases.project_management.update_agent_usecase import UpdateAgentUseCase
+from usecases.project_management.delete_agent_usecase import DeleteAgentUseCase
 from usecases.file_management.load_project_usecase import LoadProjectUseCase
 from usecases.file_management.save_project_usecase import SaveProjectUseCase
 from usecases.file_management.quit_application_usecase import QuitApplicationUseCase
+from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
+from usecases.agent_association.dissociate_agent_state_usecase import DissociateAgentStateUseCase
+from usecases.agent_association.remove_state_associations_usecase import RemoveStateAssociationsUseCase
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
 from ui.dialogs.component_dialog import ComponentDialog
+from ui.dialogs.agent_dialog import AgentDialog
+from ui.dialogs.agent_management_dialog import AgentManagementDialog
+from ui.dialogs.agent_association_dialog import AgentAssociationDialog
 from config.config_loader import get as _get_config
 from config.user_state_loader import get as _get_user_state, set as _set_user_state
 
@@ -68,6 +79,12 @@ class MainWindow(QMainWindow):
         self.save_project_usecase = SaveProjectUseCase(self.project_service)
         self.quit_usecase = QuitApplicationUseCase(self.project_service)
         self.create_node_usecase = CreateNodeUseCase(self.project_service)
+        self.create_agent_usecase = CreateAgentUseCase(self.project_service)
+        self.update_agent_usecase = UpdateAgentUseCase(self.project_service)
+        self.delete_agent_usecase = DeleteAgentUseCase(self.project_service)
+        self.associate_agent_state_usecase = AssociateAgentStateUseCase(self.project_service)
+        self.dissociate_agent_state_usecase = DissociateAgentStateUseCase(self.project_service)
+        self.remove_state_associations_usecase = RemoveStateAssociationsUseCase(self.project_service)
         self.update_component_usecase = UpdateComponentUseCase(self.project_service)
         self.create_relation_usecase = CreateRelationUseCase(self.project_service)
         self.about_service = AboutService()
@@ -87,16 +104,143 @@ class MainWindow(QMainWindow):
         # Menu bar
         self._create_menu_bar()
 
-        # Central space
+        # Central space: single tab bar above a stack of workspace pages.
+        # The tab bar is a single instance (single source of truth for the
+        # active workspace, TSK07); it is hidden until a project is opened.
         self.middle_section = QWidget()
-        self.middle_layout = QGridLayout(self.middle_section)
+        self.middle_layout = QVBoxLayout(self.middle_section)
         self.middle_layout.setContentsMargins(0, 0, 0, 0)
         self.middle_layout.setSpacing(0)
         main_layout.addWidget(self.middle_section, 1)
 
+        self.tab_bar = TabBar(["Journey", "Agents"])
+        self.tab_bar.hide()
+        self.tab_bar.currentChanged.connect(self._on_tab_changed)
+        self.middle_layout.addWidget(self.tab_bar)
+
+        # Stacked pages: welcome / journey workspace / agents workspace
+        self.pages = QStackedWidget()
+        self.middle_layout.addWidget(self.pages, 1)
+
+        # Welcome page (no project opened)
+        self.welcome_page = QWidget()
+        welcome_layout = QVBoxLayout(self.welcome_page)
+        self.pages.addWidget(self.welcome_page)
+
+        # Journey workspace page: created empty, populated per project
+        self.journey_page = QWidget()
+        journey_layout = QVBoxLayout(self.journey_page)
+        journey_layout.setContentsMargins(0, 0, 0, 0)
+        self.pages.addWidget(self.journey_page)
+
+        # Agents workspace page: placeholder until TSK08
+        self.agents_page = AgentsWorkspace()
+        # TSK09: matrix cell editions refresh the journey view (SU008)
+        self.agents_page.associationChanged.connect(self._on_matrix_association_changed)
+        # TSK10: cross-view navigation request
+        self.agents_page.focusAgentInJourneyViewRequested.connect(
+            self._focus_agent_in_journey_view)
+        self.pages.addWidget(self.agents_page)
+
+        self.pages.setCurrentWidget(self.welcome_page)
+
+        # TSK10/RG067: Escape releases the cross-view navigation focus
+        from PySide6.QtGui import QShortcut, QKeySequence
+        QShortcut(QKeySequence(Qt.Key_Escape), self, self._release_focus)
+
         # Deferred initialization of workspace
         self.workspace = None
         self._show_welcome_message()
+
+    def _on_tab_changed(self, tab_name: str):
+        """Switch the stacked page to the selected workspace (TSK07).
+
+        Refreshing the agents view on tab activation guarantees the
+        matrix is in sync with the data (SU008) even if a refresh hook
+        was missed.
+        """
+        if tab_name == "Journey":
+            self.pages.setCurrentWidget(self.journey_page)
+        elif tab_name == "Agents":
+            self.pages.setCurrentWidget(self.agents_page)
+            self._refresh_agents_view()
+
+    def _on_matrix_association_changed(self, state_id, agent_lb, associated):
+        """Handle a matrix cell edition (TSK09, SU008).
+
+        Refreshes the agent badge of the journey view state node and
+        reports the action in the info bar.
+        """
+        if isinstance(self.workspace, JourneyWorkspace):
+            for item in self.workspace.scene.items():
+                entity = getattr(item, 'entity', None)
+                if entity is not None and getattr(entity, 'id', None) == state_id:
+                    self.workspace.refresh_state_badge(item)
+                    break
+        if associated:
+            self.info_bar.show_message(f"Agent '{agent_lb}' associated")
+        else:
+            self.info_bar.show_message(f"Agent '{agent_lb}' dissociated")
+
+    def _focus_state_in_agents_view(self, state_id):
+        """Show a state in the agents view, focused (TSK10, RG067).
+
+        Switches to the Agents tab and highlights the state column.
+        The focus is temporary: no modification flag, no persistence
+        (RG067).
+        """
+        self.tab_bar.setCurrentTab("Agents")
+        # _on_tab_changed has refreshed the matrix: apply the focus on
+        # the rebuilt columns
+        self.agents_page.set_focus(state_id)
+
+    def _focus_agent_in_journey_view(self, agent_id):
+        """Show the states of an agent in the journey view, focused
+        (TSK10, RG067).
+
+        Switches to the Journey tab and highlights the nodes of the
+        states associated with the agent, dimming the rest. If the agent
+        has no associated state, reports it without switching.
+        """
+        project = self.project_service.current_project
+        agent = next((a for a in project.agent if a.id == agent_id), None)
+        if agent is None:
+            return
+        narrative_map = project.narrative_map[0]
+        state_ids = [
+            rel.state_id for rel in narrative_map.state_agent_rel
+            if rel.agent_id == agent_id]
+        if not state_ids:
+            self.info_bar.show_message(
+                f"Agent '{agent.lb}' has no associated state")
+            return
+        self.tab_bar.setCurrentTab("Journey")
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.set_focus(state_ids)
+        self.info_bar.show_message(
+            f"Agent '{agent.lb}': {len(state_ids)} state(s) highlighted")
+
+    def _release_focus(self):
+        """Release the cross-view navigation focus (TSK10, RG067).
+
+        Escape releases the focus of the currently displayed view.
+        """
+        if not hasattr(self, 'pages'):
+            return
+        current = self.pages.currentWidget()
+        if current is self.journey_page and isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.clear_focus()
+        elif current is self.agents_page:
+            self.agents_page.clear_focus()
+
+    def _refresh_agents_view(self):
+        """Refresh the agents view matrix (TSK08, SU008).
+
+        Single refresh entry point, called after any modification of
+        the agents, the states or the associations.
+        """
+        if hasattr(self, 'agents_page') and self.agents_page is not None:
+            self.agents_page.refresh()
 
         # Bottom section
         bottom_layout = QHBoxLayout()
@@ -197,8 +341,7 @@ class MainWindow(QMainWindow):
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
-        #self.components_menu.addAction("Agent", lambda: self._create_new_node("Agent"))
-        self.components_menu.addAction("Agent", lambda: None)
+        self.components_menu.addAction("Agent", self._manage_agents)
 
         # State submenu (Type → Action)
         self.state_menu = self.components_menu.addMenu("State")
@@ -214,6 +357,7 @@ class MainWindow(QMainWindow):
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
         self.relations_menu.addAction("Connect State and Event", lambda: self._start_state_event_relation_creation())
+        self.menu_actions['associate_agents'] = self.relations_menu.addAction("Associate agents with State", lambda: self._associate_agents_to_selected_state())
         self.menu_actions['relation_edit'] = self.relations_menu.addAction("Edit", lambda: self._edit_selected_relation())
         self.menu_actions['relation_delete'] = self.relations_menu.addAction("Delete", lambda: self._delete_selected_relation())
 
@@ -283,13 +427,14 @@ class MainWindow(QMainWindow):
         self.menu_actions['event_delete'].setEnabled(has_project and has_event)
         self.menu_actions['relation_edit'].setEnabled(has_project and has_relation)
         self.menu_actions['relation_delete'].setEnabled(has_project and has_relation)
+        self.menu_actions['associate_agents'].setEnabled(has_project and has_state)
 
 
     def _show_welcome_message(self):
         """Display welcome message with clickable link"""
-        # Clear existing content
-        while self.middle_layout.count():
-            item = self.middle_layout.takeAt(0)
+        # Reset the welcome page content
+        while self.welcome_page.layout().count():
+            item = self.welcome_page.layout().takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
@@ -308,7 +453,10 @@ class MainWindow(QMainWindow):
         welcome_label.setStyleSheet("QLabel { padding: 40px; }")
 
         welcome_layout.addWidget(welcome_label)
-        self.middle_layout.addWidget(welcome_widget, 0, 0, 2, 3)
+        self.welcome_page.layout().addWidget(welcome_widget)
+        self.pages.setCurrentWidget(self.welcome_page)
+        # No project opened: hide the workspace tab bar (TSK07)
+        self.tab_bar.hide()
 
 
     # ---------------------------------------------------------------------
@@ -404,24 +552,33 @@ class MainWindow(QMainWindow):
             except (TypeError, AttributeError):
                 pass
 
-        # Clear existing layout
-        self.middle_layout = self.middle_section.layout()
-        while self.middle_layout.count():
-            item = self.middle_layout.takeAt(0)
+        # Clear the journey page before rebuilding the workspace
+        while self.journey_page.layout().count():
+            item = self.journey_page.layout().takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        # Single workspace (MVP : journey view only)
+        # Single workspace per project: journey view (agents view is the
+        # second workspace, TSK07; it does not depend on the map instance)
         self.workspace = JourneyWorkspace(
             narrative_map=self.project_service.current_project.narrative_map[0],
             info_bar=self.info_bar,
             main_window=self
         )
-        self.middle_layout.addWidget(self.workspace)
+        self.journey_page.layout().addWidget(self.workspace)
+
+        # Show the workspace pages: tab bar visible, Journey active by
+        # default on project opening (TSK07: display state, not persisted)
+        self.tab_bar.show()
+        self.tab_bar.forceCurrentTab("Journey")
+        self.pages.setCurrentWidget(self.journey_page)
         
         # Connect workspace signal for relation creation
         if isinstance(self.workspace, JourneyWorkspace):
             self.workspace.relation_created.connect(self._on_relation_created)
+            # TSK10: cross-view navigation requests
+            self.workspace.focusStateInAgentsViewRequested.connect(
+                self._focus_state_in_agents_view)
             self.workspace.workspace_modified.connect(self._on_workspace_modified)
             # Update menu state when selection changes (enables/disables Edit/Delete)
             self.workspace.scene.selectionChanged.connect(self._update_menu_state)
@@ -517,6 +674,13 @@ class MainWindow(QMainWindow):
         elif isinstance(self.workspace, JourneyWorkspace):
             self.node_count = self.workspace.populate_default(narrative_map)
 
+        # Initialize the agents view (TSK08) with its edition use
+        # cases (TSK09)
+        self.agents_page.set_project(
+            self.project_service, workspace_layout,
+            associate_usecase=self.associate_agent_state_usecase,
+            dissociate_usecase=self.dissociate_agent_state_usecase)
+        self._refresh_agents_view()
 
     def _save_project(self):
         current_project = self.project_service.current_project
@@ -557,6 +721,13 @@ class MainWindow(QMainWindow):
                 # Save visual layout alongside the business data
                 if isinstance(self.workspace, JourneyWorkspace):
                     workspace_layout = self.workspace.collect_workspace_layout()
+                    # RG068: persist the agents view matrix order
+                    # (column and row order is layout data)
+                    if getattr(self, '_current_workspace_layout', None):
+                        workspace_layout.agents_view_column_order = (
+                            self._current_workspace_layout.agents_view_column_order)
+                        workspace_layout.agents_view_row_order = (
+                            self._current_workspace_layout.agents_view_row_order)
                     LayoutService.save_workspace_layout(
                         file_path,
                         workspace_layout.narrative_map_id,
@@ -690,6 +861,9 @@ class MainWindow(QMainWindow):
             self.workspace.create_node_from_data(result)
             self._update_menu_state()
             self.node_count += 1
+            # TSK08: a state column may have appeared -> refresh the
+            # agents view matrix
+            self._refresh_agents_view()
             entity = result.get('entity')
             logger.debug("Node created (%s): %s",
                          result.get('component_type'),
@@ -823,6 +997,116 @@ class MainWindow(QMainWindow):
         return None
 
 
+    def _associate_agents_to_selected_state(self):
+        """Associate agents with the currently selected state (FN030)."""
+        item = self._get_selected_item()
+        if item is None or isinstance(item, Connection) or not hasattr(item, 'entity'):
+            self.info_bar.show_message("Select a state to associate agents with")
+            return
+        self._associate_agents_to_state(item.entity)
+
+    def _associate_agents_to_state(self, entity):
+        """Open the agent association dialog for a state (FN030, SU008)."""
+        from core.models.data_model import State
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        if not isinstance(entity, State):
+            self.info_bar.show_message("Selected component is not a state")
+            return
+        dialog = AgentAssociationDialog(
+            self.project_service, entity,
+            self.associate_agent_state_usecase,
+            self.dissociate_agent_state_usecase,
+            self.create_agent_usecase, parent=self)
+        dialog.exec()
+        # TSK05: refresh the agent badge of the state node
+        if isinstance(self.workspace, JourneyWorkspace):
+            for item in self.workspace.scene.items():
+                if getattr(item, 'entity', None) is entity:
+                    self.workspace.refresh_state_badge(item)
+                    break
+        # TSK08: keep the agents view matrix in sync (SU008)
+        self._refresh_agents_view()
+        self._update_menu_state()
+
+    def _manage_agents(self):
+        """Open the agent management dialog and handle creation, edition
+        and deletion of agents (FN031). Reopens the dialog after each
+        operation so they can be chained."""
+        while True:
+            management_dialog = AgentManagementDialog(self.project_service, self)
+            if management_dialog.exec() != AgentManagementDialog.Accepted:
+                return
+            action, agent = management_dialog.get_action()
+            if action == "new":
+                dialog = AgentDialog(parent=self)
+                if dialog.exec() != AgentDialog.Accepted:
+                    continue
+                values = dialog.get_values()
+                result = self.create_agent_usecase.execute(
+                    lb=values['lb'], typ=values['typ'], note=values['note'])
+                if result and result.get('success'):
+                    self.info_bar.show_message("Agent created")
+                else:
+                    self.info_bar.show_message("Cannot create agent: invalid data")
+            elif action == "edit":
+                dialog = AgentDialog(entity=agent, parent=self)
+                if dialog.exec() != AgentDialog.Accepted:
+                    continue
+                values = dialog.get_values()
+                result = self.update_agent_usecase.execute(
+                    entity=agent, lb=values['lb'],
+                    typ=values['typ'], note=values['note'])
+                if result and result.get('success'):
+                    self.info_bar.show_message("Agent updated")
+                    # TSK05: agent label may have changed, refresh tooltips
+                    self._refresh_all_state_badges()
+                else:
+                    self.info_bar.show_message("Cannot update agent: invalid data")
+            elif action == "delete":
+                # RG064: cascade information in the confirmation message
+                association_count = self._count_agent_associations(agent)
+                if association_count:
+                    message = (f"This agent is associated with {association_count} "
+                                f"state(s). Delete the agent and all its associations?")
+                else:
+                    message = f"Delete the agent '{agent.lb}'?"
+                reply = QMessageBox.question(self, "Confirmation", message,
+                                             QMessageBox.Yes | QMessageBox.No)
+                if reply != QMessageBox.Yes:
+                    continue
+                result = self.delete_agent_usecase.execute(entity=agent)
+                if result and result.get('success'):
+                    removed = result.get('deleted_associations', 0)
+                    if removed:
+                        self.info_bar.show_message(
+                            f"Agent deleted ({removed} association(s) removed)")
+                    else:
+                        self.info_bar.show_message("Agent deleted")
+                    # TSK05: cascaded associations may have changed badges
+                    self._refresh_all_state_badges()
+                else:
+                    self.info_bar.show_message("Cannot delete agent")
+            else:
+                return
+
+    def _refresh_all_state_badges(self):
+        """Refresh the agent badges of all state nodes (TSK05)."""
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.refresh_all_state_badges()
+
+    def _count_agent_associations(self, agent) -> int:
+        """Count the agent-state associations referencing an agent (RG064)."""
+        project = self.project_service.current_project
+        if not project:
+            return 0
+        return sum(
+            1 for narrative_map in project.narrative_map
+            for rel in narrative_map.state_agent_rel
+            if rel.agent_id == agent.id
+        )
+
     def _edit_selected_component(self, component_type: str):
         """Edit the data of the currently selected component (State or Event)."""
         item = self._get_selected_item()
@@ -898,6 +1182,13 @@ class MainWindow(QMainWindow):
 
         # Delete all arcs referencing this entity (State_to_event + Event_to_state)
         ArcService.delete_related_arcs(narrative_map, entity.id, entity_type)
+        # RG065: cascade the deletion to the agent-state associations
+        # referencing the state, and report the count in the info message
+        removed_associations = 0
+        if isinstance(entity, State):
+            cascade = self.remove_state_associations_usecase.execute(entity=entity)
+            removed_associations = (cascade.get('deleted_associations', 0)
+                                    if cascade else 0)
 
         # Remove the entity from the narrative map's entity list
         entity_list[:] = [e for e in entity_list if e.id != entity.id]
@@ -911,6 +1202,14 @@ class MainWindow(QMainWindow):
         # Mark project as modified and update menu state
         self.project_service.set_modified(True)
         self.info_bar.show_message(f"{entity_type} deleted")
+        if removed_associations:
+            # RG065: information message when the state was associated
+            # with at least one agent
+            self.info_bar.show_message(
+                f"{entity_type} deleted ({removed_associations} agent association(s) removed)")
+        # TSK08: a state column may have disappeared or associations may
+        # have been cascaded (RG065) -> refresh the agents view matrix
+        self._refresh_agents_view()
         self._update_menu_state()
 
 

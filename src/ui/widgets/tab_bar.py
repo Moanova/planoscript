@@ -1,0 +1,101 @@
+# ---------------------------------------------------------------------
+# Application  : Planoscript
+# Script       : tab_bar.py
+# Version      : 1
+# Date         : 10-15-2026
+# Design       : TSC
+# Build        : Mistral Vibe
+# ---------------------------------------------------------------------
+"""Tab bar for switching between workspaces (TSK07, SU009).
+
+Displays one tab button per workspace ('Journey', 'Agents') and emits
+currentChanged(name) when the user activates a tab. Single instance
+placed above the stacked workspace area (single source of truth for
+the active tab).
+"""
+
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
+
+
+class TabBar(QWidget):
+    """Horizontal bar of workspace tabs."""
+
+    HEIGHT = 40
+    STYLESHEET = """
+        QWidget#TabBar {
+            background-color: #f8f8f8;
+        }
+        QPushButton {
+            background-color: #f8f8f8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 0 20px;
+            font-family: Arial;
+            font-size: 9pt;
+            text-align: center;
+        }
+        QPushButton:hover {
+            background-color: #e0e0e0;
+        }
+        QPushButton:checked {
+            background-color: #ffffff;
+            font-weight: bold;
+            border-bottom: 2px solid #0078d7;
+        }
+    """
+
+    currentChanged = Signal(str)
+
+    def __init__(self, tab_names, parent=None):
+        """Create the tab bar.
+
+        Args:
+            tab_names: Ordered list of tab names (e.g. ['Journey', 'Agents'])
+        """
+        super().__init__(parent)
+        self.setObjectName("TabBar")
+        self.setFixedHeight(self.HEIGHT)
+        self.setStyleSheet(self.STYLESHEET)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addStretch()
+
+        self._tab_buttons = {}
+        for name in tab_names:
+            button = QPushButton(name)
+            button.setCheckable(True)
+            button.setFixedHeight(self.HEIGHT)
+            button.setCursor(Qt.PointingHandCursor)
+            button.clicked.connect(lambda _checked=False, n=name: self.setCurrentTab(n))
+            layout.addWidget(button)
+            self._tab_buttons[name] = button
+        layout.addStretch()
+
+    def setCurrentTab(self, name: str) -> None:
+        """Activate a tab and emit currentChanged (no-op if already active)."""
+        if name not in self._tab_buttons:
+            return
+        for tab_name, button in self._tab_buttons.items():
+            button.setChecked(tab_name == name)
+        self.currentChanged.emit(name)
+
+    def currentTab(self) -> str:
+        """Return the name of the active tab, or an empty string."""
+        for name, button in self._tab_buttons.items():
+            if button.isChecked():
+                return name
+        return ""
+
+    def forceCurrentTab(self, name: str) -> None:
+        """Set the active tab without emitting currentChanged.
+
+        Used when restoring the default tab ('Journey') on project
+        opening, where the stacked widget already shows that page.
+        """
+        if name not in self._tab_buttons:
+            return
+        for tab_name, button in self._tab_buttons.items():
+            button.setChecked(tab_name == name)

@@ -13,7 +13,7 @@ This use case handles the creation of business entities and their visual layouts
 but DOES NOT handle the creation of Qt graphic objects (QGraphicsItem).
 
 Responsibilities:
-- Create a business entity (Agent, State, Event) with a unique ID
+- Create a business entity (State, Event) with a unique ID
 - Add the entity to the project's NarrativeMap
 - Create a NodeLayout for visual representation
 - Return all data needed to create the visual node
@@ -27,7 +27,7 @@ import logging
 from typing import Optional, Dict
 
 from core.models.data_model import (
-    Agent, State, Event, NarrativeMap, Project
+    State, Event, NarrativeMap
 )
 from core.models.view_model import NodeLayout, NodeType
 from core.services.project_service import ProjectService
@@ -48,12 +48,6 @@ class CreateNodeUseCase:
     """
 
     COMPONENT_MAPPING = {
-        "Agent": {
-            'entity_class': Agent,
-            'node_type': NodeType.AGENT,
-            'entity_type_key': 'agent',
-            'default_label': 'Agent'
-        },
         "State": {
             'entity_class': State,
             'node_type': NodeType.STATE,
@@ -90,7 +84,7 @@ class CreateNodeUseCase:
         Execute creation of a node of the specified type.
         
         Args:
-            component_type: Type of component to create (e.g., "Agent", "State", "Event")
+            component_type: Type of component to create ("State" or "Event")
             x: X coordinate for node positioning
             y: Y coordinate for node positioning
             narrative_map: Target NarrativeMap (optional, uses the first by default)
@@ -98,7 +92,7 @@ class CreateNodeUseCase:
         Returns:
             Dictionary containing:
                 - 'success': bool (True if creation successful)
-                - 'entity': the created business entity (Agent, State, Event)
+                - 'entity': the created business entity (State, Event)
                 - 'entity_id': ID of the entity
                 - 'layout': NodeLayout for visual representation
                 - 'node_type': NodeType enum to know which type of node to create
@@ -131,17 +125,14 @@ class CreateNodeUseCase:
         entity_type_key = component_config['entity_type_key']
         default_label = component_config['default_label']
         
-        # 4. Generate a unique ID via the NarrativeMap or Project
-        if entity_type_key == 'agent':
-            entity_id = project.get_next_id('agent')
-        else:
-            entity_id = narrative_map.get_next_id(entity_type_key)
+        # 4. Generate a unique ID via the NarrativeMap
+        entity_id = narrative_map.get_next_id(entity_type_key)
         
         # 5. Create business entity with default values
         entity = self._create_entity(entity_class, entity_id, default_label)
         
-        # 6. Add entity to the NarrativeMap or Project
-        self._add_entity_to_narrative_map(narrative_map, entity, entity_type_key, project)
+        # 6. Add entity to the NarrativeMap
+        self._add_entity_to_narrative_map(narrative_map, entity, entity_type_key)
         
         # 7. Create NodeLayout via LayoutService
         layout = LayoutService.create_node_layout(
@@ -212,31 +203,23 @@ class CreateNodeUseCase:
         self,
         narrative_map: NarrativeMap,
         entity,
-        entity_type_key: str,
-        project: Project = None
+        entity_type_key: str
     ) -> None:
         """
-        Add an entity to the NarrativeMap or Project based on its type.
+        Add an entity to the NarrativeMap based on its type.
         
         Args:
-            narrative_map: The narrative map to update (for State, Event, Journey)
+            narrative_map: The narrative map to update
             entity: The entity to add
-            entity_type_key: Entity type key ('agent', 'state', 'event')
-            project: The project to update (for Agent entities)
+            entity_type_key: Entity type key ('state', 'event')
         """
-        # Agents are now managed at Project level, not NarrativeMap
-        if entity_type_key == 'agent':
-            if project is not None:
-                project.agent.append(entity)
-        else:
-            # Mapping of keys to NarrativeMap attribute names
-            attr_mapping = {
-                'state': 'state',
-                'event': 'event',
-                'journey': 'journey'
-            }
-            
-            attr_name = attr_mapping.get(entity_type_key)
-            if attr_name and hasattr(narrative_map, attr_name):
-                entity_list = getattr(narrative_map, attr_name)
-                entity_list.append(entity)
+        # Mapping of keys to NarrativeMap attribute names
+        attr_mapping = {
+            'state': 'state',
+            'event': 'event'
+        }
+        
+        attr_name = attr_mapping.get(entity_type_key)
+        if attr_name and hasattr(narrative_map, attr_name):
+            entity_list = getattr(narrative_map, attr_name)
+            entity_list.append(entity)
