@@ -61,7 +61,6 @@ class TabBar(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addStretch()
 
         self._tab_buttons = {}
         for name in tab_names:

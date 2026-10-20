@@ -335,6 +335,46 @@ class JourneyWorkspace(QGraphicsView, QObject):
         return super().viewportEvent(event)
 
 
+    # ------------------------------------------------------------------
+    # Cross-view navigation focus (TSK10, RG067)
+    # ------------------------------------------------------------------
+
+    def set_focus(self, state_ids) -> None:
+        """
+        Highlight the nodes of the given states and dim the rest
+        (TSK10, RG067).
+
+        The focus is a temporary visual state: it does not select the
+        nodes (the selection stays untouched, RG043), does not mark the
+        project as modified and is not persisted (RG067).
+
+        Args:
+            state_ids: Iterable of State IDs to highlight
+        """
+        self.clear_focus()
+        self._focused_state_ids = set(state_ids)
+        for item in self.scene.items():
+            entity = getattr(item, 'entity', None)
+            entity_id = getattr(entity, 'id', None)
+            if entity_id in self._focused_state_ids:
+                item.setOpacity(1.0)
+            else:
+                item.setOpacity(0.25)
+
+    def clear_focus(self) -> None:
+        """
+        Release the focus and restore normal appearances (RG067).
+        """
+        self._focused_state_ids = set()
+        for item in self.scene.items():
+            item.setOpacity(1.0)
+
+    def has_focus(self) -> bool:
+        """
+        Return True if a navigation focus is currently active.
+        """
+        return bool(getattr(self, '_focused_state_ids', set()))
+
     def mousePressEvent(self, event):
         """
         Manages selection and relation creation.
