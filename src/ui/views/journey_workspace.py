@@ -1040,7 +1040,12 @@ class JourneyWorkspace(QGraphicsView, QObject):
         if isinstance(item, StateNode):
             # Context menu for State nodes
             handlers[menu.addAction("Edit State")] = lambda: self.main_window._edit_selected_component("State")
-            handlers[menu.addAction("Delete State")] = lambda: self.main_window._delete_selected_component("State")
+            # RG031: the initial state can never be deleted, so the Delete
+            # State entry stays disabled when the initial state is selected
+            delete_state = menu.addAction("Delete State")
+            if getattr(item.entity, 'typ', None) == "Initial":
+                delete_state.setEnabled(False)
+            handlers[delete_state] = lambda: self.main_window._delete_selected_component("State")
 
         elif isinstance(item, EventNode):
             # Context menu for Event nodes

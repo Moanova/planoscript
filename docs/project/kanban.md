@@ -43,11 +43,11 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
-- [ ] Conception — Évaluer et ajuster le contenu de AGENTS.md
+
 
 ## Doing
 
-- (aucune tâche en cours)
+- [ ] Conception — Évaluer et ajuster le contenu de AGENTS.md
 
 ## Done
 

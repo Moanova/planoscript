@@ -46,7 +46,8 @@ src/
     ├── views/journey_workspace.py   # Vue graphique (QGraphicsView)
     ├── nodes/                       # base_node, state_node, event_node, agent_node, connection
     ├── widgets/                     # info_bar, ...
-    └── dialogs/                     # about_dialog, change_log_dialog
+    ├── utils/                       # ui_utils
+    └── dialogs/                     # about_dialog, change_log_dialog, component_dialog
 ```
 
 ## Règles métier et exigences
@@ -58,7 +59,21 @@ src/
 - Toute modification d'une règle métier implique la mise à jour du test
   correspondant.
 - Les user stories (FNxxx) sont dans `docs/specification/01_user_stories-*.md` ;
-  les tests d'application (pywinauto) suivent la nomenclature `test_fnXXX_*.py`.
+  les tests d'application (pywinauto) suivent la nomenclature `test_fnXXX_*.py`
+  et sont spécifiés dans `tests/SPECIFICATION.md`.
+- Les entrées de menu non implémentées sont stubbées dans `main_window.py`
+  par `self.menu_actions['clé'] = ... addAction(..., lambda: None)` : les
+  conserver lors des refactors de menus (les épiques EPC01-EPC03 réactiveront
+  certaines d'entre elles).
+
+## Suivi de projet
+
+- L'avancement est suivi dans `docs/project/kanban.md` (épiques EPCnn,
+  tâches TSKnn, dépendances `→ #TSKnn` déclarées uniquement sur la tâche
+  dépendante).
+- Le détail d'une tâche TSKnn (analyse, décisions, journal) est consigné dans
+  `docs/project/tasks/TSKnn_*.md`, créé au passage en Doing.
+- Une tâche ne passe en Doing que si ses dépendances sont en Done.
 
 ## Conventions
 

@@ -273,9 +273,12 @@ class MainWindow(QMainWindow):
         has_event = (selected is not None and hasattr(selected, 'entity')
                       and isinstance(selected.entity, Event))
         has_relation = isinstance(selected, Connection)
+        # RG031: the initial state can never be deleted, so the Delete State
+        # action stays disabled when the initial state is selected
+        has_deletable_state = (has_state and selected.entity.typ != "Initial")
 
         self.menu_actions['state_edit'].setEnabled(has_project and has_state)
-        self.menu_actions['state_delete'].setEnabled(has_project and has_state)
+        self.menu_actions['state_delete'].setEnabled(has_project and has_deletable_state)
         self.menu_actions['event_edit'].setEnabled(has_project and has_event)
         self.menu_actions['event_delete'].setEnabled(has_project and has_event)
         self.menu_actions['relation_edit'].setEnabled(has_project and has_relation)
