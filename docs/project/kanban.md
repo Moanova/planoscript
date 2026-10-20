@@ -47,9 +47,11 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## Doing
 
-- [ ] Conception — Évaluer et ajuster le contenu de AGENTS.md
+- (aucune tâche en cours)
 
 ## Done
+
+- [x] Conception — Évaluer et ajuster le contenu de AGENTS.md (vue d'ensemble alignée sur le MVP agents, rechargement des specs et du kanban en début de séance, suivi kanban, stubs de menus)
 
 - [x] SU003 — Création des composants State et Event (menu + menu contextuel, position centre de l'espace de travail)
 - [x] SU003 — Suppression d'un composant avec suppression en cascade des relations (RG031 : état initial non supprimable)
