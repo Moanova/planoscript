@@ -78,7 +78,13 @@ class StateNode(TypedNode):
         self._position_agent_badge()
 
     def _position_agent_badge(self) -> None:
-        """Place the badge in the bottom-right corner of the node."""
+        """Place the badge in the bottom-right corner of the node.
+
+        Guard: during BaseNode.__init__, update_from_layout() runs
+        before _init_agent_badge() creates the badge items.
+        """
+        if getattr(self, 'agent_badge', None) is None:
+            return
         diameter = self.BADGE_DIAMETER
         rect = self.rect()
         x = rect.width() - diameter - self.BADGE_MARGIN
