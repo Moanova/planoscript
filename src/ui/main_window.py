@@ -150,6 +150,25 @@ class MainWindow(QMainWindow):
 
         # Deferred initialization of workspace
         self.workspace = None
+
+        # Bottom section
+        bottom_layout = QHBoxLayout()
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.setSpacing(0)
+        
+        # Information bar (75%) --> MPV 100%, no zoom bar
+        self.info_bar = InfoBar()
+        ##bottom_layout.addWidget(self.info_bar, 4)  # 75%
+        bottom_layout.addWidget(self.info_bar)
+        
+        # Zoom bar (25%)
+        #self.zoom_bar = ZoomBar()
+        #bottom_layout.addWidget(self.zoom_bar, 1)  # 25%
+        
+        main_layout.addLayout(bottom_layout)
+        
+        self.setWindowTitle("Planoscript : start your new project")
+
         self._show_welcome_message()
 
     def _on_tab_changed(self, tab_name: str):
@@ -241,24 +260,6 @@ class MainWindow(QMainWindow):
         """
         if hasattr(self, 'agents_page') and self.agents_page is not None:
             self.agents_page.refresh()
-
-        # Bottom section
-        bottom_layout = QHBoxLayout()
-        bottom_layout.setContentsMargins(0, 0, 0, 0)
-        bottom_layout.setSpacing(0)
-        
-        # Information bar (75%) --> MPV 100%, no zoom bar
-        self.info_bar = InfoBar()
-        ##bottom_layout.addWidget(self.info_bar, 4)  # 75%
-        bottom_layout.addWidget(self.info_bar)
-        
-        # Zoom bar (25%)
-        #self.zoom_bar = ZoomBar()
-        #bottom_layout.addWidget(self.zoom_bar, 1)  # 25%
-        
-        main_layout.addLayout(bottom_layout)
-        
-        self.setWindowTitle("Planoscript : start your new project")
 
 
     def _create_menu_bar(self):
