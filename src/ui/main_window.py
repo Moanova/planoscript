@@ -482,6 +482,14 @@ class MainWindow(QMainWindow):
         self.create_project_usecase.execute()
         self._init_workspace()
         self._create_initial_state_visual()
+        # Initialize the agents view for the new project (TSK08): no
+        # saved layout yet, the matrix order falls back to creation
+        # order (RG068)
+        self.agents_page.set_project(
+            self.project_service, None,
+            associate_usecase=self.associate_agent_state_usecase,
+            dissociate_usecase=self.dissociate_agent_state_usecase)
+        self._refresh_agents_view()
         self.project_opened = True
         self.setWindowTitle(f"Planoscript : {self.project_service.current_project.lb}")
         self._update_menu_state()

@@ -1119,7 +1119,14 @@ class JourneyWorkspace(QGraphicsView, QObject):
             # Context menu for State nodes
             handlers[menu.addAction("Edit State")] = lambda: self.main_window._edit_selected_component("State")
             handlers[menu.addAction("Associate agents...")] = lambda: self.main_window._associate_agents_to_state(item.entity)
-            handlers[menu.addAction("Show in agents view")] = lambda: self.focusStateInAgentsViewRequested.emit(item.entity.id)
+            # TSK10: "Show in agents view" is disabled when the state
+            # has no agent association to show
+            show_action = menu.addAction("Show in agents view")
+            state_has_association = any(
+                rel.state_id == item.entity.id
+                for rel in self.narrative_map.state_agent_rel)
+            show_action.setEnabled(state_has_association)
+            handlers[show_action] = lambda: self.focusStateInAgentsViewRequested.emit(item.entity.id)
             # RG031: the initial state can never be deleted, so the Delete
             # State entry stays disabled when the initial state is selected
             delete_state = menu.addAction("Delete State")
