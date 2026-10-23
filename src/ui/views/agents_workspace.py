@@ -259,23 +259,27 @@ class AgentsWorkspace(QWidget):
         if item is None:
             return
 
+        # Qt toggles the check state of a user-checkable item BEFORE
+        # cellClicked is emitted: the check state read here is the state
+        # AFTER the click. The user intent is therefore the opposite:
+        # a now-checked cell means "associate", a now-unchecked cell
+        # means "dissociate".
         if item.checkState() == Qt.CheckState.Checked:
-            # Currently checked: dissociate
-            result = self.dissociate_usecase.execute(agent=agent, state=state)
-            if result and result.get('success'):
-                item.setCheckState(Qt.CheckState.Unchecked)
-                self.associationChanged.emit(state.id, agent.lb, False)
-            else:
-                # Failure: keep the checkbox aligned with the data
-                item.setCheckState(Qt.CheckState.Checked)
-        else:
-            # Currently unchecked: associate
+            # The user checked the cell: associate
             result = self.associate_usecase.execute(agent=agent, state=state)
             if result and result.get('success'):
-                item.setCheckState(Qt.CheckState.Checked)
                 self.associationChanged.emit(state.id, agent.lb, True)
             else:
+                # Failure: restore the checkbox to the data state
                 item.setCheckState(Qt.CheckState.Unchecked)
+        else:
+            # The user unchecked the cell: dissociate
+            result = self.dissociate_usecase.execute(agent=agent, state=state)
+            if result and result.get('success'):
+                self.associationChanged.emit(state.id, agent.lb, False)
+            else:
+                # Failure: restore the checkbox to the data state
+                item.setCheckState(Qt.CheckState.Checked)
 
     def _column_moved(self, logical_index, old_visual_index, new_visual_index):
         """Record a manual column reorder (RG068), keeping the initial

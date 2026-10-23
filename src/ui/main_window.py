@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QMessageBox, QGridLayout, QFileDialog, QStackedWidget
 )
 from PySide6.QtCore import Qt, QPoint
+from PySide6.QtGui import QCloseEvent
 
 from ui.views.journey_workspace import JourneyWorkspace
 from ui.views.agents_workspace import AgentsWorkspace
@@ -1057,6 +1058,11 @@ class MainWindow(QMainWindow):
                     lb=values['lb'], typ=values['typ'], note=values['note'])
                 if result and result.get('success'):
                     self.info_bar.show_message("Agent created")
+                    # TSK08: a new agent row may have appeared -> refresh
+                    # the agents view matrix; a new agent marks the
+                    # project as modified -> re-enable "Save"
+                    self._refresh_agents_view()
+                    self._update_menu_state()
                 else:
                     self.info_bar.show_message("Cannot create agent: invalid data")
             elif action == "edit":
@@ -1195,7 +1201,7 @@ class MainWindow(QMainWindow):
         # referencing the state, and report the count in the info message
         removed_associations = 0
         if isinstance(entity, State):
-            cascade = self.remove_state_associations_usecase.execute(entity=entity)
+            cascade = self.remove_state_associations_usecase.execute(state=entity)
             removed_associations = (cascade.get('deleted_associations', 0)
                                     if cascade else 0)
 

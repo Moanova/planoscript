@@ -49,15 +49,24 @@ emitted = []
 workspace.associationChanged.connect(
     lambda sid, lb, assoc: emitted.append((sid, lb, assoc)))
 
-# Cell (0, 0): Hero x initial state, currently unchecked -> click associates
+# Qt toggles the check state of a user-checkable item BEFORE cellClicked
+# is emitted: _toggle_cell receives the state AFTER the click, so the
+# caller (the cellClicked slot) must pass the post-click state. These
+# calls simulate the real event sequence: toggle the check state, then
+# invoke the slot.
+#
+# Cell (0, 0): Hero x initial state, currently unchecked -> the user
+# checks it: the association is created
 assert workspace.matrix.item(0, 0).checkState() == Qt.CheckState.Unchecked
+workspace.matrix.item(0, 0).setCheckState(Qt.CheckState.Checked)
 workspace._toggle_cell(0, 0)
 assert workspace.matrix.item(0, 0).checkState() == Qt.CheckState.Checked
 assert AssociateAgentStateUseCase.find_association(
     narrative_map, hero.id, state.id) is not None
 assert emitted == [(state.id, "Hero", True)]
 
-# Click again: dissociates
+# The user unchecks it: the association is removed
+workspace.matrix.item(0, 0).setCheckState(Qt.CheckState.Unchecked)
 workspace._toggle_cell(0, 0)
 assert workspace.matrix.item(0, 0).checkState() == Qt.CheckState.Unchecked
 assert AssociateAgentStateUseCase.find_association(
@@ -70,6 +79,9 @@ class FailingUsecase:
         return None
 
 workspace.associate_usecase = FailingUsecase()
+# The user checks the cell but the use case fails: the checkbox is
+# restored to the data state (unchecked)
+workspace.matrix.item(0, 0).setCheckState(Qt.CheckState.Checked)
 workspace._toggle_cell(0, 0)
 assert workspace.matrix.item(0, 0).checkState() == Qt.CheckState.Unchecked
 assert not any(e[2] for e in emitted[2:])  # no spurious success emitted
