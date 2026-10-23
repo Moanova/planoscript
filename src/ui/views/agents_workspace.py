@@ -21,6 +21,7 @@ cannot be moved.
 """
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QBrush
 from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
@@ -170,7 +171,9 @@ class AgentsWorkspace(QWidget):
             for row in range(self.matrix.rowCount()):
                 item = self.matrix.item(row, column)
                 if item is not None:
-                    item.setBackground(None)
+                    # No brush = default background (None is not accepted
+                    # by QTableWidgetItem.setBackground)
+                    item.setBackground(QBrush())
         self._focused_state_id = None
         self._focused_column = None
 

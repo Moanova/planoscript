@@ -71,7 +71,22 @@ app.processEvents()
 assert mw.pages.currentWidget() is mw.agents_page  # no switch
 assert not mw.workspace.has_focus()
 
-# The navigation never marked the project as modified (RG067/FN032)
+# The navigation never marked the project as modified (RG067/FN032).
+# The agent/association setup above legitimately marks the project as
+# modified, so the flag is reset before exercising the navigation.
+mw.project_service.set_modified(False)
+mw._focus_state_in_agents_view(initial.id)
+app.processEvents()
+mw._release_focus()
+mw.tab_bar.setCurrentTab("Agents")
+app.processEvents()
+mw._focus_agent_in_journey_view(hero.id)
+app.processEvents()
+mw._release_focus()
+mw.tab_bar.setCurrentTab("Agents")
+app.processEvents()
+mw._focus_agent_in_journey_view(oracle.id)
+app.processEvents()
 assert not mw.project_service.is_modified
 
 print("OFFSCREEN CROSS-VIEW NAVIGATION CHECKS PASSED")

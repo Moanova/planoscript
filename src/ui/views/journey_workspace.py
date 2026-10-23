@@ -354,9 +354,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
         self.clear_focus()
         self._focused_state_ids = set(state_ids)
         for item in self.scene.items():
-            entity = getattr(item, 'entity', None)
-            entity_id = getattr(entity, 'id', None)
-            if entity_id in self._focused_state_ids:
+            # Entity IDs are unique per type, not globally (State.id=1
+            # and Event.id=1 can coexist): only state nodes may stay
+            # highlighted, so the lookup must filter on StateNode
+            if isinstance(item, StateNode) and item.entity.id in self._focused_state_ids:
                 item.setOpacity(1.0)
             else:
                 item.setOpacity(0.25)
@@ -705,61 +706,29 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
     def create_connection_from_data(self, connection_data: dict):
         """
-        Creates a visual connection based on the data returned by the use case.
-        Accepts either:
-        - 'source', 'target', 'relation' (visual nodes and business entity)
-        - OR 'connection_layout', 'source_entity', 'target_entity' (legacy format)
+        Creates a visual connection from 'source', 'target' and
+        'relation' (visual nodes and business entity).
         """
-        # Try new format first (source, target, relation)
         source_node = connection_data.get('source')
         target_node = connection_data.get('target')
         relation_entity = connection_data.get('relation')
-        
-        if source_node and target_node:
-            # New format: directly use the visual nodes
-            from core.models.view_model import ConnectionLayout, RelationType
-            connection_layout = ConnectionLayout(
-                source_node_id=source_node.entity.id,
-                target_node_id=target_node.entity.id,
-                relation_id=relation_entity.id if relation_entity else None,
-                relation_type=connection_data.get('relation_type', RelationType.STATE_TO_EVENT)
-            )
-            connection = Connection(connection_layout, source_node, target_node, relation_entity)
-            self.scene.addItem(connection)
-            connection.update_path()
-            self._select_item_only(connection)
-            return connection
-        
-        # Fallback to legacy format for backward compatibility
-        try:
-            connection_layout = connection_data['connection_layout']
-            source_entity = connection_data['source_entity']
-            target_entity = connection_data['target_entity']
 
-            source_node = self._find_node_by_entity_id(source_entity.id)
-            target_node = self._find_node_by_entity_id(target_entity.id)
-
-            if not source_node or not target_node:
-                logger.warning("Source or target node not found")
-                return None
-
-            connection = Connection(connection_layout, source_node, target_node)
-            self.scene.addItem(connection)
-            connection.update_path()
-            self._select_item_only(connection)
-
-            return connection
-        except KeyError:
+        if not (source_node and target_node):
             logger.warning("Invalid connection data format")
             return None
 
-
-    def _find_node_by_entity_id(self, entity_id: int):
-        """Find a node in the scene by its entity_id."""
-        for item in self.scene.items():
-            if hasattr(item, 'entity') and item.entity.id == entity_id:
-                return item
-        return None
+        from core.models.view_model import ConnectionLayout, RelationType
+        connection_layout = ConnectionLayout(
+            source_node_id=source_node.entity.id,
+            target_node_id=target_node.entity.id,
+            relation_id=relation_entity.id if relation_entity else None,
+            relation_type=connection_data.get('relation_type', RelationType.STATE_TO_EVENT)
+        )
+        connection = Connection(connection_layout, source_node, target_node, relation_entity)
+        self.scene.addItem(connection)
+        connection.update_path()
+        self._select_item_only(connection)
+        return connection
 
     def _find_node_by_entity_id_and_type(self, entity_id: int, entity_class) -> object:
         """

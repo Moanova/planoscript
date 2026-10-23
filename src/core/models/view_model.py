@@ -308,32 +308,6 @@ class WorkspaceLayout:
         elif node_layout.node_type == NodeType.EVENT:
             self.event_nodes[node_layout.node_id] = node_layout
 
-    def remove_node(self, node_type: NodeType, node_id: int) -> bool:
-        """Remove a node layout and all its connections."""
-        node_dict = None
-        if node_type == NodeType.STATE:
-            node_dict = self.state_nodes
-        elif node_type == NodeType.EVENT:
-            node_dict = self.event_nodes
-
-        if not node_dict or node_id not in node_dict:
-            return False
-
-        # Remove all connections involving this node
-        for conn_dict in [self.state_to_event_connections,
-                         self.event_to_state_connections,
-                         self.state_agent_rel_connections]:
-            conn_ids_to_remove = [
-                cid for cid, conn in conn_dict.items()
-                if conn.source_node_id == node_id or conn.target_node_id == node_id
-            ]
-            for cid in conn_ids_to_remove:
-                del conn_dict[cid]
-
-        # Remove the node
-        del node_dict[node_id]
-        return True
-
     def add_connection(self, connection_layout: ConnectionLayout) -> None:
         """Add or update a connection layout, routed by relation_type."""
         if connection_layout.relation_type == RelationType.STATE_TO_EVENT:

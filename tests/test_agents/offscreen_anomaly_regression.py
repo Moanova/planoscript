@@ -207,4 +207,48 @@ assert not any(arc.state_id == target.id
                for arc in narrative_map.event_to_state), \
     "anomaly 5: incoming arc not removed"
 
+# ---------------------------------------------------------------------
+# ID collision regression (session 2026-10-23): entity IDs are unique
+# per type, not globally. State.id=1 and Event.id=1 coexist.
+# ---------------------------------------------------------------------
+mw2 = MainWindow()
+mw2._create_project()
+app.processEvents()
+nm2 = mw2.project_service.current_project.narrative_map[0]
+initial2 = nm2.state[0]                      # id=1
+mw2._create_new_node("State")                # state id=2
+mw2._create_new_node("Event")                # event id=1 -> collides
+mw2._create_new_node("State")                # state id=3
+mw2._create_new_node("Event")                # event id=2 -> collides
+app.processEvents()
+state2 = nm2.state[1]                        # id=2
+assert initial2.id == 1
+assert nm2.event[0].id == 1
+assert state2.id == 2
+assert nm2.event[1].id == 2
+
+# Vulnerability 1: association on the initial state from the agents
+# view must not raise AttributeError (EventNode has no badge)
+from usecases.project_management.create_agent_usecase import CreateAgentUseCase
+hero2 = CreateAgentUseCase(mw2.project_service).execute(lb="Hero")['entity']
+AssociateAgentStateUseCase(mw2.project_service).execute(
+    agent=hero2, state=initial2)
+mw2._on_matrix_association_changed(initial2.id, hero2.lb, True)
+
+# Vulnerability 2: focusing state id=2 must not keep the event id=2
+# highlighted (only state nodes may stay at full opacity)
+from ui.nodes.state_node import StateNode
+from ui.nodes.event_node import EventNode
+mw2.workspace.set_focus([state2.id])
+app.processEvents()
+state2_node = next(
+    item for item in mw2.workspace.scene.items()
+    if isinstance(item, StateNode) and item.entity.id == state2.id)
+event2_node = next(
+    item for item in mw2.workspace.scene.items()
+    if isinstance(item, EventNode) and item.entity.id == state2.id)
+assert state2_node.opacity() == 1.0, "focused state must stay highlighted"
+assert event2_node.opacity() == 0.25, \
+    "event sharing the focused state ID must be dimmed"
+
 print("OFFSCREEN ANOMALY REGRESSION CHECKS PASSED")

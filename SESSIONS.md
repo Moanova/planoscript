@@ -1,0 +1,109 @@
+# SESSIONS.md — Planoscript
+
+Journal de session : informations importantes échangées avec le client
+(TSC), décisions prises et anomalies traitées. Complément de `AGENTS.md`
+(règles de travail) et de `docs/project/kanban.md` (suivi des tâches).
+
+Les entrées sont ajoutées en fin de fichier, ordre chronologique.
+
+---
+
+## 2026-10-15 — Epic EPC01-EPC03 (agents) : bilan de fin de session
+
+- Livraison de la gestion des agents (TSK01-TSK10) : entité `Agent`
+  portée par le projet, CRUD (FN031), associations agent-état (FN030,
+  RG063/RG064/RG065), vue Agents (matrice éditable, RG068), badges sur
+  les nœuds d'état, navigation croisée (RG067).
+- 95 tests unitaires passent ; scripts offscreen de vérification disponibles
+  dans `tests/test_agents/offscreen_*.py`.
+
+## 2026-10-23 — Session 1 : 5 anomalies remontées en test utilisateur
+
+Anomalies corrigées (commit `3b23c2f`) :
+
+1. **Save désactivé après création d'un agent** — la branche « new » de
+   `_manage_agents` ne rafraîchissait pas l'état des menus.
+2. **Décochage impossible dans la vue Agents** — `_toggle_cell` lisait le
+   check state APRÈS la bascule Qt (`cellClicked` est émis après le
+   toggle) : la logique était inversée.
+3. **Cochage sans effet dans la vue Agents** — idem (symptôme inverse).
+4. **Nouvel agent invisible dans la vue Agents** — pas de
+   `_refresh_agents_view()` après création.
+5. **Exception à la suppression d'un état** — appel
+   `RemoveStateAssociationsUseCase.execute(entity=...)` vs signature
+   `execute(state=...)` → `TypeError`.
+
+Correctif complémentaire : import `QCloseEvent` manquant dans
+`main_window.py` (`NameError` au chargement du module, latent depuis le
+08-09-2026, masqué car les tests unitaires n'importent pas `MainWindow`).
+
+Leçons retenues :
+- **Qt bascule le check state d'un item user-checkable AVANT d'émettre
+  `cellClicked`** : dans ce slot, le check state lu est l'état APRÈS le
+  clic. L'intention utilisateur est l'inverse de l'état lu.
+- **Ne jamais appeler un use case UI sans test au niveau du site
+  d'appel** : le test unitaire de `RemoveStateAssociationsUseCase`
+  utilisait le bon keyword (`state=`), l'appel UI utilisait `entity=`.
+- **Vérifier les imports au niveau module** : une annotation de type
+  évaluée à la définition de classe (`def closeEvent(self, event:
+  QCloseEvent)`) plante à l'import, pas à l'exécution.
+
+## 2026-10-23 — Session 2 : anomalie « association à l'état initial » + audit
+
+### Anomalie : `AttributeError: 'EventNode' object has no attribute 'refresh_agent_badge'`
+
+Symptôme : associer un agent à l'état initial depuis la vue Agents plante
+**uniquement si au moins un évènement existe** dans la carte (même non
+relié). L'association depuis la vue Journey fonctionne.
+
+Cause racine (confirmée par le client) : **les IDs des composants sont
+uniques PAR TYPE, pas globalement**. `NarrativeMap.get_next_id()` génère
+`max+1` séparément pour `state` et `event` : l'état initial a `id=1`,
+et le premier évènement créé a aussi `id=1`. Dans
+`_on_matrix_association_changed` (`main_window.py`), la boucle de
+recherche du nœud à rafraîchir comparait `entity.id == state_id` **sans
+filtrer par type** : elle pouvait tomber sur l'`EventNode`.
+
+**Décision client (2026-10-23) : les IDs restent uniques par type, pas
+au global.** C'est un choix de conception à documenter, pas un bug de
+génération. Les consommateurs d'IDs doivent donc toujours filtrer par
+type.
+
+### Audit post-anomalie (résultat)
+
+Sites vulnérables (recherche par ID sans filtre de type), tous corrigés :
+
+| # | Site | Impact |
+|---|------|--------|
+| 1 | `_on_matrix_association_changed` (`main_window.py`) | Crash (`AttributeError`) |
+| 2 | `JourneyWorkspace.set_focus` (`journey_workspace.py`) | Visuel : un évènement partageant l'ID d'un état focalisé n'est pas estompé (RG067) |
+| 3 | `_find_node_by_entity_id` + fallback « legacy » de `create_connection_from_data` | Latent : code mort (aucun appelant) |
+
+Sites audités et **non vulnérables** : `WorkspaceLayout` (dicts séparés
+`state_nodes`/`event_nodes` routés par `NodeType`), persistance
+save/reload (testé avec collision), `ArcService` (compare des paires
+typées), use cases d'association/suppression (listes de relations
+typées), vue Agents (recherche dans les listes respectives), sélection
+et menus (identité d'objet, pas comparaison d'ID).
+
+### Code mort supprimé
+
+- `WorkspaceLayout.remove_node`, `get_node_layout`,
+  `get_connection_layout`, `remove_connection`, `clear` : aucun appelant
+  dans `src/` ni `tests/`. Le layout est reconstruit à chaque sauvegarde
+  via `collect_workspace_layout()` ; la suppression passe par
+  `JourneyWorkspace.remove_node(item)` (scène).
+- Fallback « legacy » de `create_connection_from_data` (clés
+  `connection_layout`/`source_entity`/`target_entity`) et
+  `_find_node_by_entity_id` : le seul producteur de ce format,
+  `CreateRelationUseCase`, n'est jamais exécuté (création d'arc via
+  `ArcService` + format « new » `source`/`target`/`relation`).
+
+### Règle de conception à retenir
+
+> **Les identifiants des entités métier (State, Event, Agent, arcs,
+> relations) sont uniques par type au sein d'une narrative map, pas
+> globalement.** Toute recherche d'un nœud/entité à partir d'un ID doit
+> filtrer par type (`isinstance` / `_find_node_by_entity_id_and_type`).
+> Le pattern « recherche par ID seul » est un piège : `State.id=1` et
+> `Event.id=1` coexistent légitimement.

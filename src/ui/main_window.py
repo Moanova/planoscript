@@ -26,6 +26,7 @@ from ui.views.journey_workspace import JourneyWorkspace
 from ui.views.agents_workspace import AgentsWorkspace
 from ui.widgets.tab_bar import TabBar
 from ui.nodes.connection import Connection
+from ui.nodes.state_node import StateNode
 from ui.widgets.info_bar import InfoBar
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
@@ -192,9 +193,12 @@ class MainWindow(QMainWindow):
         reports the action in the info bar.
         """
         if isinstance(self.workspace, JourneyWorkspace):
+            # Entity IDs are unique per type, not globally (State.id=1 and
+            # Event.id=1 can coexist): only a state node may carry the
+            # badge, so the lookup must filter on the State entity type
             for item in self.workspace.scene.items():
-                entity = getattr(item, 'entity', None)
-                if entity is not None and getattr(entity, 'id', None) == state_id:
+                if (isinstance(item, StateNode)
+                        and item.entity.id == state_id):
                     self.workspace.refresh_state_badge(item)
                     break
         if associated:

@@ -381,7 +381,12 @@ class NarrativeMap:
         )
 
     def get_next_id(self, entity_type: str) -> int:
-        """Get the next available ID for a given entity type."""
+        """Get the next available ID for a given entity type.
+
+        IDs are unique PER TYPE, not globally: State.id=1 and Event.id=1
+        can coexist in the same narrative map. Any lookup of an entity
+        from an ID must therefore filter by type.
+        """
         existing_ids = set()
         
         if entity_type == 'state':
@@ -445,7 +450,12 @@ class Project:
         )
 
     def get_next_id(self, entity_type: str) -> int:
-        """Get the next available ID for a given entity type at project level."""
+        """Get the next available ID for a given entity type at project level.
+
+        IDs are unique PER TYPE, not globally (agents live at project
+        level, but the rule is the same: Agent.id=1 can coexist with
+        State.id=1).
+        """
         existing_ids = set()
         
         if entity_type == 'agent':
