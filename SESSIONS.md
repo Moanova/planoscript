@@ -174,3 +174,19 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 > **Dans `itemChange(ItemSelectedChange)`, l'état de sélection n'est pas
 > encore à jour** : toujours utiliser la valeur portée par l'événement,
 > jamais `isSelected()`.
+
+## 2026-10-24 — Fin de TSK11 (validée) + création TSK12/TSK13/TSK14
+
+- **TSK11 validée** par TSC après revue visuelle (« c'est vraiment mieux
+  comme ça »). Tâche passée en Done ; commit `d87b8e6` poussé sur `dev`.
+- **TSK12 — Finalisation de la révision du layout** (To do) : points
+  soulevés en revue visuelle, non couverts par les documents de révision ;
+  la liste sera fournie par TSC en prochaine séance.
+- **TSK13 — Révision de la mécanique de création et d'édition des agents,
+  et de l'association états-agents** (To do) : revue fonctionnelle des
+  dialogues agent (TSK01/TSK04) et de la matrice d'association (TSK09) ;
+  en attente de cadrage.
+- **TSK14 — Barre latérale gauche de contrôle** (To do) : création
+  des agents, états, événements et relations depuis un panneau latéral
+  gauche ; dépend de TSK11 (Done). Cadrage à préciser (largeur, forme des
+  contrôles, comportement relation, présence selon les vues).

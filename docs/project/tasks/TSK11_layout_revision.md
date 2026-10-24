@@ -1,7 +1,7 @@
 # TSK11 — Révision esthétique du layout (thème sombre)
 
 - **Épic** : aucune (tâche transversale UI)
-- **Statut** : Doing
+- **Statut** : Done (implémentation terminée, validée en revue visuelle par TSC le 24-10-2026 ; les points restants soulevés lors de la revue sont transférés à TSK12)
 - **Date de début** : 24-10-2026
 - **Dépendances** : aucune (TSK01–TSK10 Done)
 - **Documents de support** : charte `docs/specification/98_layout_revision-FR.md`, maquette `docs/specification/97_layout_revision-EN.svg`

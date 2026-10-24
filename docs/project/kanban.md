@@ -23,6 +23,10 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## To do
 
+- [ ] TSK12 — Finalisation de la révision du layout — points soulevés en revue visuelle de TSK11 (liste à fournir par TSC en prochaine séance)
+- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
+- [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
+
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
 - [ ] SU004 — Éditer une relation : annotation via panneau de propriétés (FN021)
@@ -38,10 +42,11 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## En revue
 
-- [ ] TSK11 — Révision esthétique du layout (charte `docs/specification/98_layout_revision-FR.md`, maquette `97_layout_revision-EN.svg` — détail dans `tasks/TSK11_layout_revision.md`) — thème sombre implémenté (palette centralisée dans config.json + `ui/utils/theme.py`), tests 95 passed + offscreen 27/27 PASS ; en attente de revue visuelle utilisateur
+- (aucune tâche en revue)
 
 ## Done
 
+- [x] TSK11 — Révision esthétique du layout (charte `docs/specification/98_layout_revision-FR.md`, maquette `97_layout_revision-EN.svg` — détail dans `tasks/TSK11_layout_revision.md`) — thème sombre implémenté et validé en revue visuelle par TSC ; finalisation des points restants transférée à TSK12
 - [x] TSK10 — Navigation croisée entre vues avec focus RG067 (EPC03, SU009/FN032) — deux sens, Échap/clic relâchent, aucune persistance ni marquage modifié (détail dans `tasks/TSK10_cross_view_navigation.md`)
 - [x] TSK09 — Édition des cellules de la matrice (EPC03, SU008/FN030) — cellClicked → use cases, signal associationChanged, symétrie parcours/matrice (détail dans `tasks/TSK09_matrix_cell_edition.md`)
 - [x] TSK08 — Affichage de la matrice agents × états en lecture seule (EPC03, SU009) — QTableWidget, ordre RG068 persisté, rafraîchissement croisé (détail dans `tasks/TSK08_agents_matrix.md`)
