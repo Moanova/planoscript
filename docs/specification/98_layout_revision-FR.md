@@ -17,7 +17,7 @@ La cible est un thème sombre : arrière-plan #1E1E1E, surfaces #2D2D2D, texte b
 | Rôle | Couleur actuelle | Couleur cible | Code hexadécimal |
 |---|---|---|---|
 | Arrière-plan principal | Gris clair | Gris très sombre | `#1E1E1E` |
-| Surfaces (sidebar, barre de menus, nœuds) | Blanc | Gris sombre | `#2D2D2D` |
+| Surfaces (barre de menus, panneaux, nœuds) | Blanc | Gris sombre | `#2D2D2D` |
 | Bordures et séparateurs | Gris clair | Gris sombre discret | `#383838` |
 | Lignes de grille | Gris clair | Gris très discret | `#333333` |
 | Texte principal | Noir | Blanc | `#FFFFFF` |
@@ -47,7 +47,7 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 
 ## 4. Synthèse des changements
 
-1. Inversion globale du thème : passage d'un thème clair à un thème sombre. L'arrière-plan principal devient #1E1E1E ; la barre de menus, le panneau Journey Filter et les panneaux deviennent #2D2D2D ; les bordures et séparateurs deviennent #383838.
+1. Inversion globale du thème : passage d'un thème clair à un thème sombre. L'arrière-plan principal devient #1E1E1E ; la barre de menus et les panneaux deviennent #2D2D2D ; les bordures et séparateurs deviennent #383838.
 2. Texte : le texte principal passe en blanc (#FFFFFF), le texte secondaire (libellés d'onglets, éléments inactifs) en gris clair (#CCCCCC).
 3. Onglets : les onglets Journey et Agents adoptent un traitement identique et neutre (contour #383838, libellé gris clair #CCCCCC), en remplacement de la marque bleu pastel #E6F2FF sur l'onglet actif.
 4. Objets du diagramme : les nœuds adoptent une surface unifiée #2D2D2D sans ombre, avec un arrondi d'environ 6 px. La distinction de type se fait par le contour et le libellé de type :
@@ -60,8 +60,10 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 8. Connexions : les liaisons pointillées passent en gris clair #CCCCCC sur fond sombre.
 9. Grille : les lignes de la grille du panneau central passent à #333333 sur fond #1E1E1E.
 10. Ombres : suppression des ombres portées sous les nœuds, conformément au style minimaliste de la cible.
-11. Barre latérale droite (nouveau composant) : ajout d'un panneau Journey Filter sur le côté droit de la fenêtre, d'environ 240 px de large, sur surface #2D2D2D avec séparateur #383838. Ce filtre de parcours n'existe pas encore dans l'application ; il est figuré en maquette comme espace réservé. Contenu initial prévu : en-tête « Journey Filter » suivi d'une liste de trois cases à cocher — « Journey 1 », « Journey 2 », « Journey 3 » — aux cadres en blanc doux #F0F0F0, libellés en blanc. Des extensions ultérieures pourront compléter ce panneau.
-12. Barre latérale gauche : suppression. Le panneau central s'étend sur toute la largeur restante, à droite du panneau Journey Filter. Les onglets Journey et Agents demeurent à leur emplacement actuel, c'est-à-dire en haut à gauche de la fenêtre, directement sous la barre de menus ; tous deux partagent exactement la même apparence : surface #2D2D2D, contour #383838, libellé gris clair #CCCCCC.
+11. Barre latérale gauche : aucune barre latérale n'existe à ce jour dans l'application. Le panneau central s'étend sur toute la largeur de la fenêtre. Une barre latérale gauche pourra être ajoutée plus tard ; elle n'est pas partie de cette révision.
+12. Barre latérale droite (Journey Filter) : **hors périmètre de cette révision**. L'ajout du panneau « Journey Filter » (environ 240 px, sur le côté droit de la fenêtre) fera l'objet d'un chantier ultérieur, de même que la décision de sa présence ou non dans chacun des deux espaces de travail (Journey et Agents). À ce stade, aucune barre latérale droite n'est créée ; la maquette (97_layout_revision-EN.svg) la figure comme espace réservé.
+13. Onglets : les onglets Journey et Agents demeurent à leur emplacement actuel, c'est-à-dire en haut à gauche de la fenêtre, directement sous la barre de menus ; tous deux partagent exactement la même apparence : surface #2D2D2D, contour #383838, libellé gris clair #CCCCCC.
+14. Boîtes de dialogue : le thème sombre s'applique également aux dialogues de l'application (édition d'un composant, gestion des agents, « À propos », etc.) : surfaces #2D2D2D, texte principal #FFFFFF, texte secondaire #CCCCCC, bordures et séparateurs #383838.
 
 ## 5. Sémantique des couleurs d'état
 
@@ -72,6 +74,7 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 | Survol | Contour de l'objet (continu) | `#F0F0F0` |
 | Sélection | Contour de l'objet, en pointillés | Teinte du type (`#E5C07B` ou `#D19A66`) |
 | Ancres (entrantes et sortantes) | Cercles de connexion | `#F0F0F0` |
+| Badge d'agents (pastille sur les nœuds d'état) | Remplissage / contour / texte | `#E5C07B` / `#F0F0F0` / `#1E1E1E` |
 
 Règle de priorité des contours : sélection > survol > type. Un objet survolé affiche un contour blanc doux continu ; un objet sélectionné affiche un contour pointillé de la teinte de son type, même au survol.
 
@@ -91,6 +94,9 @@ Règle de priorité des contours : sélection > survol > type. Un objet survolé
   --anchor: #F0F0F0;        /* points d'ancrage entrants et sortants */
   --hover: #F0F0F0;         /* contour au survol */
   --connection: #CCCCCC;   /* liaisons pointillées */
+  --badge-bg: #E5C07B;     /* remplissage des badges d'agents (teinte des objets State) */
+  --badge-border: #F0F0F0; /* contour des badges d'agents */
+  --badge-text: #1E1E1E;   /* texte des badges d'agents (lisible sur fond clair) */
   --selected-style: dashed; /* sélection : contour pointillé, teinte du type conservée */
   --radius: 6px;
   font-family: "Segoe UI", system-ui, sans-serif;
@@ -99,6 +105,4 @@ Règle de priorité des contours : sélection > survol > type. Un objet survolé
 
 ## 7. Structure
 
-La hiérarchie structurelle existante est conservée pour la barre de menus (Files, Edit, Display, Project, About) et les onglets Journey/Agents, qui demeurent en haut à gauche de la fenêtre, directement sous la barre de menus, à leur emplacement actuel. La barre latérale gauche est supprimée : le panneau central quadrillé s'étend sur toute la largeur restante. Seuls les couleurs, les ombres et les finitions sont modifiés.
-
-Une évolution structurelle est prévue : ajout d'une barre latérale droite (environ 240 px) dédiée au filtre de parcours (Journey Filter), composant futur figuré comme espace réservé dans la maquette. Sa version initiale comporte l'en-tête « Journey Filter » et une liste de trois cases à cocher de parcours (« Journey 1 », « Journey 2 », « Journey 3 »). Les éléments d'interface de ce panneau reprennent les codes de la présente charte : surface #2D2D2D, séparateurs #383838, libellés blancs, cadres des cases à cocher en blanc doux #F0F0F0.
+La hiérarchie structurelle existante est conservée pour la barre de menus (Files, Edit, Display, Project, About) et les onglets Journey/Agents, qui demeurent en haut à gauche de la fenêtre, directement sous la barre de menus, à leur emplacement actuel. Aucune barre latérale n'existe à ce jour : le panneau central quadrillé s'étend sur toute la largeur de la fenêtre. Une barre latérale gauche pourra être ajoutée plus tard, et une barre latérale droite « Journey Filter » (environ 240 px, espace réservé figuré dans la maquette) fera l'objet d'un chantier ultérieur, y compris la décision de sa présence dans les deux espaces de travail ; ce panneau n'est pas créé dans cette révision. Seules les couleurs, les ombres et les finitions sont modifiées.

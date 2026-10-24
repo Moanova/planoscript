@@ -107,3 +107,70 @@ et menus (identité d'objet, pas comparaison d'ID).
 > filtrer par type (`isinstance` / `_find_node_by_entity_id_and_type`).
 > Le pattern « recherche par ID seul » est un piège : `State.id=1` et
 > `Event.id=1` coexistent légitimement.
+
+## 2026-10-24 — TSK11 : révision esthétique du layout (thème sombre)
+
+Implémentation de la charte `docs/specification/98_layout_revision-FR.md`
+(maquette `97_layout_revision-EN.svg`) : passage du thème clair au thème
+sombre (fond `#1E1E1E`, surfaces `#2D2D2D`, bordures `#383838`, grille
+`#333333`, texte `#FFFFFF`/`#CCCCCC`, State or doux `#E5C07B`, Event cuivre
+`#D19A66`, ancres/survol blanc doux `#F0F0F0`, sélection = contour pointillé
+6/4 de la teinte du type avec priorité sélection > survol > type, connexions
+pointillées `#CCCCCC`, badges d'agents `#E5C07B`/`#F0F0F0`/`#1E1E1E`, onglets
+identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
+
+### Travaux réalisés
+
+- Palette 100 % centralisée dans `config.json` + nouveau module
+  `src/ui/utils/theme.py` (constantes + stylesheets construits, fallback =
+  charte 98) — fin des couleurs codées en dur dans l'UI.
+- Nœuds : arrondi 6 px (`QPainterPath.addRoundedRect` via `paint`/`shape`),
+  libellé de type « State »/« Event » ajouté en couleur du type (14 px gras),
+  `_apply_outline` avec priorité sélection > survol.
+- Fenêtre principale, onglets, barre d'info, scrollbars, matrice agents,
+  6 dialogues, menus contextuels, `QMessageBox` (stylesheet applicatif dans
+  `main.py`).
+
+### Décisions actées (charte 98 mise à jour)
+
+- Badges d'agents : remplissage `#E5C07B`, contour `#F0F0F0`, texte
+  `#1E1E1E`.
+- Dialogues : thème sombre appliqué.
+- Barres latérales (gauche future, droite « Journey Filter ») : **hors
+  périmètre** de TSK11 — chantier ultérieur pour le Journey Filter,
+  y compris la décision Journey/Agents.
+- Couleurs de layout persistées (`NodeLayout.color`/`ConnectionLayout.color`)
+  : **aucune migration** — le champ n'est jamais renseigné (aucune
+  fonctionnalité utilisateur ; `Connection.set_color` sans appelant).
+
+### Choix par défaut en attente de revue visuelle
+
+- Focus matrice agents : `#383838` ; erreurs dialogues : `#D19A66` ;
+  rubber band : `#CCCCCC` pointillé.
+
+### Vérifications
+
+- `pytest tests/ -q` : 95 passed (hors `tests/test_application`, skippé
+  sans session GUI).
+- Test offscreen jetable TSK11 : 27/27 PASS (couleurs, sélection pointillée,
+  priorité survol, rendu QImage pixel par pixel).
+- Smoke tests offscreen : fenêtre principale + 5 dialogues OK ; tests
+  offscreen existants toujours OK.
+
+### Problème rencontré et résolu
+
+- **Sélection pointillée non appliquée au premier `setSelected(True)`** :
+  dans `itemChange(ItemSelectedChange)`, `isSelected()` retourne encore
+  l'ancienne valeur → `_apply_outline()` appliquait le contour de repos.
+  Corrigé en passant explicitement l'état cible
+  (`_apply_outline(selected)` / `set_selected_appearance(selected)`).
+- **Qt et `setDashPattern`** : un pattern personnalisé 6/4 produit
+  `CustomDashLine` (et non `DashLine`) ; le test offscreen accepte les deux.
+- Environnement sandbox : PySide6 installé via pip + bibliothèques système
+  Qt extraites de .deb Debian dans `/tmp/qtroot` (hors dépôt).
+
+### Leçon retenue
+
+> **Dans `itemChange(ItemSelectedChange)`, l'état de sélection n'est pas
+> encore à jour** : toujours utiliser la valeur portée par l'événement,
+> jamais `isSelected()`.

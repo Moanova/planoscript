@@ -28,6 +28,7 @@ from ui.widgets.tab_bar import TabBar
 from ui.nodes.connection import Connection
 from ui.nodes.state_node import StateNode
 from ui.widgets.info_bar import InfoBar
+from ui.utils import theme
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
 from core.models.data_model import State, Event
@@ -271,35 +272,8 @@ class MainWindow(QMainWindow):
         """Creates the menu bar"""
         self.menu_actions = {}
         self.menu_bar = self.menuBar()
-        self.menu_bar.setStyleSheet("""
-            QMenuBar {
-                background-color: #ffffff;
-                font-family: Arial;
-                font-size: 9pt;
-                color: #000000;
-            }
-            QMenuBar::item:selected {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QMenu {
-                background-color: #ffffff;
-                color: #000000;
-                font-family: Arial;
-                font-size: 9pt;
-                padding: 4px;
-            }
-            QMenu::item {
-                padding: 6px 20px 6px 10 px;
-            }
-            QMenu::item:selected {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QMenu::item:disabled {
-                color: #808080;
-            }
-        """)
+        # Dark theme menu bar (charter 98, via ui.utils.theme)
+        self.menu_bar.setStyleSheet(theme.MENU_BAR_STYLESHEET)
         
         # Files menu
         self.file_menu = self.menu_bar.addMenu("Files")
@@ -447,16 +421,17 @@ class MainWindow(QMainWindow):
         welcome_widget = QWidget()
         welcome_layout = QVBoxLayout(welcome_widget)
 
-        welcome_label = QLabel("""
-            <h2>Build the plan of your new script.</h2>
-            <p>Start by <a href="new" style="color: #0066cc; text-decoration: underline;">creating a new project</a> or open an existing project.</p>
+        welcome_label = QLabel(f"""
+            <h2 style="color: {theme.TEXT_PRIMARY};">Build the plan of your new script.</h2>
+            <p style="color: {theme.TEXT_SECONDARY};">Start by <a href=\"new\" style=\"color: {theme.STATE_COLOR}; text-decoration: underline;\">creating a new project</a> or open an existing project.</p>
         """)
         welcome_label.setAlignment(Qt.AlignCenter)
         welcome_label.setOpenExternalLinks(False)
         welcome_label.setTextFormat(Qt.RichText)
         welcome_label.setWordWrap(True)
         welcome_label.linkActivated.connect(lambda link: self._create_project())
-        welcome_label.setStyleSheet("QLabel { padding: 40px; }")
+        welcome_label.setStyleSheet(f"QLabel {{ padding: 40px; background-color: {theme.BG_PRIMARY}; }}")
+        self.welcome_page.setStyleSheet(f"background-color: {theme.BG_PRIMARY};")
 
         welcome_layout.addWidget(welcome_label)
         self.welcome_page.layout().addWidget(welcome_widget)

@@ -21,6 +21,7 @@ from PySide6.QtGui import QColor
 from core.models.data_model import Event
 from core.models.view_model import NodeLayout
 from ui.nodes.base_node import TypedNode
+from ui.utils import theme
 
 
 class EventNode(TypedNode):
@@ -31,18 +32,15 @@ class EventNode(TypedNode):
     them from Agents (blue/yellow) and States (green).
     """
 
+    # Charter 98: copper outline and type label, shared surface
+    # background, white text
     COLORS = {
-        'bg': QColor(240, 220, 255),    # Light lavender/purple
-        'border': QColor(180, 0, 200),    # Purple
-        'text': QColor(0, 0, 0)         # Black
+        'bg': theme.color("bg_surface", theme.BG_SURFACE),
+        'border': theme.color("event_color", theme.EVENT_COLOR),
+        'text': theme.color("text_primary", theme.TEXT_PRIMARY)
     }
-    SELECTED_BG_COLOR = QColor(220, 200, 255)  # Lighter lavender
-    SELECTED_BORDER_COLOR = QColor(200, 0, 255)   # Brighter purple
-    INPUT_PORT_COLOR = QColor(128, 0, 128)  # Purple
-    OUTPUT_PORT_COLOR = QColor(0, 128, 128)  # Turquoise
     ENTITY_TYPE_LABEL = "Event"
 
     def __init__(self, event: Event, layout: NodeLayout):
         super().__init__(event, layout)
         self._update_colors()
-        self._update_port_colors()

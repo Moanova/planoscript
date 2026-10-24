@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.models.data_model import State
+from ui.utils import theme
 from core.services.project_service import ProjectService
 from usecases.agent_association.associate_agent_state_usecase import (
     AssociateAgentStateUseCase
@@ -53,6 +54,8 @@ class AgentAssociationDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(400, 400)
         self.layout = QVBoxLayout(self)
+        # Dark theme (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
 
         self.list_widget = QListWidget()
         self.list_widget.itemChanged.connect(self._item_changed)

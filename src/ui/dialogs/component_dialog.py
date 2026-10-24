@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QTextEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy)
 from PySide6.QtCore import Qt
 from core.models.data_model import State, Event
+from ui.utils import theme
 
 
 class ComponentDialog(QDialog):
@@ -40,6 +41,8 @@ class ComponentDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(525, 420)  # Temporary rule: 150% of the original dimensions
         self.layout = QVBoxLayout(self)
+        # Dark theme (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
         self.form = QFormLayout()
         self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         # Fields stay at the same position; only the note field grows vertically
@@ -78,7 +81,7 @@ class ComponentDialog(QDialog):
 
         # Inline validation message (hidden by default)
         self.error_label = QLabel("")
-        self.error_label.setStyleSheet("color: red;")
+        self.error_label.setStyleSheet(f"color: {theme.ERROR_COLOR};")
         self.layout.addWidget(self.error_label)
 
     def _add_buttons(self):

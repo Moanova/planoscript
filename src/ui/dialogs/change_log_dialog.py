@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from core.services.change_log_service import ChangeLogService
+from ui.utils import theme
 
 class ChangeLogDialog(QDialog):
     def __init__(self, change_log_service: ChangeLogService, parent=None):
@@ -28,17 +29,9 @@ class ChangeLogDialog(QDialog):
         self.text_edit = QTextEdit()
         self.text_edit.setReadOnly(True)
         self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.text_edit.setStyleSheet("""
-            QScrollBar:vertical {
-                width: 8px; background: #f0f0f0; border-radius: 4px; margin: 0px; border: none;
-            }
-            QScrollBar::handle:vertical {
-                background: #c0c0c0; border-radius: 4px; min-height: 20px;
-            }
-            QScrollBar::add-line, QScrollBar::sub-line {
-                background: none; border: none; height: 0px; width: 0px;
-            }
-        """)
+        # Dark theme (charter 98): dialog stylesheet covers the text edit
+        # and its scrollbars
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
         layout.addWidget(self.text_edit)
 
         # Bouton OK

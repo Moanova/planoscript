@@ -22,12 +22,13 @@ from this class.
 
 from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem, QGraphicsItem, QGraphicsEllipseItem, QToolTip
 from PySide6.QtCore import Qt, QPointF
-from PySide6.QtGui import QPen, QBrush, QColor, QFont
+from PySide6.QtGui import QPen, QBrush, QColor, QFont, QPainterPath
 from typing import Optional, Any
 
 from core.models.view_model import NodeLayout
 from core.services.layout_service import LayoutService
 from config.config_loader import get as _get_config
+from ui.utils import theme
 
 
 class BaseNode(QGraphicsRectItem):
@@ -48,19 +49,22 @@ class BaseNode(QGraphicsRectItem):
     # Default dimensions (sourced from config.json)
     DEFAULT_WIDTH = _get_config("node_default_width", 80.0)
     DEFAULT_HEIGHT = _get_config("node_default_height", 40.0)
-    
-    # Default colors
-    DEFAULT_BG_COLOR = QColor(240, 240, 240)  # Light gray
-    DEFAULT_BORDER_COLOR = QColor(128, 128, 128)  # Medium gray
-    DEFAULT_TEXT_COLOR = QColor(0, 0, 0)  # Black
-    
-    # Selection colors
-    SELECTED_BG_COLOR = QColor(220, 230, 255)  # Light blue
-    SELECTED_BORDER_COLOR = QColor(0, 120, 215)  # Blue
-    
-    # Font settings
-    DEFAULT_FONT = QFont("Arial", 10)
-    TITLE_FONT = QFont("Arial", 10, QFont.Bold)
+
+    # Corner radius of the node rectangle (charter 98: ~6px)
+    CORNER_RADIUS = _get_config("node_corner_radius_px", 6.0)
+
+    # Default colors (dark theme, charter 98, via ui.utils.theme)
+    DEFAULT_BG_COLOR = theme.color("bg_surface", theme.BG_SURFACE)
+    DEFAULT_BORDER_COLOR = theme.color("border_color", theme.BORDER_COLOR)
+    DEFAULT_TEXT_COLOR = theme.color("text_primary", theme.TEXT_PRIMARY)
+
+    # Hover color: soft white continuous outline (charter 98)
+    HOVER_BORDER_COLOR = theme.color("hover_color", theme.HOVER_COLOR)
+
+    # Font settings (charter 98: Segoe UI, ~13px node text, ~14px bold title)
+    _FONT_FAMILY = theme.FONT_FAMILY
+    DEFAULT_FONT = QFont(_FONT_FAMILY, theme.NODE_FONT_SIZE_PX)
+    TITLE_FONT = QFont(_FONT_FAMILY, theme.NODE_TITLE_FONT_SIZE_PX, QFont.Bold)
     
     # Port settings
     PORT_SIZE = 8
@@ -93,7 +97,10 @@ class BaseNode(QGraphicsRectItem):
         
         # Set acceptance for hover events (useful for visual feedback)
         self.setAcceptHoverEvents(True)
-        
+
+        # Hover state (charter 98: hover outline, selection has priority)
+        self._hovered = False
+
         # Initialize appearance
         self._init_appearance()
         
@@ -121,9 +128,9 @@ class BaseNode(QGraphicsRectItem):
         # Set default pen and brush
         self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
         self.setBrush(QBrush(self.DEFAULT_BG_COLOR))
-        
-        # Set rounded corners
-        self.setRect(0, 0, self.rect().width(), self.rect().height())
+
+        # Rounded corners (charter 98: ~6px, no drop shadow)
+        self._rounded_rect = None  # built lazily in paint/boundingRect
 
 
     # Temporary rule: node label display truncated to 8 characters
@@ -188,6 +195,11 @@ class BaseNode(QGraphicsRectItem):
         """
         port_size = self.PORT_SIZE
         
+        # Anchor color (charter 98): single soft white for all anchors,
+        # dark fill matching the canvas background
+        anchor_fill = theme.color("bg_primary", theme.BG_PRIMARY)
+        anchor_stroke = theme.color("anchor_color", theme.ANCHOR_COLOR)
+
         # Input port (left side, centered vertically)
         self.input_port = QGraphicsEllipseItem(
             -port_size / 2,  # x: positioned at left edge
@@ -195,11 +207,11 @@ class BaseNode(QGraphicsRectItem):
             port_size, port_size,
             self
         )
-        self.input_port.setBrush(QBrush(QColor(255, 0, 0)))  # Red
-        self.input_port.setPen(QPen(QColor(0, 0, 0)))  # Black border
+        self.input_port.setBrush(QBrush(anchor_fill))
+        self.input_port.setPen(QPen(anchor_stroke, 1.5))
         self.input_port.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.input_port.setFlag(QGraphicsItem.ItemIsMovable, False)
-        
+
         # Output port (right side, centered vertically)
         self.output_port = QGraphicsEllipseItem(
             self.rect().width() - port_size / 2,  # x: positioned at right edge
@@ -207,8 +219,8 @@ class BaseNode(QGraphicsRectItem):
             port_size, port_size,
             self
         )
-        self.output_port.setBrush(QBrush(QColor(0, 255, 0)))  # Green
-        self.output_port.setPen(QPen(QColor(0, 0, 0)))  # Black border
+        self.output_port.setBrush(QBrush(anchor_fill))
+        self.output_port.setPen(QPen(anchor_stroke, 1.5))
         self.output_port.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.output_port.setFlag(QGraphicsItem.ItemIsMovable, False)
 
@@ -226,10 +238,14 @@ class BaseNode(QGraphicsRectItem):
         if self.layout.width > 0 and self.layout.height > 0:
             self.setRect(0, 0, self.layout.width, self.layout.height)
         
-        # Update selection state
+        # Update selection state (ItemSelectedChange reapplies the
+        # outline: dashed type color when selected, charter 98)
         self.setSelected(self.layout.selected)
-        
-        # Update color if specified
+        if not self.layout.selected:
+            self._apply_outline()
+
+        # Update color if specified (layout color overrides the surface;
+        # the type outline is preserved, charter 98)
         if self.layout.color:
             try:
                 color = QColor(self.layout.color)
@@ -237,7 +253,7 @@ class BaseNode(QGraphicsRectItem):
                     self.setBrush(QBrush(color))
             except (ValueError, AttributeError):
                 pass
-        
+
         # Update port positions when node size changes
         self._update_port_positions()
 
@@ -261,25 +277,77 @@ class BaseNode(QGraphicsRectItem):
         self.layout.selected = self.isSelected()
 
 
+    def _type_border_color(self) -> QColor:
+        """Return the border color of the node's type (charter 98).
+
+        BaseNode has no type: the neutral border color applies. TypedNode
+        subclasses override this with their type color (gold/copper).
+        """
+        return self.DEFAULT_BORDER_COLOR
+
+    def _apply_outline(self, selected: Optional[bool] = None) -> None:
+        """Apply the outline according to the priority rule (charter 98):
+        selection (dashed, type color) > hover (soft white, solid) > type.
+
+        A custom dash pattern is only honored by Qt for DashLine pens:
+        Qt.DotLine renders a fixed dot pattern, so DashLine with a 6/4
+        pattern is used to match the charter's dotted selection outline.
+
+        Args:
+            selected: Explicit selection state. During
+                itemChange(ItemSelectedChange), isSelected() still holds
+                the previous state, so the new value must be passed.
+        """
+        if selected if selected is not None else self.isSelected():
+            pen = QPen(self._type_border_color(), 2)
+            pen.setStyle(Qt.DashLine)
+            pen.setDashPattern([6.0, 4.0])
+            pen.setCapStyle(Qt.FlatCap)
+            self.setPen(pen)
+        elif self._hovered:
+            self.setPen(QPen(self.HOVER_BORDER_COLOR, 2))
+        else:
+            self.setPen(QPen(self._type_border_color(), 2))
+
     def set_selected_appearance(self, selected: bool) -> None:
         """
         Update the node's appearance based on selection state.
-        
+
+        Charter 98: selection is shown by a dashed outline in the node's
+        type color (no dedicated selection color); the background stays
+        the surface color.
+
         Args:
             selected: Whether the node is selected
         """
-        if selected:
-            self.setPen(QPen(self.SELECTED_BORDER_COLOR, 2))
-            self.setBrush(QBrush(self.SELECTED_BG_COLOR))
-        else:
-            self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
-            self.setBrush(QBrush(self.DEFAULT_BG_COLOR))
+        self._apply_outline(selected)
 
 
     # -------------------------------------------------------------------------
     # QGraphicsItem overrides
     # -------------------------------------------------------------------------
-    
+
+    def _rounded_path(self) -> QPainterPath:
+        """Return the node rectangle as a rounded-corner path (charter 98)."""
+        path = QPainterPath()
+        path.addRoundedRect(self.rect(), self.CORNER_RADIUS, self.CORNER_RADIUS)
+        return path
+
+    def boundingRect(self):
+        """Bounding rect covering the rounded outline (pen width included)."""
+        return self._rounded_path().boundingRect().adjusted(-2, -2, 2, 2)
+
+    def shape(self):
+        """Clickable shape: the rounded rectangle (hit-testing, AGENTS.md)."""
+        return self._rounded_path()
+
+    def paint(self, painter, option, widget=None) -> None:
+        """Paint the node as a rounded rectangle (charter 98: radius ~6px,
+        no drop shadow)."""
+        painter.setPen(self.pen())
+        painter.setBrush(self.brush())
+        painter.drawPath(self._rounded_path())
+
     def mousePressEvent(self, event) -> None:
         """Handle mouse press events."""
         # Call parent implementation first
@@ -309,8 +377,11 @@ class BaseNode(QGraphicsRectItem):
 
     def hoverEnterEvent(self, event) -> None:
         """Handle hover enter events."""
-        # Visual feedback for hover
-        self.setPen(QPen(QColor(0, 120, 215), 2))  # Blue border on hover
+        # Visual feedback for hover: soft white outline (charter 98).
+        # Selection has priority: a selected node keeps its dashed
+        # type-colored outline even when hovered.
+        self._hovered = True
+        self._apply_outline()
         # Tooltip: display the entity's label (lb) IMMEDIATELY,
         # bypassing the system hover delay (~1s). The workspace
         # swallows Qt's delayed automatic tooltip event (see
@@ -328,9 +399,9 @@ class BaseNode(QGraphicsRectItem):
 
     def hoverLeaveEvent(self, event) -> None:
         """Handle hover leave events."""
-        # Restore normal appearance
-        if not self.isSelected():
-            self.setPen(QPen(self.DEFAULT_BORDER_COLOR, 2))
+        # Restore normal appearance (selection keeps its dashed outline)
+        self._hovered = False
+        self._apply_outline()
         # Hide the tooltip shown on hover
         QToolTip.hideText()
         super().hoverLeaveEvent(event)
@@ -418,26 +489,33 @@ class BaseNode(QGraphicsRectItem):
     def _update_port_positions(self) -> None:
         """
         Update the positions of input and output ports based on current node size.
-        
+
         This should be called whenever the node is resized.
         """
         if self.input_port and self.output_port:
             port_size = self.PORT_SIZE
             node_height = self.rect().height()
-            
+
             # Position input port (left side)
             self.input_port.setRect(
                 -port_size / 2,
                 node_height / 2 - port_size / 2,
                 port_size, port_size
             )
-            
+
             # Position output port (right side)
             self.output_port.setRect(
                 self.rect().width() - port_size / 2,
                 node_height / 2 - port_size / 2,
                 port_size, port_size
             )
+
+        # Keep the type label centered when the node is resized (TypedNode)
+        type_label = getattr(self, 'type_label', None)
+        if type_label is not None:
+            type_label.setPos(
+                (self.rect().width() - type_label.boundingRect().width()) / 2,
+                4)
 
     def get_left_port_position(self) -> QPointF:
         """Get the position of the left connection port (input port)."""
@@ -509,46 +587,53 @@ class TypedNode(BaseNode):
     """
     Base class for nodes with a simple color scheme (e.g., State, Event).
 
-    Subclasses define COLORS, SELECTED_BG_COLOR, SELECTED_BORDER_COLOR,
-    INPUT_PORT_COLOR, OUTPUT_PORT_COLOR, and ENTITY_TYPE_LABEL.
-    The entity is stored as self.entity (set by BaseNode) and also aliased
-    via the _entity property for convenience.
+    Subclasses define COLORS (bg/border/text) and ENTITY_TYPE_LABEL.
+    Charter 98: the type color drives the outline and the type label;
+    the background is the shared surface color, selection is a dashed
+    outline in the type color, and anchors share a single soft white.
+    The entity is stored as self.entity (set by BaseNode).
     """
 
     COLORS: dict = {}
-    SELECTED_BG_COLOR: QColor = QColor()
-    SELECTED_BORDER_COLOR: QColor = QColor()
-    INPUT_PORT_COLOR: QColor = QColor()
-    OUTPUT_PORT_COLOR: QColor = QColor()
     ENTITY_TYPE_LABEL: str = ""
+
+    def __init__(self, entity, layout):
+        super().__init__(entity, layout)
+        self.type_label = QGraphicsTextItem(self)
+        self._init_type_label()
+
+    def _init_type_label(self) -> None:
+        """Create the type label ('State'/'Event') above the entity label,
+        in the type color, bold ~14px (charter 98)."""
+        self.type_label.setPlainText(self.ENTITY_TYPE_LABEL)
+        self.type_label.setFont(QFont(theme.FONT_FAMILY,
+                                      theme.NODE_TITLE_FONT_SIZE_PX,
+                                      QFont.Bold))
+        self.type_label.setDefaultTextColor(QColor(self.COLORS['border']))
+        self.type_label.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        # Centered horizontally, above the entity label
+        self.type_label.setPos(
+            (self.rect().width() - self.type_label.boundingRect().width()) / 2,
+            4)
+
+    def _type_border_color(self) -> QColor:
+        """Border color of the node's type (charter 98)."""
+        return self.COLORS['border']
 
     def _update_colors(self) -> None:
         """Update node colors to use the type-specific scheme."""
         self.setBrush(QBrush(self.COLORS['bg']))
-        self.setPen(QPen(self.COLORS['border'], 2))
+        self._apply_outline()
         if self.label:
             self.label.setDefaultTextColor(self.COLORS['text'])
-
-    def _update_port_colors(self) -> None:
-        """Update port colors to use the type-specific theme."""
-        if self.input_port:
-            self.input_port.setBrush(QBrush(self.INPUT_PORT_COLOR))
-        if self.output_port:
-            self.output_port.setBrush(QBrush(self.OUTPUT_PORT_COLOR))
-
-    def set_selected_appearance(self, selected: bool) -> None:
-        """Update appearance based on selection state."""
-        if selected:
-            self.setPen(QPen(self.SELECTED_BORDER_COLOR, 2))
-            self.setBrush(QBrush(self.SELECTED_BG_COLOR))
-        else:
-            self._update_colors()
+        type_label = getattr(self, 'type_label', None)
+        if type_label is not None:
+            type_label.setDefaultTextColor(QColor(self.COLORS['border']))
 
     def update_from_layout(self) -> None:
         """Update visual properties from layout, re-applying type colors."""
         super().update_from_layout()
         self._update_colors()
-        self._update_port_colors()
 
     def set_description(self, description: str) -> None:
         """Set the entity's description (stored in the 'note' field)."""

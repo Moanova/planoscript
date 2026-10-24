@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QMenu
 )
 from PySide6.QtCore import Qt, QPointF, Signal, QObject, QEvent
-from PySide6.QtGui import QColor, QPen, QPainter, QPainterPath
+from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QPainterPath
 
 from core.models.view_model import NodeType, ConnectionLayout, WorkspaceLayout, RelationType
 from core.models.data_model import State, Event
@@ -26,13 +26,15 @@ from core.services.layout_service import LayoutService
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
 from ui.nodes.connection import Connection
+from ui.utils import theme
 from config.config_loader import get as _get_config
 
 _GRID_MINOR_SIZE = _get_config("grid_minor_size", 20)
 _GRID_MAJOR_SIZE = _get_config("grid_major_size", 80)
-_GRID_MINOR_COLOR = _get_config("grid_minor_color", "#e0e0e0")
-_GRID_MAJOR_COLOR = _get_config("grid_major_color", "#808080")
-_TEMP_CONNECTION_COLOR = _get_config("temp_connection_color", "#808080")
+_GRID_MINOR_COLOR = _get_config("grid_minor_color", theme.BG_PRIMARY.replace("1E1E1E", "333333"))
+_GRID_MAJOR_COLOR = _get_config("grid_major_color", "#333333")
+_TEMP_CONNECTION_COLOR = _get_config("temp_connection_color", theme.CONNECTION_COLOR)
+_BG_PRIMARY = _get_config("bg_primary", theme.BG_PRIMARY)
 
 logger = logging.getLogger(__name__)
 
@@ -62,83 +64,15 @@ class JourneyWorkspace(QGraphicsView, QObject):
 
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
-        
+
+        # Canvas background: dark theme primary (charter 98)
+        self.scene.setBackgroundBrush(QBrush(QColor(_BG_PRIMARY)))
+
         # Store grid lines for selective removal
         self.grid_lines = []
 
-        self.setStyleSheet("""
-            /* Barres de d\u00e9filement */
-            QScrollBar:horizontal {
-                height: 8px;
-                background: #f0f0f0;
-                border-radius: 4px;
-                margin: 0px;
-                border: none;
-            }
-            QScrollBar:vertical {
-                width: 8px;
-                background: #f0f0f0;
-                border-radius: 4px;
-                margin: 0px;
-                border: none;
-            }
-
-            /* Poign\u00e9e (slider) */
-            QScrollBar::handle:horizontal {
-                background: #c0c0c0;
-                border-radius: 4px;
-                min-width: 20px;
-            } 
-            QScrollBar::handle:vertical {
-                background: #c0c0c0;
-                border-radius: 4px;
-                min-height: 20px;
-            }
-
-            /* Boutons +/- (fl\u00e8ches de d\u00e9filement) */
-            QScrollBar::add-line, QScrollBar::sub-line {
-                background: #e0e0e0;
-                border: none;
-                border-radius: 4px;
-                height: 4px;
-                width: 4px;
-            }
-
-            /* Fl\u00e8ches pour les boutons */
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-                width: 4px;
-                height: 4px;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height:4px;
-                width: 4px;
-            }
-
-            /* Positionnement des fl\u00e8ches */
-            QScrollBar::sub-line:horizontal {
-                subcontrol-position: left;
-            }
-            QScrollBar::add-line:horizontal {
-                subcontrol-position: right;
-            }
-            QScrollBar::sub-line:vertical {
-                subcontrol-position: top;
-            }
-            QScrollBar::add-line:vertical {
-                subcontrol-position: bottom;
-            }
-
-            /* Style des fl\u00e8ches (ic\u00f4nes) */
-            QScrollBar::add-line, QScrollBar::sub-line {
-                background: #e0e0e0;
-            }
-            QScrollBar::add-line:hover, QScrollBar::sub-line:hover {
-                background: #d0d0d0;
-            }
-            QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
-                background: #b0b0b0;
-            }
-        """)
+        # Scrollbars: dark theme (charter 98)
+        self.setStyleSheet(theme.SCROLLBAR_STYLESHEET)
 
 
         # Initial scene size - fixed to 4000x4000 to ensure scrollbars are active by default
@@ -1082,6 +1016,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
             self._clear_all_selections()
 
         menu = QMenu(self)
+        # Dark theme for the context menu (charter 98)
+        menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
         handlers = {}
 
         if isinstance(item, StateNode):

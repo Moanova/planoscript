@@ -22,6 +22,7 @@ from core.models.data_model import State
 from core.models.view_model import NodeLayout
 from core.services.agent_badge_service import AgentBadgeService
 from ui.nodes.base_node import TypedNode
+from ui.utils import theme
 
 
 class StateNode(TypedNode):
@@ -35,28 +36,27 @@ class StateNode(TypedNode):
     no agent is associated, purely informative (clicks select the node).
     """
 
+    # Charter 98: soft gold outline and type label, shared surface
+    # background, white text
     COLORS = {
-        'bg': QColor(220, 255, 220),    # Light green
-        'border': QColor(0, 180, 0),     # Green
-        'text': QColor(0, 0, 0)         # Black
+        'bg': theme.color("bg_surface", theme.BG_SURFACE),
+        'border': theme.color("state_color", theme.STATE_COLOR),
+        'text': theme.color("text_primary", theme.TEXT_PRIMARY)
     }
-    SELECTED_BG_COLOR = QColor(200, 255, 200)  # Lighter green
-    SELECTED_BORDER_COLOR = QColor(0, 200, 0)   # Brighter green
-    INPUT_PORT_COLOR = QColor(150, 0, 0)   # Dark red
-    OUTPUT_PORT_COLOR = QColor(0, 150, 0)  # Dark green
     ENTITY_TYPE_LABEL = "State"
 
     # Agent badge constants (single badge, bottom-right corner)
+    # Charter 98: soft gold fill (state type color), soft white outline,
+    # dark text for readability on the light fill
     BADGE_DIAMETER = 16.0
     BADGE_MARGIN = 3.0
-    BADGE_BG_COLOR = QColor(70, 130, 180)    # Steel blue
-    BADGE_BORDER_COLOR = QColor(0, 0, 0)      # Black
-    BADGE_TEXT_COLOR = QColor(255, 255, 255)  # White
+    BADGE_BG_COLOR = theme.color("badge_bg_color", theme.BADGE_BG_COLOR)
+    BADGE_BORDER_COLOR = theme.color("badge_border_color", theme.BADGE_BORDER_COLOR)
+    BADGE_TEXT_COLOR = theme.color("badge_text_color", theme.BADGE_TEXT_COLOR)
 
     def __init__(self, state: State, layout: NodeLayout):
         super().__init__(state, layout)
         self._update_colors()
-        self._update_port_colors()
         self._init_agent_badge()
 
     def _init_agent_badge(self) -> None:

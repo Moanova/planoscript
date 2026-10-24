@@ -8,20 +8,24 @@
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
+from ui.utils import theme
+
+
 class InfoBar(QWidget):
     """Bottom-left information bar"""
-    
+
     def __init__(self):
         super().__init__()
         self.setFixedHeight(30)
-        self.setStyleSheet("""
-            background-color: #f0f0f0;
-            border-top: 1px solid #ddd;
+        self.setStyleSheet(f"""
+            background-color: {theme.BG_SURFACE};
+            border-top: 1px solid {theme.BORDER_COLOR};
         """)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 0, 0)
         self.info_label = QLabel()
-        self.info_label.setStyleSheet("font-size: 10pt; color: #666;")
+        self.info_label.setStyleSheet(
+            f"font-size: {theme.MENU_FONT_SIZE_PX}px; color: {theme.TEXT_SECONDARY};")
         layout.addWidget(self.info_label)
 
     def show_message(self, message: str):

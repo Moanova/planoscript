@@ -34,6 +34,7 @@ from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPositi
 from core.models.data_model import State_agent_rel
 from core.services.layout_service import LayoutService
 from ui.nodes.base_node import BaseNode
+from ui.utils import theme
 
 
 class Connection(QGraphicsPathItem):
@@ -54,9 +55,14 @@ class Connection(QGraphicsPathItem):
         relation_entity: Reference to the business relation entity (if any)
     """
     
-    # Default settings
-    DEFAULT_PEN = QPen(QColor(128, 128, 128), 2)  # Gray line, 2px thick
-    DEFAULT_SELECTED_PEN = QPen(QColor(0, 120, 215), 3)  # Blue line, 3px thick
+    # Default settings (charter 98: dashed soft gray line on dark
+    # background; hover shows a soft white line of the same width)
+    _CONNECTION_COLOR = theme.color("connection_color", theme.CONNECTION_COLOR)
+    _HOVER_COLOR = theme.color("hover_color", theme.HOVER_COLOR)
+    DEFAULT_PEN = QPen(_CONNECTION_COLOR, 2)  # Dashed gray line, 2px thick
+    DEFAULT_PEN.setStyle(Qt.DashLine)
+    DEFAULT_PEN.setDashPattern([6.0, 4.0])
+    DEFAULT_SELECTED_PEN = QPen(_HOVER_COLOR, 2)  # Soft white hover line
     
     # Arrow settings
     ARROW_SIZE = 10.0
@@ -559,12 +565,14 @@ class Connection(QGraphicsPathItem):
 
     def hoverEnterEvent(self, event) -> None:
         """
-        Handle hover enter events: draw the line in blue while not
-        selected (same feedback as the nodes' blue border on hover).
+        Handle hover enter events: draw the line in soft white while not
+        selected (charter 98: same hover feedback as the nodes' outline).
         """
         if not self.isSelected():
             width = self.layout.thickness or self.DEFAULT_PEN.width()
-            self.setPen(QPen(self.DEFAULT_SELECTED_PEN.color(), width))
+            hover_pen = QPen(self.DEFAULT_SELECTED_PEN.color(), width)
+            hover_pen.setStyle(Qt.SolidLine)
+            self.setPen(hover_pen)
         super().hoverEnterEvent(event)
 
 

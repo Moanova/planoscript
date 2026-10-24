@@ -23,8 +23,6 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## To do
 
-- [ ] TSK11 — Révision esthétique du layout
-
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
 - [ ] SU004 — Éditer une relation : annotation via panneau de propriétés (FN021)
@@ -37,6 +35,10 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 ## Doing
 
 - (aucune tâche en cours)
+
+## En revue
+
+- [ ] TSK11 — Révision esthétique du layout (charte `docs/specification/98_layout_revision-FR.md`, maquette `97_layout_revision-EN.svg` — détail dans `tasks/TSK11_layout_revision.md`) — thème sombre implémenté (palette centralisée dans config.json + `ui/utils/theme.py`), tests 95 passed + offscreen 27/27 PASS ; en attente de revue visuelle utilisateur
 
 ## Done
 

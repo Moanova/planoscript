@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.services.project_service import ProjectService
+from ui.utils import theme
 from ui.dialogs.agent_dialog import AgentDialog
 
 
@@ -44,6 +45,8 @@ class AgentManagementDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(400, 400)
         self.layout = QVBoxLayout(self)
+        # Dark theme (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
 
         self.list_widget = QListWidget()
         self.list_widget.itemDoubleClicked.connect(self._edit_requested)

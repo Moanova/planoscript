@@ -17,32 +17,41 @@ the active tab).
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 
+from ui.utils import theme
+
 
 class TabBar(QWidget):
     """Horizontal bar of workspace tabs."""
 
     HEIGHT = 40
-    STYLESHEET = """
-        QWidget#TabBar {
-            background-color: #f8f8f8;
-        }
-        QPushButton {
-            background-color: #f8f8f8;
-            border: none;
-            border-bottom: 2px solid transparent;
+    # Charter 98: both tabs share the exact same neutral appearance
+    # (surface, border, secondary text); no dedicated active marker.
+    STYLESHEET = f"""
+        QWidget#TabBar {{
+            background-color: {theme.BG_PRIMARY};
+            border-bottom: 1px solid {theme.BORDER_COLOR};
+        }}
+        QPushButton {{
+            background-color: {theme.BG_SURFACE};
+            color: {theme.TEXT_SECONDARY};
+            border: 1px solid {theme.BORDER_COLOR};
+            border-radius: 3px;
             padding: 0 20px;
-            font-family: Arial;
-            font-size: 9pt;
+            margin: 4px 2px;
+            font-family: "{theme.FONT_FAMILY}", system-ui, sans-serif;
+            font-size: {theme.MENU_FONT_SIZE_PX}px;
             text-align: center;
-        }
-        QPushButton:hover {
-            background-color: #e0e0e0;
-        }
-        QPushButton:checked {
-            background-color: #ffffff;
+        }}
+        QPushButton:hover {{
+            color: {theme.TEXT_PRIMARY};
+            border: 1px solid {theme.HOVER_COLOR};
+        }}
+        QPushButton:checked {{
+            background-color: {theme.BG_SURFACE};
+            color: {theme.TEXT_PRIMARY};
+            border: 1px solid {theme.BORDER_COLOR};
             font-weight: bold;
-            border-bottom: 2px solid #0078d7;
-        }
+        }}
     """
 
     currentChanged = Signal(str)

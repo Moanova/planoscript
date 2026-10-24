@@ -21,12 +21,13 @@ cannot be moved.
 """
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QBrush
+from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
 
 from ui.nodes.base_node import BaseNode
+from ui.utils import theme
 from usecases.agent_association.associate_agent_state_usecase import (
     AssociateAgentStateUseCase
 )
@@ -52,6 +53,9 @@ class AgentsWorkspace(QWidget):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+
+        # Dark theme for the matrix (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
 
         self.matrix = QTableWidget()
         # Edition (TSK09): a single cellClicked handler toggles the
@@ -184,9 +188,9 @@ class AgentsWorkspace(QWidget):
         return getattr(self, '_focused_state_id', None) is not None
 
     def _focus_color(self):
-        """Background color of the focused column (light blue tint)."""
-        from PySide6.QtGui import QColor
-        return QColor(220, 235, 255)
+        """Background color of the focused column (dark theme, charter 98:
+        subtle raised surface)."""
+        return QColor(theme.FOCUS_COLOR)
 
     def _show_context_menu(self, pos):
         """
@@ -213,6 +217,8 @@ class AgentsWorkspace(QWidget):
             return
         from PySide6.QtWidgets import QMenu
         menu = QMenu(self)
+        # Dark theme for the context menu (charter 98)
+        menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
         action = menu.addAction("Show in journey view")
         chosen = menu.exec(self.matrix.viewport().mapToGlobal(pos))
         if chosen is action:

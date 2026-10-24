@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from core.models.data_model import Agent
+from ui.utils import theme
 
 
 class AgentDialog(QDialog):
@@ -40,6 +41,8 @@ class AgentDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(525, 420)
         self.layout = QVBoxLayout(self)
+        # Dark theme (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
         self.form = QFormLayout()
         self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         self.layout.addLayout(self.form, stretch=1)
@@ -70,7 +73,7 @@ class AgentDialog(QDialog):
 
         # Inline validation message (hidden by default)
         self.error_label = QLabel("")
-        self.error_label.setStyleSheet("color: red;")
+        self.error_label.setStyleSheet(f"color: {theme.ERROR_COLOR};")
         self.layout.addWidget(self.error_label)
 
     def _add_buttons(self):

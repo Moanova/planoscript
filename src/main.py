@@ -11,6 +11,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from config.config_loader import get
+from ui.utils.theme import APP_STYLESHEET
 from ui.main_window import MainWindow
 
 # Logging configuration driven by config.json ("log_level").
@@ -24,6 +25,10 @@ logging.basicConfig(
 APP_KEY = "planoscript-single-instance"
 
 app = QApplication(sys.argv)
+
+# Dark theme (charter 98): application-wide stylesheet for the widgets
+# outside the themed windows (message boxes, orphan popup menus)
+app.setStyleSheet(APP_STYLESHEET)
 
 # Single-instance guard: if another instance is already running, exit silently.
 socket = QLocalSocket()

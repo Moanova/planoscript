@@ -9,6 +9,7 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
 
 from core.services.about_service import AboutService
+from ui.utils import theme
 
 class AboutDialog(QDialog):
     """About Dialog'"""
@@ -24,6 +25,8 @@ class AboutDialog(QDialog):
         self.setMinimumSize(400, 200)
         self.layout = QVBoxLayout(self)
 
+        # Dark theme (charter 98)
+        self.setStyleSheet(theme.DIALOG_STYLESHEET)
         self.text_edit = QTextEdit()
         self.text_edit.setReadOnly(True)
         self.layout.addWidget(self.text_edit)
@@ -31,12 +34,13 @@ class AboutDialog(QDialog):
         self._add_ok_button()
 
     def _setup_content(self):
+        info = self.about_service.get_about_info()
         html = f"""
-        <html><body style='font-family: Arial; font-size: 10pt;'>
-        <h2>Planoscript</h2>
-        <p><strong>Version</strong> {self.about_service.get_about_info()["version"]}</p>
-        <p>{self.about_service.get_about_info()["year"]} (c){self.about_service.get_about_info()["author"]}</p>
-        <p>{self.about_service.get_about_info()["built_by"]}</p>
+        <html><body style='font-family: "{theme.FONT_FAMILY}", system-ui, sans-serif; font-size: {theme.MENU_FONT_SIZE_PX}px; color: {theme.TEXT_PRIMARY}; background-color: {theme.BG_SURFACE};'>
+        <h2 style='color: {theme.TEXT_PRIMARY};'>Planoscript</h2>
+        <p style='color: {theme.TEXT_SECONDARY};'><strong>Version</strong> {info["version"]}</p>
+        <p style='color: {theme.TEXT_SECONDARY};'>{info["year"]} (c){info["author"]}</p>
+        <p style='color: {theme.TEXT_SECONDARY};'>{info["built_by"]}</p>
         </body></html>
         """
         self.text_edit.setHtml(html)
