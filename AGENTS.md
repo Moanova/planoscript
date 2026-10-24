@@ -4,12 +4,12 @@ Règles de travail pour tout agent IA intervenant sur ce dépôt.
 
 ## Vue d'ensemble
 
-Planoscript est un éditeur graphique de "narrative maps" (scripts narratifs) :
+Planoscript est un éditeur graphique de cartes narratives :
 application desktop PySide6 (Python >= 3.10) composée d'états (States),
 d'événements (Events) et d'agents reliés par des arcs, avec sauvegarde JSON
 et layout visuel persistant. MVP : deux espaces de travail — vue Parcours
-(Journey) et vue Agents (matrice agents × états, SU008/SU009) —, un seul
-NarrativeMap par projet, sélection unique (pas de rubber band
+(Journey) et vue Agents (matrice agents × états, SU008/SU009) —, une seule
+carte narrative par projet, sélection unique (pas de rubber band
 multi-sélection).
 
 ## Commandes
@@ -60,7 +60,7 @@ src/
   l'implémente, et couverte par un test (ex. `tests/test_relations/`).
 - Toute modification d'une règle métier implique la mise à jour du test
   correspondant.
-- Les user stories (FNxxx) sont dans `docs/specification/01_user_stories-*.md` ;
+- Les user stories (SUxxx) sont dans `docs/specification/01_user_stories-*.md` ;
   les tests d'application (pywinauto) suivent la nomenclature `test_fnXXX_*.py`
   et sont spécifiés dans `tests/SPECIFICATION.md`.
 - Les entrées de menu non implémentées sont stubbées dans `main_window.py`
@@ -87,6 +87,7 @@ cela dispense de relire la section ciblée au moment d'une modification) :
 - Le détail d'une tâche TSKnn (analyse, décisions, journal) est consigné dans
   `docs/project/tasks/TSKnn_*.md`, créé au passage en Doing.
 - Une tâche ne passe en Doing que si ses dépendances sont en Done.
+- L'avancement décrit dans `docs/project/kanban.md` est aussi reporté dans le board planoscript du service miro.com.
 
 ## Conventions
 

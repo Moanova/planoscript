@@ -23,19 +23,8 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## To do
 
-- [ ] **EPC01 — Gérer les agents du projet** (FN031, SU008/SU009)
-  - [x] TSK01 — Créer et modifier un agent : entité Agent portée par le projet, identifiant unique projet, type (sujet/objet), réactivation de l'entrée de menu, dialogue d'édition
-  - [x] TSK02 — Supprimer un agent avec confirmation et suppression en cascade des associations agent-état (RG064) → #TSK01
-- [ ] **EPC02 — Associer des agents à un état** (FN030, SU008)
-  - [x] TSK03 — Use case d'association agent-état : associer/dissocier, unicité (RG063), cascades (RG064/RG065) — sans UI → #TSK01
-  - [x] TSK04 — Dialogue « Associer des agents... » depuis le menu contextuel d'un état (liste à cocher, création d'agent intégrée) → #TSK01, #TSK03
-  - [x] TSK05 — Badges d'agents sur les nodes d'état dans la vue parcours (affichage + rafraîchissement) → #TSK03
-- [ ] **EPC03 — Implémenter la vue agents** (SU009, second espace de travail, onglet « Agents »)
-  - [x] TSK06 — Déterminer la règle de gestion de l'ordre des colonnes de la matrice (conception ; à ajouter aux règles de gestion avant implémentation)
-  - [x] TSK07 — Bascule d'espace de travail : barre d'onglets Parcours ↔ Agents
-  - [x] TSK08 — Affichage de la matrice agents × états en lecture seule → #TSK06, #TSK07
-  - [x] TSK09 — Édition des cellules de la matrice (cocher/décocher → use case d'association) → #TSK08, #TSK03
-  - [x] TSK10 — (P2) Navigation croisée entre vues avec focus (RG067) → #TSK08
+- [ ] TSK11 — Révision esthétique du layout
+
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
 - [ ] SU004 — Éditer une relation : annotation via panneau de propriétés (FN021)
@@ -72,3 +61,17 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 - [x] Conception — SU008/SU009 : associations agent-état et vue agents (user stories, règles RG063-RG067, features FN030-FN032, interface, menu — FR/EN)
 - [x] Conception — Mise en cohérence des spécifications (périmètre MVP agents, trois composants, onglets Parcours/Agents, reliquats retirés)
 - [x] Journalisation des actions sur les données du projet (config log_level dans config.json)
+
+- [x] **EPC01 — Gérer les agents du projet** (FN031, SU008/SU009)
+  - [x] TSK01 — Créer et modifier un agent : entité Agent portée par le projet, identifiant unique projet, type (sujet/objet), réactivation de l'entrée de menu, dialogue d'édition
+  - [x] TSK02 — Supprimer un agent avec confirmation et suppression en cascade des associations agent-état (RG064) → #TSK01
+- [x] **EPC02 — Associer des agents à un état** (FN030, SU008)
+  - [x] TSK03 — Use case d'association agent-état : associer/dissocier, unicité (RG063), cascades (RG064/RG065) — sans UI → #TSK01
+  - [x] TSK04 — Dialogue « Associer des agents... » depuis le menu contextuel d'un état (liste à cocher, création d'agent intégrée) → #TSK01, #TSK03
+  - [x] TSK05 — Badges d'agents sur les nodes d'état dans la vue parcours (affichage + rafraîchissement) → #TSK03
+- [x] **EPC03 — Implémenter la vue agents** (SU009, second espace de travail, onglet « Agents »)
+  - [x] TSK06 — Déterminer la règle de gestion de l'ordre des colonnes de la matrice (conception ; à ajouter aux règles de gestion avant implémentation)
+  - [x] TSK07 — Bascule d'espace de travail : barre d'onglets Parcours ↔ Agents
+  - [x] TSK08 — Affichage de la matrice agents × états en lecture seule → #TSK06, #TSK07
+  - [x] TSK09 — Édition des cellules de la matrice (cocher/décocher → use case d'association) → #TSK08, #TSK03
+  - [x] TSK10 — (P2) Navigation croisée entre vues avec focus (RG067) → #TSK08
