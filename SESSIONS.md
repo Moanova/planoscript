@@ -190,3 +190,46 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   des agents, états, événements et relations depuis un panneau latéral
   gauche ; dépend de TSK11 (Done). Cadrage à préciser (largeur, forme des
   contrôles, comportement relation, présence selon les vues).
+
+## 2026-10-25 — Correctif régression « clôture d'un projet » (remontée TSC avant TSK12)
+
+- **Anomalie** : ouvrir un projet modifié puis le fermer ne revenait pas à la
+  page d'accueil, et la création/ouverture suivante levait
+  `RuntimeError: libshiboken: Internal C++ object (PySide6.QtWidgets.QWidget)
+  already deleted` dans `_init_workspace`
+  (`while self.journey_page.layout().count():`).
+- **Cause racine** : depuis TSK07, la zone centrale (`middle_layout`) est une
+  structure permanente (TabBar + `QStackedWidget` welcome/journey/agents,
+  créée une fois dans `__init__`). Or `_clear_project` vidait encore tout le
+  `middle_layout` (héritage d'avant TSK07, où le vidage de
+  `_init_workspace` avait été déplacé vers `journey_page` mais pas celui de
+  `_clear_project`) : `tab_bar`, `pages`, `welcome_page`, `journey_page` et
+  `agents_page` étaient détachés puis supprimés par `deleteLater`. Au retour
+  à l'accueil, la page « welcome » affichée était un `QWidget` orphelin ; à la
+  réouverture d'un projet, `journey_page.layout()` levait le RuntimeError.
+- **Correctif** (`src/ui/main_window.py`, `_clear_project`) : ne plus vider le
+  `middle_layout` ; détacher et supprimer (`setParent(None)` +
+  `deleteLater()`) uniquement le `JourneyWorkspace` courant. La structure
+  centrale (onglets + pages empilées) est permanente et réutilisée par le
+  prochain projet.
+- **Vérifications** :
+  - Reproduction offscreen jetable du scénario exact (créer → modifier →
+    fermer → recréer, boucle d'événements réelle via `QTimer`/`app.exec`) :
+    `RuntimeError` reproduit avant correctif, disparu après ; page d'accueil
+    restaurée, `middle_layout` intact (2 items), cycles
+    fermer/créer/fermer/créer stables.
+  - `pytest tests/ -q` (hors `tests/test_application`, skippé sans session
+    GUI/pywinauto) : 95 passed.
+  - Tests offscreen existants : `offscreen_workspace_tabs`,
+    `offscreen_cross_view_navigation`, `offscreen_anomaly_regression`,
+    `offscreen_agents_matrix`, `offscreen_matrix_cell_edition`,
+    `offscreen_state_badges`, `offscreen_agent_association_dialog` : tous
+    PASSED.
+  - `py_compile src/ui/main_window.py` OK.
+- **Choix acté** : pas de recréation de la structure centrale à la fermeture
+  (coûteux, source de fuites de connexions) ; la structure TSK07 est conçue
+  permanente, le correctif aligne `_clear_project` sur cette conception.
+- **Leçon retenue** : un `deleteLater()` sur un widget parent détruit en
+  cascade tous ses enfants C++ ; après un tel vidage, toute référence Python
+  vers un descendant (ici `journey_page`, `pages`, `tab_bar`) est invalide
+  même si le widget semblait « encore là » visuellement.

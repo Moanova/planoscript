@@ -771,11 +771,13 @@ class MainWindow(QMainWindow):
 
     def _clear_project(self):
         """Clear project from memory and reset workspace"""
-        # Clean up workspace
-        while self.middle_layout.count():
-            item = self.middle_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        # Detach and delete only the journey workspace: the middle section
+        # structure (tab bar, stacked pages) is permanent since TSK07 and
+        # must survive project closing (the welcome/journey/agents pages
+        # are reused by the next project)
+        if self.workspace is not None:
+            self.workspace.setParent(None)
+            self.workspace.deleteLater()
 
         # Reset references
         self.workspace = None

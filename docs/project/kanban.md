@@ -23,7 +23,6 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## To do
 
-- [ ] TSK12 — Finalisation de la révision du layout — points soulevés en revue visuelle de TSK11 (liste à fournir par TSC en prochaine séance)
 - [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 
@@ -42,7 +41,7 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK12 — Finalisation de la révision du layout — points soulevés en revue visuelle de TSK11 (liste à fournir par TSC en prochaine séance) — **bloquée : régression « clôture d'un projet » corrigée le 2026-10-25 (voir SESSIONS.md), en attente de validation TSC avant reprise de TSK12**
 
 ## Done
 
