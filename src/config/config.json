@@ -31,5 +31,6 @@
   "node_font_size_px": 13,
   "node_title_font_size_px": 14,
   "projects_default_dir": "~/PlanoscriptProjects",
+  "info_bar_default_message": "",
   "log_level": "DEBUG"
 }

@@ -8,6 +8,7 @@
 # ---------------------------------------------------------------------
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
+from config.config_loader import get as _get_config
 from ui.utils import theme
 
 
@@ -27,7 +28,12 @@ class InfoBar(QWidget):
         self.info_label.setStyleSheet(
             f"font-size: {theme.MENU_FONT_SIZE_PX}px; color: {theme.TEXT_SECONDARY};")
         layout.addWidget(self.info_label)
+        self.clear()
 
     def show_message(self, message: str):
         """Displays a message in the information bar."""
         self.info_label.setText(message)
+
+    def clear(self):
+        """Resets the information bar to its default (empty) message."""
+        self.info_label.setText(_get_config("info_bar_default_message", ""))

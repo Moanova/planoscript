@@ -233,3 +233,23 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   cascade tous ses enfants C++ ; après un tel vidage, toute référence Python
   vers un descendant (ici `journey_page`, `pages`, `tab_bar`) est invalide
   même si le widget semblait « encore là » visuellement.
+
+## 2026-10-25 — Évolution : réinitialisation de la barre d'information à la fermeture d'un projet
+
+- **Demande TSC** (validation du correctif clôture OK) : lorsque le projet
+  actif est fermé et que la page d'accueil réapparaît, la barre
+  d'information conservait le message de la dernière action du projet fermé.
+- **Analyse** : `InfoBar` (`src/ui/widgets/info_bar.py`) n'exposait que
+  `show_message` ; aucun point de réinitialisation n'existait, et
+  `_close_project` ne touchait pas la barre.
+- **Évolution** :
+  - `InfoBar.clear()` (nouvelle méthode) : réaffiche le message par défaut,
+    lu dans `config.json` via `config_loader.get("info_bar_default_message", "")`
+    (nouvelle clé, chaîne vide — conforme à la règle « aucune valeur codée en
+    dur pour l'UI »). Appelée aussi dans `InfoBar.__init__` pour un démarrage
+    propre.
+  - `_close_project` (`main_window.py`) appelle `self.info_bar.clear()` au
+    retour à la page d'accueil.
+- **Vérifications** : test offscreen jetable du scénario (créer → message →
+  fermer → barre vide sur l'accueil → recréer → barre réutilisable) : OK ;
+  `pytest` 95 passed ; 7 tests offscreen existants PASSED ; `py_compile` OK.

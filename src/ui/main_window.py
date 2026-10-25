@@ -762,6 +762,9 @@ class MainWindow(QMainWindow):
         # Close the project and reinitialize the state of the application
         self._clear_project()
         self._show_welcome_message()
+        # Reset the information bar: the last message belonged to the
+        # project being closed
+        self.info_bar.clear()
         self.project_opened = False
         self.setWindowTitle("Planoscript : start your new project")
         self._update_menu_state()
