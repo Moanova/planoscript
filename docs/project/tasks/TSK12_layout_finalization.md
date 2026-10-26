@@ -91,3 +91,12 @@ clic hors case = no-op, bande au-dessus de la barre d'info sans pixel clair) ; i
 MainWindow (clics réels, barre d'info « Agent 'Hero' associated/dissociated ») OK. Les tests
 `offscreen_matrix_cell_edition` et `offscreen_anomaly_regression` cliquaient l'ancienne position
 gauche de la case : mis à jour vers la case centrée (point 09).
+
+## Troisième passe TSC (26-10-2026) — en-têtes non redimensionnables
+
+Demande TSC : empêcher le redimensionnement à la souris des en-têtes de lignes (agents) et de
+colonnes (états) de la matrice. Correctif : `setSectionResizeMode(QHeaderView.ResizeMode.Fixed)`
+sur les deux en-têtes (`agents_workspace.py`) — les dimensions restent pilotées par la config
+(80×40, point 10) et le réordonnancement manuel (RG068) est conservé. Vérifié offscreen
+(modes Fixed, dimensions inchangées) ; assertion ajoutée au test TSK12 ; pytest 95 passed,
+8 tests offscreen PASSED.

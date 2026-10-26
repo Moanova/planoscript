@@ -317,3 +317,12 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   son fond stylesheet sans `WA_StyledBackground` ; (2) dans un délégué custom, le rendu ET le
   hit-testing de l'indicateur doivent partager le même rect, sinon l'état visuel et l'état du
   modèle divergent silencieusement.
+
+## 2026-10-26 — TSK12 (3) : en-têtes de matrice non redimensionnables
+
+- **Demande TSC** : empêcher le redimensionnement à la souris des en-têtes de la matrice agents × états.
+- **Correctif** : `setSectionResizeMode(QHeaderView.ResizeMode.Fixed)` sur les en-têtes vertical
+  (agents) et horizontal (états) de la matrice — dimensions fixes pilotées par la config (80×40),
+  réordonnancement RG068 conservé.
+- **Vérifications** : offscreen (modes Fixed, dimensions inchangées) ; assertion dans le test TSK12 ;
+  pytest 95 passed ; 8 tests offscreen PASSED.

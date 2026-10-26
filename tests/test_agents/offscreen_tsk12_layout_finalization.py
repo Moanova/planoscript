@@ -144,6 +144,13 @@ agents_ws.refresh()
 assert agents_ws.matrix.horizontalHeader().defaultSectionSize() == 80
 assert agents_ws.matrix.verticalHeader().defaultSectionSize() == 40
 
+# Final TSC request: headers cannot be resized with the mouse
+from PySide6.QtWidgets import QHeaderView
+assert (agents_ws.matrix.verticalHeader().sectionResizeMode(0)
+        == QHeaderView.ResizeMode.Fixed)
+assert (agents_ws.matrix.horizontalHeader().sectionResizeMode(0)
+        == QHeaderView.ResizeMode.Fixed)
+
 # Point 08: floating-card look: no grid lines, card delegate installed
 assert agents_ws.matrix.showGrid() is False
 assert agents_ws.matrix.itemDelegate().__class__.__name__ == "_MatrixCardDelegate"

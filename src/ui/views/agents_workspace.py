@@ -23,8 +23,9 @@ cannot be moved.
 from PySide6.QtCore import QEvent, Qt, QRect, QSize, Signal
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import (
-    QApplication, QStyledItemDelegate, QStyle, QStyleOptionViewItem,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+    QApplication, QHeaderView, QStyledItemDelegate, QStyle,
+    QStyleOptionViewItem, QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QWidget
 )
 
 from config.config_loader import get as _get_config
@@ -86,7 +87,12 @@ class AgentsWorkspace(QWidget):
         self.matrix.verticalHeader().sectionMoved.connect(self._row_moved)
 
         # Header dimensions (TSK12 point 10): rows (agents) 80px wide,
-        # columns (states) 40px high
+        # columns (states) 40px high. Fixed sections: the headers cannot
+        # be resized with the mouse (dimensions are set by the config)
+        self.matrix.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Fixed)
+        self.matrix.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Fixed)
         self.matrix.verticalHeader().setDefaultSectionSize(
             self._COLUMN_HEADER_HEIGHT)
         self.matrix.verticalHeader().setMinimumSectionSize(1)
