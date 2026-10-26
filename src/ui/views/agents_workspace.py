@@ -20,7 +20,7 @@ reordering allowed and persisted in the project graphical metadata
 cannot be moved.
 """
 
-from PySide6.QtCore import Qt, QRect, QSize, Signal
+from PySide6.QtCore import QEvent, Qt, QRect, QSize, Signal
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QApplication, QStyledItemDelegate, QStyle, QStyleOptionViewItem,
@@ -302,6 +302,16 @@ class AgentsWorkspace(QWidget):
         if item is None:
             return
 
+        # Point 09 (centered checkbox): only a press on the checkbox
+        # toggles the association; a click elsewhere in the card is a
+        # no-op (the delegate records the hit in editorEvent). Direct
+        # _toggle_cell calls (tests, programmatic) keep the legacy
+        # behavior when no press was recorded.
+        hit = getattr(self, '_last_press_on_indicator', None)
+        self._last_press_on_indicator = None
+        if hit is False:
+            return
+
         # Qt toggles the check state of a user-checkable item BEFORE
         # cellClicked is emitted: the check state read here is the state
         # AFTER the click. The user intent is therefore the opposite:
@@ -373,8 +383,30 @@ class _MatrixCardDelegate(QStyledItemDelegate):
 
     Point 09: the association checkbox is centered in the card (the
     default QStyle placement keeps it on the left with trailing
-    empty space).
+    empty space). Both the painted indicator and the clickable area
+    use the same centered rect (_indicator_rect): the base class
+    editorEvent only toggles the check state for clicks inside the
+    style's default (left-aligned) indicator rect.
     """
+
+    def _indicator_rect(self, option, index) -> QRect:
+        """Return the centered checkbox rect of the cell's card.
+
+        Single source of truth shared by paint() (visual) and
+        editorEvent() (hit testing).
+        """
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+        style = (opt.widget.style() if opt.widget
+                 else QApplication.style())
+        indicator_size = style.subElementRect(
+            QStyle.SE_ItemViewItemCheckIndicator, opt, opt.widget)
+        spacing = AgentsWorkspace._CARD_SPACING
+        card = option.rect.adjusted(spacing, spacing, -spacing, -spacing)
+        center = card.center()
+        return QRect(center.x() - indicator_size.width() // 2,
+                     center.y() - indicator_size.height() // 2,
+                     indicator_size.width(), indicator_size.height())
 
     def paint(self, painter, option, index):
         opt = QStyleOptionViewItem(option)
@@ -398,17 +430,44 @@ class _MatrixCardDelegate(QStyledItemDelegate):
         painter.drawRoundedRect(card, AgentsWorkspace._CARD_RADIUS,
                                 AgentsWorkspace._CARD_RADIUS)
 
-        # Checkbox centered in the card (point 09)
+        # Checkbox centered in the card (point 09). CE_ItemViewItem is
+        # the control that renders the check indicator for view items;
+        # CE_CheckBox with a QStyleOptionViewItem draws nothing.
+        opt.rect = self._indicator_rect(option, index)
         style = (opt.widget.style() if opt.widget
                  else QApplication.style())
-        indicator_rect = style.subElementRect(
-            QStyle.SE_ItemViewItemCheckIndicator, opt, opt.widget)
-        center = card.center()
-        opt.rect = QRect(center.x() - indicator_rect.width() // 2,
-                         center.y() - indicator_rect.height() // 2,
-                         indicator_rect.width(), indicator_rect.height())
-        style.drawControl(QStyle.CE_CheckBox, opt, painter, opt.widget)
+        style.drawControl(QStyle.CE_ItemViewItem, opt, painter, opt.widget)
         painter.restore()
+
+    def editorEvent(self, event, model, option, index) -> bool:
+        """Toggle the check state on a click inside the centered
+        indicator rect (point 09).
+
+        The QStyledItemDelegate implementation only toggles when the
+        click falls inside the style's default (left-aligned)
+        indicator rect: with the indicator drawn in the center of the
+        card, a center click would never toggle the state and
+        _toggle_cell would misread the user intent.
+        """
+        if (event.type() == QEvent.MouseButtonPress
+                and event.button() == Qt.MouseButton.LeftButton
+                and index.flags() & Qt.ItemIsUserCheckable):
+            hit = self._indicator_rect(option, index).contains(event.pos())
+            # Remember whether this press hit the indicator: cellClicked
+            # fires for any cell click, but only an indicator hit toggles
+            # the check state — _toggle_cell must not act otherwise.
+            workspace = self.parent()
+            if isinstance(workspace, AgentsWorkspace):
+                workspace._last_press_on_indicator = hit
+            if hit:
+                current = index.data(Qt.ItemDataRole.CheckStateRole)
+                new_state = (Qt.CheckState.Unchecked
+                             if current in (Qt.CheckState.Checked,
+                                            Qt.CheckState.Checked.value)
+                             else Qt.CheckState.Checked)
+                return model.setData(index, new_state,
+                                    Qt.ItemDataRole.CheckStateRole)
+        return super().editorEvent(event, model, option, index)
 
     def sizeHint(self, option, index):
         return QSize(AgentsWorkspace._ROW_HEADER_WIDTH,

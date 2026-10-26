@@ -25,6 +25,7 @@ from core.services.project_service import ProjectService
 from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
+from usecases.agent_association.dissociate_agent_state_usecase import DissociateAgentStateUseCase
 from ui.views.agents_workspace import AgentsWorkspace
 from ui.views.journey_workspace import JourneyWorkspace
 from ui.nodes.base_node import BaseNode
@@ -155,6 +156,102 @@ assert agents_ws.matrix.item(1, 0).checkState() == Qt.CheckState.Unchecked
 
 print("Points 07-12 OK: agent column always visible, headers 80x40, "
       "card spacing, centered checkboxes, no type suffixes")
+
+# ---------------------------------------------------------------------
+# Review fixes (2nd TSC pass): info bar square + matrix checkboxes
+# ---------------------------------------------------------------------
+from PySide6.QtCore import QPoint
+from PySide6.QtTest import QTest
+import logging
+log_msgs = []
+_capture = logging.Handler()
+_capture.emit = lambda record: log_msgs.append(
+    (record.levelname, record.getMessage()))
+logging.getLogger().addHandler(_capture)
+logging.getLogger().setLevel(logging.INFO)
+
+# Case 1: no light square above the info bar (WA_StyledBackground on
+# InfoBar + WORKSPACE_STYLESHEET on the view)
+from ui.main_window import MainWindow
+from ui.widgets.info_bar import InfoBar
+assert InfoBar().testAttribute(Qt.WidgetAttribute.WA_StyledBackground)
+main = MainWindow()
+main.resize(1200, 800)
+main._create_project()
+main.show()
+app.processEvents()
+render = main.grab().toImage()
+band = [(x, y) for y in range(main.info_bar.y() - 30, main.height())
+        for x in range(0, main.width())
+        if ((render.pixel(x, y) >> 16 & 0xFF)
+            + (render.pixel(x, y) >> 8 & 0xFF)
+            + (render.pixel(x, y) & 0xFF)) / 3 > 100]
+assert not band, f"light pixels above info bar: {band[:6]}"
+print("Case 1 OK: no light square at the bottom-left corner")
+
+# Case 2: checkboxes painted + center click toggles through editorEvent
+hero2 = create_uc.execute(lb="Knight", typ="Subject")['entity']
+dissoc_uc = DissociateAgentStateUseCase(service)
+assoc_uc.execute(agent=hero2, state=map_state)
+matrix_ws = AgentsWorkspace()
+matrix_ws.set_project(service, None,
+                      associate_usecase=assoc_uc,
+                      dissociate_usecase=dissoc_uc)
+matrix_ws.resize(600, 400)
+matrix_ws.show()
+matrix_ws.refresh()
+app.processEvents()
+_emitted = []
+matrix_ws.associationChanged.connect(
+    lambda sid, lb, assoc: _emitted.append((sid, lb, assoc)))
+# Knight is the second agent (row 1): creation order (RG068)
+knight_row = next(
+    r for r in range(matrix_ws.matrix.rowCount())
+    if matrix_ws.matrix.verticalHeaderItem(r).text() == "Knight")
+cell = matrix_ws.matrix.visualItemRect(
+    matrix_ws.matrix.item(knight_row, 0))
+viewport = matrix_ws.matrix.viewport()
+render = matrix_ws.grab().toImage()
+offset = viewport.mapTo(matrix_ws, QPoint(0, 0))
+light_px = sum(
+    1 for y in range(cell.top(), cell.bottom())
+    for x in range(cell.left(), cell.right())
+    if ((render.pixel(x + offset.x(), y + offset.y()) >> 16 & 0xFF)
+        + (render.pixel(x + offset.x(), y + offset.y()) >> 8 & 0xFF)
+        + (render.pixel(x + offset.x(), y + offset.y()) & 0xFF)) / 3 > 100)
+assert light_px > 20, f"checkbox not painted ({light_px} light px)"
+
+# Click the centered checkbox of a checked cell -> dissociation
+log_msgs.clear()
+QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
+                 pos=QPoint(cell.center()))
+app.processEvents()
+assert AssociateAgentStateUseCase.find_association(
+    service.current_project.narrative_map[0], hero2.id, map_state.id) is None
+assert not any("RG063" in msg for _, msg in log_msgs), log_msgs
+assert _emitted and _emitted[-1] == (map_state.id, "Knight", False)
+
+# Click again -> re-association
+log_msgs.clear()
+QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
+                 pos=QPoint(cell.center()))
+app.processEvents()
+assert AssociateAgentStateUseCase.find_association(
+    service.current_project.narrative_map[0], hero2.id, map_state.id) is not None
+assert not any("No association" in msg for _, msg in log_msgs), log_msgs
+assert _emitted[-1] == (map_state.id, "Knight", True)
+
+# Click on the card but outside the checkbox -> no toggle, no log
+log_msgs.clear()
+_emitted.clear()
+state_before = matrix_ws.matrix.item(knight_row, 0).checkState()
+QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
+                 pos=QPoint(cell.center().x(), cell.top() + 6))
+app.processEvents()
+assert matrix_ws.matrix.item(knight_row, 0).checkState() == state_before
+assert not _emitted and not log_msgs
+print("Case 2 OK: checkbox painted, center click toggles, "
+      "outside click is a no-op")
 
 # ---------------------------------------------------------------------
 # Journey workspace regression: grid + temp connection dash pattern

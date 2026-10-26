@@ -164,6 +164,17 @@ SCROLLBAR_STYLESHEET = f"""
     }}
 """
 
+# Workspace (QGraphicsView) stylesheet: the scrollbars plus a view
+# background that fills the area uncovered by the rounded scrollbars
+# and the corner between them (TSK12 point 01: a light line showed
+# above the info bar otherwise)
+WORKSPACE_STYLESHEET = SCROLLBAR_STYLESHEET + f"""
+    QGraphicsView {{
+        background-color: {BG_PRIMARY};
+        border: none;
+    }}
+"""
+
 # Application-wide stylesheet (set on the QApplication): global typography
 # and the widgets that are not children of a themed window (message boxes,
 # orphan popup menus).

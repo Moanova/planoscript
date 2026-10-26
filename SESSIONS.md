@@ -291,3 +291,29 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
     changement ; les libs Qt offscreen ont été installées dans /tmp pour la
     séance uniquement.
 - **État** : TSK12 en revue (kanban), en attente de validation visuelle TSC.
+
+## 2026-10-26 — TSK12 (2) : correctifs des 2 anomalies de la revue TSC
+
+- **Anomalie 1 (carré clair bas-gauche)** : le diagnostic initial (cadre QFrame du workspace) était
+  erroné — le carré restant était double : (a) la marge gauche de l'InfoBar, dont le fond stylesheet
+  n'était pas peint (`WA_StyledBackground` absent, comportement Qt des QWidget custom) ; (b) les
+  coins arrondis des ascenseurs et le coin inter-ascenseurs du QGraphicsView, où transparaissait le
+  fond clair par défaut de la fenêtre. Correctifs : `WA_StyledBackground` sur `InfoBar`, nouveau
+  `theme.WORKSPACE_STYLESHEET` (scrollbars + fond de vue `bg_primary`, `border: none`) appliqué au
+  workspace avec `WA_StyledBackground`. Vérifié par scan pixel : 0 pixel clair dans la bande.
+- **Anomalie 2 (matrice agents × états)** : cause racine = le délégué `_MatrixCardDelegate`
+  (points 08/09) — `drawControl(CE_CheckBox, QStyleOptionViewItem)` ne rend rien (coches
+  invisibles) et `editorEvent` non surchargé basculait l'état selon le rect d'indicateur par défaut
+  (gauche) au lieu de la case centrée, d'où les logs trompeurs RG063/« No association » (les use
+  cases idempotents ont protégé les données). Correctifs : `CE_ItemViewItem` dans `paint`,
+  `editorEvent` dédié avec rect d'indicateur centré partagé (`_indicator_rect`), garde dans
+  `_toggle_cell` (clic hors case = no-op), comparaison enum/int tolérante.
+- **Tests mis à jour** : `offscreen_anomaly_regression` et `offscreen_matrix_cell_edition`
+  cliquaient l'ancienne position gauche de la case — position mise à jour (centre) ; test TSK12
+  étendu aux deux anomalies (rendu pixel, cycle clic/re-clic, no-op hors case, bande InfoBar).
+- **Vérifications** : pytest 95 passed ; 8 tests offscreen PASSED ; intégration MainWindow
+  complète (clics réels via QTest, messages de barre d'info corrects, aucun log erroné) OK.
+- **Leçon retenue** : deux pièges Qt confirmés expérimentalement — (1) un QWidget custom ne peint
+  son fond stylesheet sans `WA_StyledBackground` ; (2) dans un délégué custom, le rendu ET le
+  hit-testing de l'indicateur doivent partager le même rect, sinon l'état visuel et l'état du
+  modèle divergent silencieusement.

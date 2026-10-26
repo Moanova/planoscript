@@ -75,8 +75,16 @@ class JourneyWorkspace(QGraphicsView, QObject):
         # Store grid lines for selective removal
         self.grid_lines = []
 
-        # Scrollbars: dark theme (charter 98)
-        self.setStyleSheet(theme.SCROLLBAR_STYLESHEET)
+        # Scrollbars: dark theme (charter 98). The stylesheet also
+        # fills the view frame (area uncovered by the rounded
+        # scrollbars and the corner between them) with the canvas
+        # color — otherwise the default light window color shows
+        # through at the bottom-left corner, above the info bar
+        # (TSK12 point 01)
+        self.setStyleSheet(theme.WORKSPACE_STYLESHEET)
+        # A plain QWidget subclass does not paint its stylesheet
+        # background unless WA_StyledBackground is set
+        self.setAttribute(Qt.WA_StyledBackground, True)
 
 
         # Initial scene size - fixed to 4000x4000 to ensure scrollbars are active by default

@@ -139,10 +139,10 @@ app.processEvents()
 from PySide6.QtTest import QTest
 
 matrix = mw.agents_page.matrix
-# The check indicator sits at the left edge of the cell: clicking the
-# cell center only selects it, the toggle happens on the indicator
+# TSK12 point 09: the check indicator is centered in the card;
+# clicking elsewhere in the card is a no-op
 rect = matrix.visualItemRect(matrix.item(0, 0))
-cell = rect.topLeft() + QPoint(10, rect.height() // 2)
+cell = rect.center()
 
 # Anomaly 3: checking the cell associates the agent with the state
 QTest.mouseClick(matrix.viewport(), Qt.MouseButton.LeftButton, pos=cell)

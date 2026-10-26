@@ -6,6 +6,7 @@
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
 from config.config_loader import get as _get_config
@@ -18,6 +19,11 @@ class InfoBar(QWidget):
     def __init__(self):
         super().__init__()
         self.setFixedHeight(30)
+        # A plain QWidget subclass does not paint its stylesheet
+        # background unless WA_StyledBackground is set: without it the
+        # default light window color showed through the layout's left
+        # margin (light square at the bottom-left corner of the window)
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet(f"""
             background-color: {theme.BG_SURFACE};
             border-top: 1px solid {theme.BORDER_COLOR};

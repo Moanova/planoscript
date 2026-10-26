@@ -77,3 +77,17 @@ cassait la persistance RG068 et les tests ; l'esthétique de cartes flottantes a
   skippé sans session GUI) ; 7 tests offscreen existants PASSED ; rendu
   d'intégration offscreen de la MainWindow (projet + agent + bascule onglet
   Agents + grab) OK. TSK12 passée en revue (kanban).
+
+## Deuxième passe de revue TSC (25-10-2026, séance 2) — 2 anomalies
+
+| Cas | Diagnostic (vérifié offscreen) | Correctif |
+|---|---|---|
+| 1 — carré clair bas-gauche toujours visible | Le « carré » n'était pas le cadre du workspace (diagnostic initial erroné) : bande claire de 10px = marge gauche du layout de l'InfoBar où le fond stylesheet n'était pas peint (un QWidget custom ne peint son fond stylesheet que si `WA_StyledBackground` est actif) ; résidu de 3–8px = coins arrondis des ascenseurs et coin inter-ascenseurs du QGraphicsView, où transparaissait le fond clair par défaut de la fenêtre | `InfoBar` : `setAttribute(Qt.WA_StyledBackground, True)` ; nouveau `theme.WORKSPACE_STYLESHEET` (scrollbars + fond `bg_primary` du QGraphicsView + `border: none`) appliqué au workspace avec `WA_StyledBackground` |
+| 2 — matrice : coches invisibles + logs erronés au clic | (a) le délégué appelait `drawControl(CE_CheckBox, QStyleOptionViewItem, ...)` qui ne rend rien ; (b) le délégué ne surchargeait pas `editorEvent` : le toggle Qt n'opérait que dans le rect d'indicateur par défaut (gauche), pas sur la case centrée ; `_toggle_cell` lisait alors l'état inchangé et tentait l'opération inverse (log RG063 ou « No association ») | `paint` : `CE_ItemViewItem` avec le rect centré ; nouvel `editorEvent` : toggle du `CheckStateRole` si le press est dans le rect d'indicateur centré (`_indicator_rect`, source unique partagée avec `paint`) ; `_toggle_cell` ignore les clics hors case (garde `_last_press_on_indicator`) ; comparaison d'état tolérante enum/int (`in (Checked, Checked.value)`) |
+
+Vérifications (séance 2) : pytest 95 passed ; 8 tests offscreen PASSED (TSK12 étendu aux cas 1 et 2 :
+rendu pixel de la coche, clic centre → dissociation puis ré-association sans log RG063/« No association »,
+clic hors case = no-op, bande au-dessus de la barre d'info sans pixel clair) ; intégration complète
+MainWindow (clics réels, barre d'info « Agent 'Hero' associated/dissociated ») OK. Les tests
+`offscreen_matrix_cell_edition` et `offscreen_anomaly_regression` cliquaient l'ancienne position
+gauche de la case : mis à jour vers la case centrée (point 09).
