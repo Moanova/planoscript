@@ -326,3 +326,8 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   réordonnancement RG068 conservé.
 - **Vérifications** : offscreen (modes Fixed, dimensions inchangées) ; assertion dans le test TSK12 ;
   pytest 95 passed ; 8 tests offscreen PASSED.
+
+## 2026-10-26 — TSK12 : validation TSC et clôture
+
+- TSC confirme le fonctionnement des en-têtes non redimensionnables et valide la tâche.
+- TSK12 passée de « En revue » à « Terminé » (Done) dans le kanban.

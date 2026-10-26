@@ -100,3 +100,8 @@ sur les deux en-têtes (`agents_workspace.py`) — les dimensions restent pilot�
 (80×40, point 10) et le réordonnancement manuel (RG068) est conservé. Vérifié offscreen
 (modes Fixed, dimensions inchangées) ; assertion ajoutée au test TSK12 ; pytest 95 passed,
 8 tests offscreen PASSED.
+
+## Clôture
+
+- **Statut** : Done (validation TSC du 26-10-2026, après trois passes : implémentation des 12
+  points, correctifs des 2 anomalies de revue, en-têtes non redimensionnables).

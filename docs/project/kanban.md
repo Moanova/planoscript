@@ -41,10 +41,11 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## En revue
 
-- [ ] TSK12 — Finalisation de la révision du layout — 12 points soulevés en revue visuelle de TSK11 (liste TSC du 2026-10-25, détail dans `tasks/TSK12_layout_finalization.md`) — implémentée et testée, en attente de validation TSC
+- (aucune tâche en revue)
 
 ## Done
 
+- [x] TSK12 — Finalisation de la révision du layout — 12 points de la revue visuelle TSK11 + 2 correctifs de revue (carré bas-gauche, cases de la matrice) + en-têtes non redimensionnables — validée TSC le 26-10-2026 (détail dans `tasks/TSK12_layout_finalization.md`)
 - [x] TSK11 — Révision esthétique du layout (charte `docs/specification/98_layout_revision-FR.md`, maquette `97_layout_revision-EN.svg` — détail dans `tasks/TSK11_layout_revision.md`) — thème sombre implémenté et validé en revue visuelle par TSC ; finalisation des points restants transférée à TSK12
 - [x] TSK10 — Navigation croisée entre vues avec focus RG067 (EPC03, SU009/FN032) — deux sens, Échap/clic relâchent, aucune persistance ni marquage modifié (détail dans `tasks/TSK10_cross_view_navigation.md`)
 - [x] TSK09 — Édition des cellules de la matrice (EPC03, SU008/FN030) — cellClicked → use cases, signal associationChanged, symétrie parcours/matrice (détail dans `tasks/TSK09_matrix_cell_edition.md`)
