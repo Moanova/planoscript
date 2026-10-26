@@ -37,11 +37,11 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## Doing
 
-- [ ] TSK12 — Finalisation de la révision du layout — 12 points soulevés en revue visuelle de TSK11 (liste TSC du 2026-10-25, détail dans `tasks/TSK12_layout_finalization.md`)
+- (aucune tâche en cours)
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK12 — Finalisation de la révision du layout — 12 points soulevés en revue visuelle de TSK11 (liste TSC du 2026-10-25, détail dans `tasks/TSK12_layout_finalization.md`) — implémentée et testée, en attente de validation TSC
 
 ## Done
 

@@ -44,6 +44,7 @@ FOCUS_COLOR = _get_config("focus_color", "#383838")
 FONT_FAMILY = _get_config("node_font_family", "Segoe UI")
 MENU_FONT_SIZE_PX = _get_config("menu_font_size_px", 12)
 NODE_FONT_SIZE_PX = _get_config("node_font_size_px", 13)
+NODE_LABEL_FONT_SIZE_PX = _get_config("node_label_font_size_px", 12)
 NODE_TITLE_FONT_SIZE_PX = _get_config("node_title_font_size_px", 14)
 
 
@@ -148,6 +149,12 @@ SCROLLBAR_STYLESHEET = f"""
     QScrollBar::handle:horizontal:hover,
     QScrollBar::handle:vertical:hover {{
         background: {TEXT_SECONDARY};
+    }}
+    QScrollBar::handle:horizontal:pressed,
+    QScrollBar::handle:horizontal:active,
+    QScrollBar::handle:vertical:pressed,
+    QScrollBar::handle:vertical:active {{
+        background: {STATE_COLOR};
     }}
     QScrollBar::add-line, QScrollBar::sub-line {{
         background: {BG_SURFACE};
@@ -320,6 +327,12 @@ DIALOG_STYLESHEET = f"""
     QScrollBar::handle:horizontal:hover,
     QScrollBar::handle:vertical:hover {{
         background: {TEXT_SECONDARY};
+    }}
+    QScrollBar::handle:horizontal:pressed,
+    QScrollBar::handle:horizontal:active,
+    QScrollBar::handle:vertical:pressed,
+    QScrollBar::handle:vertical:active {{
+        background: {STATE_COLOR};
     }}
     QScrollBar::add-line, QScrollBar::sub-line {{
         background: {BG_SURFACE};

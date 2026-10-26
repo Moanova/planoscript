@@ -55,14 +55,13 @@ class Connection(QGraphicsPathItem):
         relation_entity: Reference to the business relation entity (if any)
     """
     
-    # Default settings (charter 98: dashed soft gray line on dark
-    # background; hover shows a soft white line of the same width)
+    # Default settings (TSK12 point 05: passive = solid soft gray line;
+    # selection/creation share short dashes; hover = solid line in the
+    # type tint of the connected nodes)
     _CONNECTION_COLOR = theme.color("connection_color", theme.CONNECTION_COLOR)
-    _HOVER_COLOR = theme.color("hover_color", theme.HOVER_COLOR)
-    DEFAULT_PEN = QPen(_CONNECTION_COLOR, 2)  # Dashed gray line, 2px thick
-    DEFAULT_PEN.setStyle(Qt.DashLine)
-    DEFAULT_PEN.setDashPattern([6.0, 4.0])
-    DEFAULT_SELECTED_PEN = QPen(_HOVER_COLOR, 2)  # Soft white hover line
+    DEFAULT_PEN = QPen(_CONNECTION_COLOR, 2)  # Solid gray line, 2px thick
+    # Short dashes, shared by the selection and creation feedback
+    DASH_PATTERN = [2.0, 3.0]
     
     # Arrow settings
     ARROW_SIZE = 10.0
@@ -399,6 +398,25 @@ class Connection(QGraphicsPathItem):
         return path
 
 
+    def _hover_pen(self) -> QPen:
+        """Solid pen in the type tint of the connected nodes (point 05).
+
+        A connection always links two different node kinds (state and
+        event): the first endpoint's type color drives the tint.
+        """
+        width = self.layout.thickness or self.DEFAULT_PEN.width()
+        hover_pen = QPen(self._type_tint_color(), width)
+        hover_pen.setStyle(Qt.SolidLine)
+        return hover_pen
+
+    def _type_tint_color(self) -> QColor:
+        """Type tint of the connection: the type color of the first
+        endpoint that defines one (point 05)."""
+        for node in (self.source_node, self.target_node):
+            if node is not None and hasattr(node, 'COLORS'):
+                return QColor(node.COLORS['border'])
+        return QColor(theme.STATE_COLOR)
+
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
         """
         Handle item changes (e.g., selection).
@@ -523,7 +541,8 @@ class Connection(QGraphicsPathItem):
 
     def _restore_layout_pen(self) -> None:
         """
-        Restore the normal pen from the layout properties.
+        Restore the passive pen from the layout properties: a solid
+        line (TSK12 point 05).
 
         Do not call _init_appearance() here: it calls setSelected(),
         which would recurse while itemChange(ItemSelectedChange) is
@@ -541,23 +560,24 @@ class Connection(QGraphicsPathItem):
 
     def set_selected_appearance(self, selected: bool) -> None:
         """
-        Update the connection's appearance based on selection state.
+        Update the connection's appearance based on selection state
+        (TSK12 point 05).
 
-        Selected: dashed line in the connection's original color (the
-        selection keeps the item's own color, like the node contours;
-        blue appears on hover only). Deselected: normal pen.
+        Selected: short-dashed line in the connection's own color (the
+        same appearance as the creation feedback). Deselected: passive
+        solid pen.
 
         Args:
             selected: Whether the connection is selected
         """
         if selected:
-            # Original-color dashed pen, same width as the normal line
-            # for a finer rendering. Rebuild the pen from the layout
-            # (not from the current pen, which may be the hover pen) so
-            # it stays stable across hover/selection sequences.
+            # Rebuild the pen from the layout (not from the current pen,
+            # which may be the hover pen) so it stays stable across
+            # hover/selection sequences.
             self._restore_layout_pen()
             selected_pen = QPen(self.pen())
             selected_pen.setStyle(Qt.DashLine)
+            selected_pen.setDashPattern(self.DASH_PATTERN)
             self.setPen(selected_pen)
         else:
             self._restore_layout_pen()
@@ -565,21 +585,19 @@ class Connection(QGraphicsPathItem):
 
     def hoverEnterEvent(self, event) -> None:
         """
-        Handle hover enter events: draw the line in soft white while not
-        selected (charter 98: same hover feedback as the nodes' outline).
+        Handle hover enter events: draw a solid line in the type tint
+        of the connected nodes while not selected (TSK12 point 05).
         """
         if not self.isSelected():
-            width = self.layout.thickness or self.DEFAULT_PEN.width()
-            hover_pen = QPen(self.DEFAULT_SELECTED_PEN.color(), width)
-            hover_pen.setStyle(Qt.SolidLine)
-            self.setPen(hover_pen)
+            self.setPen(self._hover_pen())
         super().hoverEnterEvent(event)
 
 
     def hoverLeaveEvent(self, event) -> None:
         """
-        Handle hover leave events: restore the normal pen, or keep the
-        dashed selected pen if the connection is selected.
+        Handle hover leave events: restore the passive solid pen, or
+        keep the short-dashed selected pen if the connection is
+        selected.
         """
         if self.isSelected():
             self.set_selected_appearance(True)

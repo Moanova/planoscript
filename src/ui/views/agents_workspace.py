@@ -20,12 +20,14 @@ reordering allowed and persisted in the project graphical metadata
 cannot be moved.
 """
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QBrush, QColor
+from PySide6.QtCore import Qt, QRect, QSize, Signal
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import (
+    QApplication, QStyledItemDelegate, QStyle, QStyleOptionViewItem,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
 
+from config.config_loader import get as _get_config
 from ui.nodes.base_node import BaseNode
 from ui.utils import theme
 from usecases.agent_association.associate_agent_state_usecase import (
@@ -43,6 +45,18 @@ class AgentsWorkspace(QWidget):
     # Emitted when the user requests to show the states of an agent in
     # the journey view (TSK10, cross-view navigation)
     focusAgentInJourneyViewRequested = Signal(int)  # agent_id
+
+    # Header dimensions (TSK12 point 10): comparable to the Journey
+    # nodes (80x40)
+    _ROW_HEADER_WIDTH = _get_config("agents_view_row_header_width", 80)
+    _COLUMN_HEADER_HEIGHT = _get_config("agents_view_column_header_height", 40)
+
+    # Floating-card spacing (TSK12 point 08): visible gap between the
+    # agents (vertical) and the states (horizontal)
+    _CARD_SPACING = _get_config("agents_view_card_spacing", 4)
+
+    # Rounded corners of the matrix cards (charter 98, ~6px)
+    _CARD_RADIUS = _get_config("agents_view_card_corner_radius_px", 6.0)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -70,6 +84,21 @@ class AgentsWorkspace(QWidget):
         self.matrix.horizontalHeader().setSectionsMovable(True)
         self.matrix.horizontalHeader().sectionMoved.connect(self._column_moved)
         self.matrix.verticalHeader().sectionMoved.connect(self._row_moved)
+
+        # Header dimensions (TSK12 point 10): rows (agents) 80px wide,
+        # columns (states) 40px high
+        self.matrix.verticalHeader().setDefaultSectionSize(
+            self._COLUMN_HEADER_HEIGHT)
+        self.matrix.verticalHeader().setMinimumSectionSize(1)
+        self.matrix.horizontalHeader().setDefaultSectionSize(
+            self._ROW_HEADER_WIDTH)
+
+        # Floating cards (TSK12 point 08) + centered checkboxes
+        # (point 09): the delegate draws the cells
+        self.matrix.setShowGrid(False)
+        self._checkbox_delegate = _MatrixCardDelegate(self)
+        self.matrix.setItemDelegate(self._checkbox_delegate)
+
         layout.addWidget(self.matrix, 1)
 
     def set_project(self, project_service, layout_data,
@@ -86,6 +115,7 @@ class AgentsWorkspace(QWidget):
         if not self.project_service or not self.project_service.current_project:
             self.matrix.setRowCount(0)
             self.matrix.setColumnCount(0)
+            self.matrix.verticalHeader().setFixedWidth(self._ROW_HEADER_WIDTH)
             return
 
         project = self.project_service.current_project
@@ -113,12 +143,12 @@ class AgentsWorkspace(QWidget):
         self.matrix.setColumnCount(len(states))
 
         for row, agent in enumerate(agents):
-            header = QTableWidgetItem(f"{agent.lb} ({agent.typ})")
+            header = QTableWidgetItem(f"{agent.lb}")
             header.setData(Qt.ItemDataRole.UserRole, ('agent', agent.id))
             self.matrix.setVerticalHeaderItem(row, header)
         for column, state in enumerate(states):
             label = BaseNode.format_label_for_display(state.lb)
-            header = QTableWidgetItem(f"{label} [{state.typ}]")
+            header = QTableWidgetItem(label)
             header.setData(Qt.ItemDataRole.UserRole, ('state', state.id))
             self.matrix.setHorizontalHeaderItem(column, header)
 
@@ -132,6 +162,10 @@ class AgentsWorkspace(QWidget):
                     Qt.CheckState.Checked if associated
                     else Qt.CheckState.Unchecked)
                 self.matrix.setItem(row, column, item)
+
+        # Always visible agent column (TSK12 point 07): reserve the row
+        # header width even with no agent
+        self.matrix.verticalHeader().setFixedWidth(self._ROW_HEADER_WIDTH)
 
     # ------------------------------------------------------------------
     # Cross-view navigation focus (TSK10, RG067)
@@ -326,3 +360,56 @@ class AgentsWorkspace(QWidget):
             if data and data[0] == 'agent':
                 row_ids.append(data[1])
         self.layout_data.agents_view_row_order = row_ids
+
+
+class _MatrixCardDelegate(QStyledItemDelegate):
+    """Item delegate of the agents x states matrix (TSK12 points
+    08/09).
+
+    Point 08 (floating cards): each cell is drawn as a rounded card
+    inset from the cell rectangle, so the workspace background shows
+    through the gaps: agents (rows) are spaced vertically, states
+    (columns) horizontally.
+
+    Point 09: the association checkbox is centered in the card (the
+    default QStyle placement keeps it on the left with trailing
+    empty space).
+    """
+
+    def paint(self, painter, option, index):
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+
+        # Workspace background fills the whole cell: visible gap
+        # between the cards (point 08)
+        painter.fillRect(option.rect, QColor(theme.BG_PRIMARY))
+
+        # Card: inset rectangle with rounded corners; the focus tint
+        # (TSK10) uses the item's background brush when set
+        spacing = AgentsWorkspace._CARD_SPACING
+        card = option.rect.adjusted(spacing, spacing, -spacing, -spacing)
+        brush = index.data(Qt.ItemDataRole.BackgroundRole)
+        if brush is None or brush.style() == Qt.BrushStyle.NoBrush:
+            brush = QBrush(QColor(theme.BG_SURFACE))
+        painter.setPen(QPen(QColor(theme.BORDER_COLOR), 1))
+        painter.setBrush(brush)
+        painter.drawRoundedRect(card, AgentsWorkspace._CARD_RADIUS,
+                                AgentsWorkspace._CARD_RADIUS)
+
+        # Checkbox centered in the card (point 09)
+        style = (opt.widget.style() if opt.widget
+                 else QApplication.style())
+        indicator_rect = style.subElementRect(
+            QStyle.SE_ItemViewItemCheckIndicator, opt, opt.widget)
+        center = card.center()
+        opt.rect = QRect(center.x() - indicator_rect.width() // 2,
+                         center.y() - indicator_rect.height() // 2,
+                         indicator_rect.width(), indicator_rect.height())
+        style.drawControl(QStyle.CE_CheckBox, opt, painter, opt.widget)
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        return QSize(AgentsWorkspace._ROW_HEADER_WIDTH,
+                     AgentsWorkspace._COLUMN_HEADER_HEIGHT)

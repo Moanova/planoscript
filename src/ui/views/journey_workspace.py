@@ -15,7 +15,7 @@ import logging
 from PySide6.QtWidgets import (
     QGraphicsView, QGraphicsScene,
     QGraphicsEllipseItem, QGraphicsItem,
-    QMenu
+    QFrame, QMenu
 )
 from PySide6.QtCore import Qt, QPointF, Signal, QObject, QEvent
 from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QPainterPath
@@ -53,6 +53,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
     
     def __init__(self, initial_width=2000, initial_height=1600, narrative_map=None, info_bar=None, main_window=None):
         super().__init__()
+
+        # No frame: the default QFrame StyledPanel border was drawn in
+        # light gray (e.g. bottom-left corner above the info bar)
+        self.setFrameShape(QFrame.NoFrame)
 
         self.narrative_map = narrative_map
         self.info_bar = info_bar
@@ -531,6 +535,7 @@ class JourneyWorkspace(QGraphicsView, QObject):
         
         # Dashed line style for rubber band effect
         pen = QPen(QColor(_TEMP_CONNECTION_COLOR), 2, Qt.DashLine)
+        pen.setDashPattern(Connection.DASH_PATTERN)
         self.temp_connection = self.scene.addPath(path, pen)
         self.temp_connection.setZValue(100)  # Ensure it's on top
 

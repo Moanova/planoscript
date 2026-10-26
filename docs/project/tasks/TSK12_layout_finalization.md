@@ -46,3 +46,34 @@ la charte 98) sont regroupés ici.
   analyse point par point réalisée (investigation offscreen : rendu pixel
   par pixel de la fenêtre, du workspace, de la matrice, des scrollbars) ;
   questions de cadrage posées à TSC et décisions enregistrées ci-dessus.
+
+## Implémentation (séance du 25-10-2026)
+
+| # | Fichier(s) | Changement |
+|---|---|---|
+| 01 | `journey_workspace.py` | `setFrameShape(QFrame.NoFrame)` dans `__init__` |
+| 02 | `config.json` | `grid_major_color` → `#4A4A4A` |
+| 03 | `base_node.py` | Suppression de `type_label` et `_init_type_label` (TypedNode) ; le nom redevient le seul texte du nœud |
+| 04 | `config.json`, `theme.py`, `base_node.py` | Nouvelle clé `node_label_font_size_px: 12` ; le label utilise `DEFAULT_FONT` (12px non gras) et est centré dans le nœud (`_position_label`, repositionné au resize) |
+| 05 | `connection.py`, `journey_workspace.py` | `DEFAULT_PEN` uni ; `DASH_PATTERN = [2,3]` partagé sélection/création (stylo sélection + connexion temporaire) ; survol = trait uni en teinte de type du premier nœud défini (`_hover_pen`/`_type_tint_color`) ; suppression de `DEFAULT_SELECTED_PEN` (code mort) |
+| 06 | `theme.py` | Règles `:pressed`/`:active` du handle (or doux `state_color`) dans `SCROLLBAR_STYLESHEET` et `DIALOG_STYLESHEET` |
+| 07 | `agents_workspace.py` | `verticalHeader().setFixedWidth(80)` appliqué à chaque `refresh()` (aussi à 0 agent) ; pas de placeholder |
+| 08 | `agents_workspace.py` | Délégué `_MatrixCardDelegate` : carte arrondie (rayon 6, bord `border_color`) dessinée avec une marge de 4px dans chaque cellule, `setShowGrid(False)` ; le fond `bg_primary` apparaît dans les interstices verticaux (agents) et horizontaux (états) |
+| 09 | `agents_workspace.py` | Case à cocher centrée dans la carte (rect d'indicateur recalculé par le délégué) |
+| 10 | `agents_workspace.py` | `defaultSectionSize` : lignes 40px haut, colonnes 80px large (clés `agents_view_row_header_width`/`agents_view_column_header_height`) |
+| 11 | `agents_workspace.py` | En-tête de ligne = `agent.lb` (suffixe ` (typ)` supprimé) |
+| 12 | `agents_workspace.py` | En-tête de colonne = libellé tronqué (suffixe ` [typ]` supprimé) |
+
+Note d'implémentation : une première piste « lignes/colonnes intercalaires » pour le
+point 08 a été écartée — elle décalait les indices du modèle (row/column) et
+cassait la persistance RG068 et les tests ; l'esthétique de cartes flottantes a
+été obtenue par le délégué de peinture, sans toucher à la structure du modèle.
+
+## Journal (suite)
+
+- 25-10-2026 (2) : implémentation des 12 points ; test offscreen dédié
+  `tests/test_agents/offscreen_tsk12_layout_finalization.py` (points 01 à 12
+  vérifiés un à un) ; `pytest` 95 passed hors `test_application` (pywinauto,
+  skippé sans session GUI) ; 7 tests offscreen existants PASSED ; rendu
+  d'intégration offscreen de la MainWindow (projet + agent + bascule onglet
+  Agents + grab) OK. TSK12 passée en revue (kanban).

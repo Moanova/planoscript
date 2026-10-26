@@ -61,10 +61,10 @@ class BaseNode(QGraphicsRectItem):
     # Hover color: soft white continuous outline (charter 98)
     HOVER_BORDER_COLOR = theme.color("hover_color", theme.HOVER_COLOR)
 
-    # Font settings (charter 98: Segoe UI, ~13px node text, ~14px bold title)
+    # Font settings (charter 98: Segoe UI; entity label ~12px non bold,
+    # aligned with the agents matrix — TSK12 point 04)
     _FONT_FAMILY = theme.FONT_FAMILY
-    DEFAULT_FONT = QFont(_FONT_FAMILY, theme.NODE_FONT_SIZE_PX)
-    TITLE_FONT = QFont(_FONT_FAMILY, theme.NODE_TITLE_FONT_SIZE_PX, QFont.Bold)
+    DEFAULT_FONT = QFont(_FONT_FAMILY, theme.NODE_LABEL_FONT_SIZE_PX)
     
     # Port settings
     PORT_SIZE = 8
@@ -107,6 +107,7 @@ class BaseNode(QGraphicsRectItem):
         # Create and add label
         self.label = QGraphicsTextItem(self)
         self._init_label()
+        self._position_label()
         
         # Initialize ports (empty dict, to be populated by subclasses if needed)
         self.ports = {}
@@ -143,14 +144,20 @@ class BaseNode(QGraphicsRectItem):
         self.label.setPlainText(self.format_label_for_display(label_text))
         
         # Set label font and color
-        self.label.setFont(self.TITLE_FONT)
+        self.label.setFont(self.DEFAULT_FONT)
         self.label.setDefaultTextColor(self.DEFAULT_TEXT_COLOR)
-        
-        # Position label at top-left with margin
-        self.label.setPos(8, 8)
         
         # Make label non-selectable (selection is handled at node level)
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
+
+    def _position_label(self) -> None:
+        """Center the entity label inside the node."""
+        if self.label is None:
+            return
+        text_rect = self.label.boundingRect()
+        self.label.setPos(
+            (self.rect().width() - text_rect.width()) / 2,
+            (self.rect().height() - text_rect.height()) / 2)
 
 
     @classmethod
@@ -176,6 +183,7 @@ class BaseNode(QGraphicsRectItem):
         lb = getattr(self.entity, 'lb', None)
         if lb is not None:
             self.label.setPlainText(self.format_label_for_display(lb))
+            self._position_label()
         typ = getattr(self.entity, 'typ', None)
         note = getattr(self.entity, 'note', None)
         tooltip = str(lb) if lb else ''
@@ -256,6 +264,7 @@ class BaseNode(QGraphicsRectItem):
 
         # Update port positions when node size changes
         self._update_port_positions()
+        self._position_label()
 
 
     def update_layout(self) -> None:
@@ -510,13 +519,6 @@ class BaseNode(QGraphicsRectItem):
                 port_size, port_size
             )
 
-        # Keep the type label centered when the node is resized (TypedNode)
-        type_label = getattr(self, 'type_label', None)
-        if type_label is not None:
-            type_label.setPos(
-                (self.rect().width() - type_label.boundingRect().width()) / 2,
-                4)
-
     def get_left_port_position(self) -> QPointF:
         """Get the position of the left connection port (input port)."""
         if self.input_port:
@@ -573,6 +575,7 @@ class BaseNode(QGraphicsRectItem):
             text: New text for the label
         """
         self.label.setPlainText(text)
+        self._position_label()
         # Update entity's lb if it has one
         if hasattr(self.entity, 'lb'):
             self.entity.lb = text
@@ -599,22 +602,6 @@ class TypedNode(BaseNode):
 
     def __init__(self, entity, layout):
         super().__init__(entity, layout)
-        self.type_label = QGraphicsTextItem(self)
-        self._init_type_label()
-
-    def _init_type_label(self) -> None:
-        """Create the type label ('State'/'Event') above the entity label,
-        in the type color, bold ~14px (charter 98)."""
-        self.type_label.setPlainText(self.ENTITY_TYPE_LABEL)
-        self.type_label.setFont(QFont(theme.FONT_FAMILY,
-                                      theme.NODE_TITLE_FONT_SIZE_PX,
-                                      QFont.Bold))
-        self.type_label.setDefaultTextColor(QColor(self.COLORS['border']))
-        self.type_label.setFlag(QGraphicsItem.ItemIsSelectable, False)
-        # Centered horizontally, above the entity label
-        self.type_label.setPos(
-            (self.rect().width() - self.type_label.boundingRect().width()) / 2,
-            4)
 
     def _type_border_color(self) -> QColor:
         """Border color of the node's type (charter 98)."""
@@ -626,9 +613,6 @@ class TypedNode(BaseNode):
         self._apply_outline()
         if self.label:
             self.label.setDefaultTextColor(self.COLORS['text'])
-        type_label = getattr(self, 'type_label', None)
-        if type_label is not None:
-            type_label.setDefaultTextColor(QColor(self.COLORS['border']))
 
     def update_from_layout(self) -> None:
         """Update visual properties from layout, re-applying type colors."""

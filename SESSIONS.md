@@ -253,3 +253,41 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 - **Vérifications** : test offscreen jetable du scénario (créer → message →
   fermer → barre vide sur l'accueil → recréer → barre réutilisable) : OK ;
   `pytest` 95 passed ; 7 tests offscreen existants PASSED ; `py_compile` OK.
+
+## 2026-10-25 — TSK12 : finalisation de la révision du layout (12 points de revue TSC)
+
+- **Reprise après incident** : la séance précédente avait produit l'analyse et
+  les décisions (consignées dans `docs/project/tasks/TSK12_layout_finalization.md`)
+  mais aucune implémentation ; le working tree était propre sur dev.
+- **Travaux** : implémentation des 12 points de la revue visuelle TSK11.
+  - Journey : cadre QFrame supprimé (point 01), grille majeure éclaircie à
+    `#4A4A4A` (02), libellé de type « State »/« Event » supprimé des nœuds (03),
+    nom en 12px non gras centré — clé `node_label_font_size_px` (04),
+    connexions : passif uni, sélection/création pointillés courts `[2,3]`,
+    survol uni en teinte de type or/cuivre (05), handle d'ascenseur
+    `:pressed`/`:active` en or doux (06).
+  - Agents : colonne des agents toujours visible (largeur fixe 80px, pas de
+    placeholder — point 07), esthétique cartes flottantes par délégué de
+    peinture (08), case à cocher centrée (09), en-têtes 80×40 (10), suffixes
+    de type supprimés des en-têtes (11, 12).
+- **Problème rencontré / choix acté** : la piste initiale du point 08 (lignes et
+  colonnes intercalaires dans le QTableWidget) décalait les indices du modèle
+  et cassait la persistance RG068 ; remplacée par un délégué de peinture
+  (`_MatrixCardDelegate`) qui dessine des cartes arrondies espacées sans
+  toucher à la structure. Le code mort `DEFAULT_SELECTED_PEN` (connection.py)
+  a été retiré conformément à la règle « diff minimal, pas de code mort ».
+- **Vérifications** :
+  - `pytest tests/ -q` (hors `test_application`, skippé sans session GUI) :
+    95 passed.
+  - Test offscreen dédié `tests/test_agents/offscreen_tsk12_layout_finalization.py`
+    (12 points vérifiés un à un) : PASSED.
+  - 7 tests offscreen existants (matrice, édition de cellule, onglets,
+    navigation croisée, badges, dialogue d'association, régression anomalie) :
+    PASSED.
+  - Rendu d'intégration offscreen de la MainWindow (création projet + agent +
+    bascule onglet Agents + rendu) : OK.
+  - Note environnement : `test_application` (pywinauto) ne peut pas être
+    collecté dans un sandbox Linux (ImportError `Desktop`), indépendant du
+    changement ; les libs Qt offscreen ont été installées dans /tmp pour la
+    séance uniquement.
+- **État** : TSK12 en revue (kanban), en attente de validation visuelle TSC.

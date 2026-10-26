@@ -44,10 +44,10 @@ workspace.refresh()
 # Rows: 2 agents; columns: 1 state (initial)
 assert workspace.matrix.rowCount() == 2
 assert workspace.matrix.columnCount() == 1
-assert workspace.matrix.verticalHeaderItem(0).text() == "Hero (Subject)"
-assert workspace.matrix.verticalHeaderItem(1).text() == "Sword (Object)"
+assert workspace.matrix.verticalHeaderItem(0).text() == "Hero"
+assert workspace.matrix.verticalHeaderItem(1).text() == "Sword"
 assert workspace.matrix.horizontalHeaderItem(0).text().startswith("Init")
-assert "[Initial]" in workspace.matrix.horizontalHeaderItem(0).text()
+assert "[" not in workspace.matrix.horizontalHeaderItem(0).text()
 
 # Hero associated with the state: cell checked; Sword: unchecked
 assert workspace.matrix.item(0, 0).checkState() == Qt.CheckState.Checked
