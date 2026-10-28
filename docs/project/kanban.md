@@ -41,11 +41,11 @@ EPC04 : TSK15 → TSK13
 
 ## Doing
 
-- [ ] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QTableWidget → QGraphicsView, cartes style Journey, cases 20×20, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — revue TSC n°3 en cours : grille 120×80 centrée sur les objets, grille viewport extensible vers la droite/le bas uniquement
+- (aucune tâche en cours)
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QTableWidget → QGraphicsView, cartes style Journey, cases 20×20, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — revue TSC n°3 terminée (grille 120×80 centrée sur les objets, grille viewport extensible vers la droite/le bas) : implémentation et tests terminés, en attente de validation TSC
 
 ## Done
 

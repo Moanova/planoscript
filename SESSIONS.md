@@ -395,3 +395,5 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   vérifie une plage entre le fond (#1E1E1E) et la couleur de grille, et doit
   scanner à la position visible (après retour du scroll à l'origine).
 - **État** : TSK15 en « Doing » (revue n°03), en attente de validation TSC.
+- Commit `3c62f6f` poussé sur `dev`. TSK15 déplacée en « En revue » (revue n°03
+  terminée), en attente de validation TSC avant passage en Done et démarrage de TSK13.
