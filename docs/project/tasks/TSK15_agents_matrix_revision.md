@@ -137,3 +137,30 @@ chargé au populate et tenu à jour par la vue).
     association, badges, finalisation TSK12).
   - Note environnement : PySide6 + libs GL/X11 installés dans le bac à
     sable pour exécuter les tests offscreen (absents à l'origine).
+- 26-10-2026 (revue TSC) : 4 KO corrigés.
+  - **En-têtes disparus + superposition agents/cases** : cause racine
+    unique — la zone des cases démarrait au même x/y que les cartes
+    en-têtes (agents x=20, états y=20), donc les cases de la première
+    colonne étaient centrées dans les cartes agents (chevauchement
+    confirmé par `sceneBoundingRect().intersects`). Correctif : la zone
+    des cases démarre après la colonne agents et la ligne états
+    (`_CELLS_LEFT = margin + card width + spacing`,
+    `_CELLS_TOP = margin + card height + spacing`) ; les en-têtes
+    (cartes agents/états) restent visibles et les cases sont disjointes
+    des cartes agents (vérifié par test d'intersection).
+  - **Matrice centrée** : `QGraphicsView` aligne la scène au centre
+    par défaut (`alignment = AlignCenter`). Correctif :
+    `setAlignment(AlignLeft | AlignTop)` — la matrice est ancrée dans
+    le coin haut-gauche du viewport.
+  - Géométrie résultante : première carte état à
+    x = 20 + 80 + 20 = 120, y = 20 ; première carte agent à x = 20,
+    y = 20 + 40 + 20 = 80 ; première case centrée dans la cellule
+    (120, 80). Le décalage demandé (80 + 20) est l'offset relatif entre
+    la colonne agents et la première colonne d'états (resp. ligne
+    états et première ligne d'agents).
+  - Tous les recalculs de position (refresh, relayout, drag, focus)
+    utilisent les nouvelles constantes `_CELLS_LEFT`/`_CELLS_TOP`/
+    `_AGENTS_LEFT`/`_STATES_TOP`.
+  - Tests offscreen mis à jour (géométrie attendue, assertion de
+    non-chevauchement, assertion d'ancrage haut-gauche) ; py_compile
+    OK, pytest 95 passed, 9 offscreen PASSED.

@@ -31,7 +31,8 @@ from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
 from ui.views.agents_workspace import (
-    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN
+    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN,
+    _CELLS_LEFT, _CELLS_TOP, _STATES_TOP
 )
 from ui.nodes.matrix_card import MatrixCardItem
 from core.models.data_model import State
@@ -53,7 +54,6 @@ nm.state.extend([s2, s3])
 
 card_w, card_h = MatrixCardItem.WIDTH, MatrixCardItem.HEIGHT
 spacing = _COMPONENT_SPACING
-agents_top = _SCENE_MARGIN + card_h + spacing
 
 layout = WorkspaceLayout(narrative_map_id=nm.id)
 workspace = AgentsWorkspace()
@@ -68,7 +68,7 @@ assert [s.lb for s in workspace._states] == ["Init State", "Middle state", "Fina
 # ---------------------------------------------------------------------
 card = workspace._agent_cards[sword.id]
 workspace._on_card_released(
-    card, QPointF(_SCENE_MARGIN, agents_top + card_h / 2))
+    card, QPointF(_SCENE_MARGIN, _CELLS_TOP + card_h / 2))
 assert [a.lb for a in workspace._agents] == ["Sword", "Hero"]
 # The checkboxes followed their cells
 assert workspace.is_associated(0, 0) is False  # Sword x initial: unchecked
@@ -80,8 +80,8 @@ assert layout.agents_view_row_order == [sword.id, hero.id]
 # State reorder: drag "Final state" (column 2) to column 1
 # ---------------------------------------------------------------------
 card = workspace._state_cards[s3.id]
-x_col1 = _SCENE_MARGIN + 1 * (card_w + spacing) + card_w / 2
-workspace._on_card_released(card, QPointF(x_col1, _SCENE_MARGIN))
+x_col1 = _CELLS_LEFT + 1 * (card_w + spacing) + card_w / 2
+workspace._on_card_released(card, QPointF(x_col1, _STATES_TOP))
 assert [s.lb for s in workspace._states] == [
     "Init State", "Final state", "Middle state"]
 assert layout.agents_view_column_order == [initial.id, s3.id, s2.id]
@@ -91,12 +91,12 @@ assert layout.agents_view_column_order == [initial.id, s3.id, s2.id]
 # ---------------------------------------------------------------------
 # Another state dropped onto the first column: rejected
 card = workspace._state_cards[s2.id]
-x_col0 = _SCENE_MARGIN + card_w / 2
-workspace._on_card_released(card, QPointF(x_col0, _SCENE_MARGIN))
+x_col0 = _CELLS_LEFT + card_w / 2
+workspace._on_card_released(card, QPointF(x_col0, _STATES_TOP))
 assert workspace._states[0].typ == "Initial"
 # The initial state dragged away: rejected
 card = workspace._state_cards[initial.id]
-workspace._on_card_released(card, QPointF(x_col1, _SCENE_MARGIN))
+workspace._on_card_released(card, QPointF(x_col1, _STATES_TOP))
 assert workspace._states[0].typ == "Initial"
 assert layout.agents_view_column_order == [initial.id, s3.id, s2.id]
 

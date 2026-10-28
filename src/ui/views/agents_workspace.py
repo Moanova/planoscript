@@ -52,6 +52,18 @@ _FOCUS_COLOR = theme.color("focus_color", theme.FOCUS_COLOR)
 
 # Margins around the matrix content inside the scene
 _SCENE_MARGIN = _COMPONENT_SPACING
+# The state cards start after the agent column (one card width + the
+# gap), the agent cards start after the state row (one card height +
+# the gap): the first state is at x = card width + spacing from the
+# left edge, the first agent at y = card height + spacing from the top
+# edge (TSC review 26-10-2026: the header row/column stays visible and
+# the agent cards no longer overlap the first state column checkboxes)
+_CARD_WIDTH = MatrixCardItem.WIDTH
+_CARD_HEIGHT = MatrixCardItem.HEIGHT
+_AGENTS_LEFT = _SCENE_MARGIN  # agent cards column x
+_STATES_TOP = _SCENE_MARGIN  # state cards row y
+_CELLS_LEFT = _AGENTS_LEFT + _CARD_WIDTH + _COMPONENT_SPACING
+_CELLS_TOP = _STATES_TOP + _CARD_HEIGHT + _COMPONENT_SPACING
 
 
 class AgentsWorkspace(QWidget):
@@ -161,27 +173,29 @@ class AgentsWorkspace(QWidget):
         card_h = MatrixCardItem.HEIGHT
         spacing = _COMPONENT_SPACING
 
-        # State cards: one column per state, along the top
+        # State cards: one column per state, along the top, starting
+        # after the agent column (header row, TSC review 26-10-2026)
         for column, state in enumerate(self._states):
-            x = _SCENE_MARGIN + column * (card_w + spacing)
+            x = _CELLS_LEFT + column * (card_w + spacing)
             card = MatrixCardItem(state, 'state', _STATE_COLOR)
-            card.setPos(x, _SCENE_MARGIN)
+            card.setPos(x, _STATES_TOP)
             self.scene.addItem(card)
             self._state_cards[state.id] = card
 
-        # Agent cards: one row per agent, down the left side
+        # Agent cards: one row per agent, down the left side, starting
+        # after the state row (header column)
         for row, agent in enumerate(self._agents):
-            y = _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
+            y = _CELLS_TOP + row * (card_h + spacing)
             card = MatrixCardItem(agent, 'agent', _AGENT_COLOR)
-            card.setPos(_SCENE_MARGIN, y)
+            card.setPos(_AGENTS_LEFT, y)
             self.scene.addItem(card)
             self._agent_cards[agent.id] = card
 
         # Checkboxes at each intersection
         for row, agent in enumerate(self._agents):
             for column, state in enumerate(self._states):
-                x = _SCENE_MARGIN + column * (card_w + spacing)
-                y = _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
+                x = _CELLS_LEFT + column * (card_w + spacing)
+                y = _CELLS_TOP + row * (card_h + spacing)
                 associated = AssociateAgentStateUseCase.find_association(
                     narrative_map, agent.id, state.id) is not None
                 check = MatrixCheckItem(agent, state, associated)
@@ -198,12 +212,16 @@ class AgentsWorkspace(QWidget):
         card_w = MatrixCardItem.WIDTH
         card_h = MatrixCardItem.HEIGHT
         spacing = _COMPONENT_SPACING
-        width = (2 * _SCENE_MARGIN
+        # The matrix occupies the cells area plus the header row and
+        # column, surrounded by the scene margin on every side
+        width = (_SCENE_MARGIN + card_w + spacing
                  + max(len(self._states), 1) * card_w
-                 + max(len(self._states) - 1, 0) * spacing)
-        height = (2 * _SCENE_MARGIN + card_h + spacing
+                 + max(len(self._states) - 1, 0) * spacing
+                 + _SCENE_MARGIN)
+        height = (_SCENE_MARGIN + card_h + spacing
                   + max(len(self._agents), 1) * card_h
-                  + max(len(self._agents) - 1, 0) * spacing)
+                  + max(len(self._agents) - 1, 0) * spacing
+                  + _SCENE_MARGIN)
         self.scene.setSceneRect(0, 0, width, height)
 
     # ------------------------------------------------------------------
@@ -253,9 +271,9 @@ class AgentsWorkspace(QWidget):
         """
         if card.kind == 'state':
             card.setPos(scene_pos.x() - MatrixCardItem.WIDTH / 2,
-                        _SCENE_MARGIN)
+                        _STATES_TOP)
         else:
-            card.setPos(_SCENE_MARGIN,
+            card.setPos(_AGENTS_LEFT,
                         scene_pos.y() - MatrixCardItem.HEIGHT / 2)
 
     def _on_card_released(self, card, scene_pos):
@@ -278,7 +296,7 @@ class AgentsWorkspace(QWidget):
         card_w = MatrixCardItem.WIDTH
         spacing = _COMPONENT_SPACING
         target_column = round(
-            (scene_pos.x() - _SCENE_MARGIN) / (card_w + spacing))
+            (scene_pos.x() - _CELLS_LEFT) / (card_w + spacing))
         target_column = max(0, min(target_column, len(self._states) - 1))
 
         current_column = self._states.index(card.entity)
@@ -297,9 +315,8 @@ class AgentsWorkspace(QWidget):
     def _reorder_agents(self, card, scene_pos):
         card_h = MatrixCardItem.HEIGHT
         spacing = _COMPONENT_SPACING
-        agents_top = _SCENE_MARGIN + card_h + spacing
         target_row = round(
-            (scene_pos.y() - agents_top) / (card_h + spacing))
+            (scene_pos.y() - _CELLS_TOP) / (card_h + spacing))
         target_row = max(0, min(target_row, len(self._agents) - 1))
 
         current_row = self._agents.index(card.entity)
@@ -331,14 +348,13 @@ class AgentsWorkspace(QWidget):
         for column, state in enumerate(self._states):
             card = self._state_cards.get(state.id)
             if card is not None:
-                card.setPos(_SCENE_MARGIN + column * (card_w + spacing),
-                            _SCENE_MARGIN)
+                card.setPos(_CELLS_LEFT + column * (card_w + spacing),
+                            _STATES_TOP)
         for row, agent in enumerate(self._agents):
             card = self._agent_cards.get(agent.id)
             if card is not None:
-                card.setPos(_SCENE_MARGIN,
-                            _SCENE_MARGIN + card_h + spacing
-                            + row * (card_h + spacing))
+                card.setPos(_AGENTS_LEFT,
+                            _CELLS_TOP + row * (card_h + spacing))
         for (agent_id, state_id), check in self._check_items.items():
             column = next(
                 (i for i, s in enumerate(self._states) if s.id == state_id),
@@ -349,9 +365,9 @@ class AgentsWorkspace(QWidget):
             if column is None or row is None:
                 continue
             check.setPos(
-                _SCENE_MARGIN + column * (card_w + spacing)
+                _CELLS_LEFT + column * (card_w + spacing)
                 + (card_w - _CHECK_SIZE) / 2,
-                _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
+                _CELLS_TOP + row * (card_h + spacing)
                 + (card_h - _CHECK_SIZE) / 2)
 
         self._update_scene_rect()
@@ -414,7 +430,7 @@ class AgentsWorkspace(QWidget):
         card_w = MatrixCardItem.WIDTH
         card_h = MatrixCardItem.HEIGHT
         spacing = _COMPONENT_SPACING
-        x = _SCENE_MARGIN + column * (card_w + spacing)
+        x = _CELLS_LEFT + column * (card_w + spacing)
 
         if self._focus_highlight is None:
             self._focus_highlight = QGraphicsRectItem()
@@ -424,8 +440,8 @@ class AgentsWorkspace(QWidget):
         color = QColor(_FOCUS_COLOR)
         color.setAlpha(120)
         self._focus_highlight.setBrush(QBrush(color))
-        top = _SCENE_MARGIN
-        bottom = (_SCENE_MARGIN + card_h + spacing
+        top = _STATES_TOP
+        bottom = (_CELLS_TOP
                   + len(self._agents) * (card_h + spacing))
         self._focus_highlight.setRect(
             QRectF(x - spacing / 2, top,
@@ -521,6 +537,10 @@ class _MatrixGraphicsView(QGraphicsView):
             Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setDragMode(QGraphicsView.DragMode.NoDrag)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        # The matrix is anchored to the top-left corner of the viewport,
+        # not centered (TSC review 26-10-2026)
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft
+                          | Qt.AlignmentFlag.AlignTop)
 
     def viewportEvent(self, event):
         """Swallow Qt's delayed automatic tooltip event (see

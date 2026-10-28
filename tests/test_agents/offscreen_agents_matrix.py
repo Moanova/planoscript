@@ -30,7 +30,8 @@ from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
 from ui.views.agents_workspace import (
-    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN
+    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN,
+    _CELLS_LEFT, _CELLS_TOP, _AGENTS_LEFT, _STATES_TOP
 )
 from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
 from core.models.data_model import State
@@ -68,25 +69,40 @@ assert workspace.is_associated(0, 0) is True
 assert workspace.is_associated(1, 0) is False
 assert workspace.is_associated(0, 1) is False
 
-# Cards: one per agent and per state, drawn at the matrix positions
+# Cards: one per agent and per state, drawn at the matrix positions.
+# TSC review 26-10-2026: the state cards start after the agent column
+# (x = margin + card width + spacing), the agent cards start after the
+# state row (y = margin + card height + spacing)
 assert len(workspace._agent_cards) == 2
 assert len(workspace._state_cards) == 3
 card_w, card_h = MatrixCardItem.WIDTH, MatrixCardItem.HEIGHT
 spacing = _COMPONENT_SPACING
 assert spacing == 20, spacing
 state_card = workspace._state_cards[s2.id]
-assert abs(state_card.x() - (_SCENE_MARGIN + 1 * (card_w + spacing))) < 0.01
+assert abs(state_card.x() - (_CELLS_LEFT + 1 * (card_w + spacing))) < 0.01
+assert abs(state_card.y() - _STATES_TOP) < 0.01
 agent_card = workspace._agent_cards[sword.id]
-agents_top = _SCENE_MARGIN + card_h + spacing
-assert abs(agent_card.y() - (agents_top + 1 * (card_h + spacing))) < 0.01
+assert abs(agent_card.x() - _AGENTS_LEFT) < 0.01
+assert abs(agent_card.y() - (_CELLS_TOP + 1 * (card_h + spacing))) < 0.01
 
 # Checkboxes: 20x20, centered on their cell
 check = workspace._check_items[(hero.id, state.id)]
 assert check.rect().width() == 20 and check.rect().height() == 20
-expected_x = _SCENE_MARGIN + (card_w - 20) / 2
-expected_y = agents_top + (card_h - 20) / 2
+expected_x = _CELLS_LEFT + (card_w - 20) / 2
+expected_y = _CELLS_TOP + (card_h - 20) / 2
 assert abs(check.x() - expected_x) < 0.01
 assert abs(check.y() - expected_y) < 0.01
+
+# No overlap between the agent cards and the first-column checkboxes
+for card in workspace._agent_cards.values():
+    card_rect = card.sceneBoundingRect()
+    for (aid, sid), chk in workspace._check_items.items():
+        if sid == state.id:  # first column (initial state)
+            assert not card_rect.intersects(chk.sceneBoundingRect()), \
+                "agent card overlaps a first-column checkbox"
+
+# The matrix is anchored to the top-left corner of the viewport
+assert int(workspace.view.alignment()) == 33  # AlignLeft | AlignTop
 
 # Card colors: state tint (gold) on state cards, event tint (copper) on
 # agent cards (decision TSC 26-10-2026)
@@ -152,11 +168,11 @@ assert copper_px > 5, f"agent card outline not copper ({copper_px} px)"
 
 # Background: dark canvas color in the middle of the gap between two
 # state cards (the card outline is ~2 px wide on each side of the gap)
-gap_center_x = _SCENE_MARGIN + card_w + spacing / 2
-assert ((pixel_at(gap_center_x - 4, _SCENE_MARGIN + card_h / 2)
+gap_center_x = _CELLS_LEFT + card_w + spacing / 2
+assert ((pixel_at(gap_center_x - 4, _STATES_TOP + card_h / 2)
          >> 16 & 0xFF)
-        + (pixel_at(gap_center_x - 4, _SCENE_MARGIN + card_h / 2) >> 8 & 0xFF)
-        + (pixel_at(gap_center_x - 4, _SCENE_MARGIN + card_h / 2) & 0xFF)) / 3 < 80, \
+        + (pixel_at(gap_center_x - 4, _STATES_TOP + card_h / 2) >> 8 & 0xFF)
+        + (pixel_at(gap_center_x - 4, _STATES_TOP + card_h / 2) & 0xFF)) / 3 < 80, \
     "gap between state cards is not the dark canvas background"
 
 print("OFFSCREEN AGENTS MATRIX CHECKS PASSED (TSK15)")
