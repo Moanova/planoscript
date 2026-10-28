@@ -31,7 +31,8 @@ from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
 from ui.views.agents_workspace import (
-    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN,
+    AgentsWorkspace, _CELL_WIDTH, _CELL_HEIGHT,
+    _CARD_OFFSET_X, _CARD_OFFSET_Y,
     _CELLS_LEFT, _CELLS_TOP, _STATES_TOP
 )
 from ui.nodes.matrix_card import MatrixCardItem
@@ -53,7 +54,6 @@ s3 = State(id=3, lb="Final state")
 nm.state.extend([s2, s3])
 
 card_w, card_h = MatrixCardItem.WIDTH, MatrixCardItem.HEIGHT
-spacing = _COMPONENT_SPACING
 
 layout = WorkspaceLayout(narrative_map_id=nm.id)
 workspace = AgentsWorkspace()
@@ -68,7 +68,7 @@ assert [s.lb for s in workspace._states] == ["Init State", "Middle state", "Fina
 # ---------------------------------------------------------------------
 card = workspace._agent_cards[sword.id]
 workspace._on_card_released(
-    card, QPointF(_SCENE_MARGIN, _CELLS_TOP + card_h / 2))
+    card, QPointF(_CARD_OFFSET_X, _CELLS_TOP + _CARD_OFFSET_Y + card_h / 2))
 assert [a.lb for a in workspace._agents] == ["Sword", "Hero"]
 # The checkboxes followed their cells
 assert workspace.is_associated(0, 0) is False  # Sword x initial: unchecked
@@ -80,7 +80,7 @@ assert layout.agents_view_row_order == [sword.id, hero.id]
 # State reorder: drag "Final state" (column 2) to column 1
 # ---------------------------------------------------------------------
 card = workspace._state_cards[s3.id]
-x_col1 = _CELLS_LEFT + 1 * (card_w + spacing) + card_w / 2
+x_col1 = _CELLS_LEFT + 1 * _CELL_WIDTH + _CARD_OFFSET_X + card_w / 2
 workspace._on_card_released(card, QPointF(x_col1, _STATES_TOP))
 assert [s.lb for s in workspace._states] == [
     "Init State", "Final state", "Middle state"]
@@ -95,7 +95,7 @@ workspace.reorderRejected.connect(lambda msg: rejected_msgs.append(msg))
 # Another state dropped onto the first column: rejected (no message:
 # the pinned state is not the one being moved)
 card = workspace._state_cards[s2.id]
-x_col0 = _CELLS_LEFT + card_w / 2
+x_col0 = _CELLS_LEFT + _CARD_OFFSET_X + card_w / 2
 workspace._on_card_released(card, QPointF(x_col0, _STATES_TOP))
 assert workspace._states[0].typ == "Initial"
 assert not rejected_msgs, rejected_msgs

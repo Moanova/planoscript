@@ -186,3 +186,39 @@ chargé au populate et tenu à jour par la vue).
     rejet dans `offscreen_matrix_reorder.py` (3 scénarios).
   - Vérifications : py_compile OK, pytest 95 passed, 9 scripts offscreen
     PASSED.
+- 28-10-2026 (revue TSC n°03) : grille 120×80 centrée sur les objets + espace extensible.
+  - **Demande TSC corrigée** : la demande initiale (objets centrés dans une grille
+    120×80 avec 20 px de marge) était incohérente avec le pas actuel de la matrice
+    (100×60) ; la matrice étant prioritaire, le pas passe à 120×80 (espacement 40 px
+    entre objets). La marge de 20 px ne s'applique pas aux cases (20×20 centrées :
+    50 px horizontal, 30 px vertical). La grille 120×80 remplace l'ancienne grille
+    80×80. La grille est purement esthétique (positionnement inchangé dans sa logique).
+  - **Géométrie** : chaque slot de la matrice est une cellule de la grille. Cartes
+    State dans les cellules de la première ligne (colonnes), cartes Agent dans les
+    cellules de la première colonne (lignes), cases dans les autres cellules. Carte
+    80×40 centrée → marges 20 px ; case 20×20 centrée → marges 50/30 px. Cellule
+    haut-gauche (colonne agents × ligne états) vide. Nouvelles constantes
+    `_CELL_WIDTH`/`_CELL_HEIGHT` (config `agents_view_cell_width`/`_height`),
+    offsets dérivés `_CARD_OFFSET_X/Y` (20), `_CHECK_OFFSET_X/Y` (50/30) ;
+    `agents_view_component_spacing` retiré de config.json. `_CELLS_LEFT`/`_CELLS_TOP`
+    inchangés (120/80).
+  - **Grille viewport** (pattern Journey) : `_draw_grid` dessine uniquement la zone
+    visible (marge 100 px), lignes tous les 120 px en horizontal et 80 px en
+    vertical à partir de l'origine scène (0,0) — les cellules encadrent exactement
+    les slots. Redessin sur `valueChanged` des scrollbars et `resizeEvent`.
+    `_GridLineItem` conservé (non interactif). zValue -2.
+  - **Scène extensible unidirectionnelle** : taille minimale 4000×4000 ;
+    `_update_scene_rect` ne fait que croître vers la droite/le bas
+    (`_expand_scene_right_down`, jamais `setLeft`/`setTop`) — la matrice reste
+    ancrée au coin haut-gauche (`AlignLeft | AlignTop` conservé).
+  - **Reorder/focus** : snap sur la grille cellulaire (`_CELL_WIDTH`/`_CELL_HEIGHT`)
+    ; bande de focus = cellule entière (120 px de large, du haut de la scène au bas
+    de la dernière ligne d'agents).
+  - Tests : `offscreen_agents_matrix.py` (géométrie centrée, grille viewport origine
+    0,0 pitch 120×80, non-interactivité, centrage cellule/case, scène ancrée,
+    redraw au scroll, rendu pixels) ; `offscreen_matrix_reorder.py` (cibles de drop
+    sur la grille cellulaire) ; `offscreen_tsk12_layout_finalization.py` (commentaires
+    "no grid" ajustés).
+  - Vérifications : py_compile OK ; pytest 95 passed ; 9 scripts offscreen PASSED ;
+    rendu QImage validé visuellement (grille 120×80 alignée sur les cellules, cartes
+    et cases centrées, grille sur tout le viewport, matrice ancrée haut-gauche).

@@ -11,8 +11,10 @@ Not part of the pytest suite: run it locally with:
 
 Validates the graphical matrix (QGraphicsView, TSK15): structure
 (rows = agents, columns = states, initial state pinned first), display
-labels, association checkboxes, spacing (20 px), card appearance (state
-tint on state cards, event tint on agent cards) and checkbox rendering.
+labels, association checkboxes, 120x80 cell grid with centered items
+(cards 20 px margins, checkboxes 50/30 px margins), viewport-drawn grid
+(extensible rightwards/downwards only), card appearance (state tint on
+state cards, event tint on agent cards) and checkbox rendering.
 """
 import os
 import sys
@@ -30,7 +32,8 @@ from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
 from ui.views.agents_workspace import (
-    AgentsWorkspace, _COMPONENT_SPACING, _SCENE_MARGIN,
+    AgentsWorkspace, _CELL_WIDTH, _CELL_HEIGHT,
+    _CARD_OFFSET_X, _CARD_OFFSET_Y, _CHECK_OFFSET_X, _CHECK_OFFSET_Y,
     _CELLS_LEFT, _CELLS_TOP, _AGENTS_LEFT, _STATES_TOP
 )
 from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
@@ -70,27 +73,29 @@ assert workspace.is_associated(0, 0) is True
 assert workspace.is_associated(1, 0) is False
 assert workspace.is_associated(0, 1) is False
 
-# Cards: one per agent and per state, drawn at the matrix positions.
-# TSC review 26-10-2026: the state cards start after the agent column
-# (x = margin + card width + spacing), the agent cards start after the
-# state row (y = margin + card height + spacing)
+# Cards: one per agent and per state, each centered in its 120x80 cell
+# (TSC review 28-10-2026): 20 px margin on every side of a card
 assert len(workspace._agent_cards) == 2
 assert len(workspace._state_cards) == 3
 card_w, card_h = MatrixCardItem.WIDTH, MatrixCardItem.HEIGHT
-spacing = _COMPONENT_SPACING
-assert spacing == 20, spacing
+assert _CELL_WIDTH == 120 and _CELL_HEIGHT == 80
+assert _CARD_OFFSET_X == 20 and _CARD_OFFSET_Y == 20
+assert _CHECK_OFFSET_X == 50 and _CHECK_OFFSET_Y == 30
 state_card = workspace._state_cards[s2.id]
-assert abs(state_card.x() - (_CELLS_LEFT + 1 * (card_w + spacing))) < 0.01
+assert abs(state_card.x() - (_CELLS_LEFT + 1 * _CELL_WIDTH
+                             + _CARD_OFFSET_X)) < 0.01
 assert abs(state_card.y() - _STATES_TOP) < 0.01
 agent_card = workspace._agent_cards[sword.id]
 assert abs(agent_card.x() - _AGENTS_LEFT) < 0.01
-assert abs(agent_card.y() - (_CELLS_TOP + 1 * (card_h + spacing))) < 0.01
+assert abs(agent_card.y() - (_CELLS_TOP + 1 * _CELL_HEIGHT
+                             + _CARD_OFFSET_Y)) < 0.01
 
-# Checkboxes: 20x20, centered on their cell
+# Checkboxes: 20x20, centered in their cell (50 px horizontal margin,
+# 30 px vertical margin)
 check = workspace._check_items[(hero.id, state.id)]
 assert check.rect().width() == 20 and check.rect().height() == 20
-expected_x = _CELLS_LEFT + (card_w - 20) / 2
-expected_y = _CELLS_TOP + (card_h - 20) / 2
+expected_x = _CELLS_LEFT + _CHECK_OFFSET_X
+expected_y = _CELLS_TOP + _CHECK_OFFSET_Y
 assert abs(check.x() - expected_x) < 0.01
 assert abs(check.y() - expected_y) < 0.01
 
@@ -105,30 +110,66 @@ for card in workspace._agent_cards.values():
 # The matrix is anchored to the top-left corner of the viewport
 assert int(workspace.view.alignment()) == 33  # AlignLeft | AlignTop
 
-# Background grid (TSC review 26-10-2026): major lines only, offset by
-# half the component spacing (10 px), non-interactive
-from ui.views.agents_workspace import (
-    _GridLineItem, _GRID_OFFSET, _GRID_SIZE
-)
+# Background grid (TSC review 28-10-2026): drawn for the visible
+# viewport only, lines every 120 px horizontally and 80 px vertically
+# from the scene origin (the cells frame the matrix slots), non-
+# interactive. The workspace must be shown for the viewport to have a
+# size.
+from ui.views.agents_workspace import _GridLineItem
+workspace.resize(800, 600)
+workspace.show()
+app.processEvents()
 grid_lines = [it for it in workspace.scene.items()
               if isinstance(it, _GridLineItem)]
 assert len(grid_lines) > 0, "no grid lines"
-v_lines = sorted(l.line().x1() for l in grid_lines
-                 if l.line().x1() == l.line().x2())
-h_lines = sorted(l.line().y1() for l in grid_lines
-                 if l.line().y1() == l.line().y2())
-assert v_lines[0] == _GRID_OFFSET == 10, v_lines[0]
-assert h_lines[0] == _GRID_OFFSET == 10, h_lines[0]
-assert v_lines[1] - v_lines[0] == _GRID_SIZE == 80  # major only
-assert h_lines[1] - h_lines[0] == _GRID_SIZE == 80
+v_lines = sorted(set(l.line().x1() for l in grid_lines
+                     if l.line().x1() == l.line().x2()))
+h_lines = sorted(set(l.line().y1() for l in grid_lines
+                     if l.line().y1() == l.line().y2()))
+# The grid is aligned on the scene origin: every line is a multiple of
+# the cell size (the 100 px margin may draw a first line left/above 0)
+assert all(x % _CELL_WIDTH == 0 for x in v_lines), v_lines[:5]
+assert all(y % _CELL_HEIGHT == 0 for y in h_lines), h_lines[:5]
+assert 0 in v_lines and 0 in h_lines  # origin lines are drawn
+assert v_lines[1] - v_lines[0] == _CELL_WIDTH == 120
+assert h_lines[1] - h_lines[0] == _CELL_HEIGHT == 80
 for line in grid_lines:
     assert line.zValue() == -2
     assert line.shape().isEmpty()  # non-interactive
 # Grid lines must not block clicks
 from PySide6.QtCore import QPointF
 item = workspace.view.itemAt(
-    workspace.view.mapFromScene(QPointF(_GRID_OFFSET + _GRID_SIZE, 200)))
+    workspace.view.mapFromScene(QPointF(_CELL_WIDTH, 200)))
 assert item is None, "grid line blocks clicks"
+# The first cell frames the first checkbox, centered
+assert abs((_CELLS_LEFT + _CELL_WIDTH / 2)
+           - (check.sceneBoundingRect().center().x())) < 0.01
+assert abs((_CELLS_TOP + _CELL_HEIGHT / 2)
+           - (check.sceneBoundingRect().center().y())) < 0.01
+# The scene covers the whole matrix and never extends leftwards nor
+# upwards (the matrix stays anchored to the top-left corner)
+scene_rect = workspace.scene.sceneRect()
+assert scene_rect.left() == 0 and scene_rect.top() == 0
+matrix_right = _CELLS_LEFT + 3 * _CELL_WIDTH
+matrix_bottom = _CELLS_TOP + 2 * _CELL_HEIGHT
+assert scene_rect.right() >= matrix_right
+assert scene_rect.bottom() >= matrix_bottom
+# Scrolling rightwards/downwards keeps the scene anchored at (0, 0)
+workspace.view.horizontalScrollBar().setValue(500)
+workspace.view.verticalScrollBar().setValue(300)
+app.processEvents()
+scene_rect = workspace.scene.sceneRect()
+assert scene_rect.left() == 0 and scene_rect.top() == 0
+grid_lines = [it for it in workspace.scene.items()
+              if isinstance(it, _GridLineItem)]
+assert len(grid_lines) > 0, "grid not redrawn on scroll"
+v_lines = sorted(set(l.line().x1() for l in grid_lines
+                     if l.line().x1() == l.line().x2()))
+assert all(x % _CELL_WIDTH == 0 for x in v_lines), v_lines[:5]
+# Scroll back to the matrix origin for the rendering checks
+workspace.view.horizontalScrollBar().setValue(0)
+workspace.view.verticalScrollBar().setValue(0)
+app.processEvents()
 
 # Card colors: state tint (gold) on state cards, event tint (copper) on
 # agent cards (decision TSC 26-10-2026)
@@ -138,10 +179,7 @@ assert state_card._border_color.name().upper() == QColor(theme.STATE_COLOR).name
 assert agent_card._border_color.name().upper() == QColor(theme.EVENT_COLOR).name().upper()
 
 # Rendering: checkbox painted, state card outline in gold, agent card
-# outline in copper, dark background without grid
-workspace.resize(800, 600)
-workspace.show()
-app.processEvents()
+# outline in copper, dark background, grid lines rendered
 render = workspace.grab().toImage()
 vp = workspace.view.viewport()
 offset = vp.mapTo(workspace, QPoint(0, 0))
@@ -161,17 +199,18 @@ def count_pixels(rect, predicate):
     return count
 
 
-# Grid pixels rendered (config major color on the dark background)
-grid_rgb = tuple(int(_get_config("grid_major_color", "#4A4A4A")[i:i + 2], 16)
-                 for i in (1, 3, 5))
+# Grid pixels rendered: a horizontal grid line runs at y = _CELL_HEIGHT
+# (cell boundary), between the state cards row and the checkbox rows.
+# With antialiasing on, a 1 px pen on an integer coordinate renders as
+# an antialiased pixel brighter than the background (#1E1E1E ~ 30) in
+# the grid color range (#4A4A4A = 74, rendered ~52-63).
+bg_r = int(_get_config("bg_primary", "#1E1E1E")[1:3], 16)
 found = 0
-for x in range(0, 400):
-    p = workspace.view.mapFromScene(x, 5)
+for x in range(int(_CELLS_LEFT), int(_CELLS_LEFT + 3 * _CELL_WIDTH)):
+    p = workspace.view.mapFromScene(x, _CELL_HEIGHT)
     px = render.pixel(p.x() + offset.x(), p.y() + offset.y())
     r, g, b = (px >> 16 & 0xFF), (px >> 8 & 0xFF), (px & 0xFF)
-    # Antialiased grid pixel: between the background and the grid color
-    if (grid_rgb[0] - 25 < r < grid_rgb[0] + 25
-            and abs(r - g) < 10 and abs(g - b) < 10):
+    if (r > bg_r + 10 and abs(r - g) < 10 and abs(g - b) < 10):
         found += 1
 assert found >= 3, f"grid not rendered ({found} px)"
 
@@ -208,7 +247,7 @@ assert copper_px > 5, f"agent card outline not copper ({copper_px} px)"
 
 # Background: dark canvas color in the middle of the gap between two
 # state cards (the card outline is ~2 px wide on each side of the gap)
-gap_center_x = _CELLS_LEFT + card_w + spacing / 2
+gap_center_x = _CELLS_LEFT + _CELL_WIDTH  # cell boundary col 0 / col 1
 assert ((pixel_at(gap_center_x - 4, _STATES_TOP + card_h / 2)
          >> 16 & 0xFF)
         + (pixel_at(gap_center_x - 4, _STATES_TOP + card_h / 2) >> 8 & 0xFF)

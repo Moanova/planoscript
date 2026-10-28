@@ -118,7 +118,7 @@ print("Point 06 OK: scrollbar :pressed/:active rules present")
 # offscreen tests (offscreen_agents_matrix.py, offscreen_matrix_reorder.py).
 # The invariants they protected are re-checked here on the new matrix:
 # no type suffixes, card dimensions 80x40, floating-card look (dark
-# background, no grid), centered checkboxes, association data intact.
+# background), centered checkboxes, association data intact.
 # ---------------------------------------------------------------------
 create_uc = CreateAgentUseCase(service)
 assoc_uc = AssociateAgentStateUseCase(service)
@@ -142,7 +142,7 @@ from ui.nodes.matrix_card import MatrixCardItem
 assert MatrixCardItem.WIDTH == 80
 assert MatrixCardItem.HEIGHT == 40
 
-# Point 08/09 (transposed): dark background, no grid; checkboxes are
+# Point 08/09 (transposed): dark background; checkboxes are
 # 20x20 items centered on their cells
 assert agents_ws.scene.backgroundBrush().color().name().upper() == \
     _get_config("bg_primary", "#1E1E1E").upper()

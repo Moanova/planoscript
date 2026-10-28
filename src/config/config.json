@@ -34,7 +34,8 @@
   "projects_default_dir": "~/PlanoscriptProjects",
   "info_bar_default_message": "",
   "log_level": "DEBUG",
-  "agents_view_component_spacing": 20,
+  "agents_view_cell_width": 120,
+  "agents_view_cell_height": 80,
   "agents_view_checkbox_size": 20,
   "agents_view_checkbox_color": "#383838",
   "agents_view_checkbox_check_color": "#F0F0F0"

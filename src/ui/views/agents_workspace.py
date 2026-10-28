@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
 # Script       : agents_workspace.py
-# Version      : 4
-# Date         : 26-10-2026
+# Version      : 5
+# Date         : 28-10-2026
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
@@ -14,6 +14,13 @@ along the top (columns), one card per agent down the left side (rows),
 and a checkbox at each intersection materializing the association.
 Cards are drawn like the journey nodes (surface background, type-colored
 outline, rounded corners); agents use the event tint (copper).
+
+Each card and each checkbox is centered in a 120x80 cell of the
+background grid (TSC review 28-10-2026): the card margins are 20 px on
+every side, the checkbox margins are 50 px horizontally and 30 px
+vertically. The grid is drawn for the visible viewport only (journey
+workspace pattern) over a scene that grows rightwards and downwards
+only: the matrix stays anchored to the top-left corner.
 
 Behavior preserved from the previous QTableWidget implementation
 (TSK08/TSK09/TSK10): cell edition through the association use cases,
@@ -42,21 +49,19 @@ from usecases.agent_association.associate_agent_state_usecase import (
 logger = logging.getLogger(__name__)
 
 _BG_PRIMARY = _get_config("bg_primary", theme.BG_PRIMARY)
-# Gap between the matrix components: horizontal for the states
-# (columns), vertical for the agents (rows)
-_COMPONENT_SPACING = _get_config("agents_view_component_spacing", 20)
 _CHECK_SIZE = _get_config("agents_view_checkbox_size", 20)
 _STATE_COLOR = theme.color("state_color", theme.STATE_COLOR)
 _AGENT_COLOR = theme.color("event_color", theme.EVENT_COLOR)
 _FOCUS_COLOR = theme.color("focus_color", theme.FOCUS_COLOR)
 
-# Matrix background grid (TSC review 26-10-2026): major lines only
-# (no 20x20 minor grid), offset by half the component spacing so the
-# lines keep a margin with the card edges. Lines are non-interactive
-# (they must not block clicks on the cards and checkboxes).
-_GRID_SIZE = _get_config("grid_major_size", 80)
+# Matrix background grid (TSC review 28-10-2026): one 120x80 cell per
+# matrix slot, the cards and checkboxes are centered in their cell.
+# The grid is drawn for the visible viewport only (journey workspace
+# pattern) and its lines are non-interactive (they must not block
+# clicks on the cards and checkboxes).
+_CELL_WIDTH = _get_config("agents_view_cell_width", 120)
+_CELL_HEIGHT = _get_config("agents_view_cell_height", 80)
 _GRID_COLOR = _get_config("grid_major_color", "#4A4A4A")
-_GRID_OFFSET = _COMPONENT_SPACING / 2  # 10 px with the default spacing
 
 
 class _GridLineItem(QGraphicsLineItem):
@@ -67,20 +72,25 @@ class _GridLineItem(QGraphicsLineItem):
     def shape(self):
         return QPainterPath()
 
-# Margins around the matrix content inside the scene
-_SCENE_MARGIN = _COMPONENT_SPACING
-# The state cards start after the agent column (one card width + the
-# gap), the agent cards start after the state row (one card height +
-# the gap): the first state is at x = card width + spacing from the
-# left edge, the first agent at y = card height + spacing from the top
-# edge (TSC review 26-10-2026: the header row/column stays visible and
-# the agent cards no longer overlap the first state column checkboxes)
+# Geometry (TSC review 28-10-2026): every matrix slot is a cell of the
+# background grid. The state cards occupy the cells of the first row
+# (columns), the agent cards the cells of the first column (rows), the
+# checkboxes the remaining cells. Cards (80x40) are centered in their
+# cell with a 20 px margin on every side; checkboxes (20x20) are
+# centered with a 50 px horizontal and 30 px vertical margin. The
+# top-left cell (agent column x state row) stays empty.
 _CARD_WIDTH = MatrixCardItem.WIDTH
 _CARD_HEIGHT = MatrixCardItem.HEIGHT
-_AGENTS_LEFT = _SCENE_MARGIN  # agent cards column x
-_STATES_TOP = _SCENE_MARGIN  # state cards row y
-_CELLS_LEFT = _AGENTS_LEFT + _CARD_WIDTH + _COMPONENT_SPACING
-_CELLS_TOP = _STATES_TOP + _CARD_HEIGHT + _COMPONENT_SPACING
+_CARD_OFFSET_X = (_CELL_WIDTH - _CARD_WIDTH) / 2   # 20 px
+_CARD_OFFSET_Y = (_CELL_HEIGHT - _CARD_HEIGHT) / 2  # 20 px
+_CHECK_OFFSET_X = (_CELL_WIDTH - _CHECK_SIZE) / 2   # 50 px
+_CHECK_OFFSET_Y = (_CELL_HEIGHT - _CHECK_SIZE) / 2  # 30 px
+_AGENTS_LEFT = _CARD_OFFSET_X  # agent cards column x
+_STATES_TOP = _CARD_OFFSET_Y  # state cards row y
+_CELLS_LEFT = _CELL_WIDTH  # checkboxes area x (after the agent column)
+_CELLS_TOP = _CELL_HEIGHT  # checkboxes area y (after the state row)
+# Minimal scene size: the scene grows rightwards/downwards only
+_SCENE_MIN_SIZE = 4000
 
 
 class AgentsWorkspace(QWidget):
@@ -134,6 +144,19 @@ class AgentsWorkspace(QWidget):
         self._grid_lines = []
 
         self.scene.setBackgroundBrush(QBrush(QColor(_BG_PRIMARY)))
+
+        # Minimal scene size; grows rightwards/downwards only (TSC
+        # review 28-10-2026: the matrix stays anchored to the top-left
+        # corner, the workspace extends like the journey workspace)
+        self.scene.setSceneRect(0, 0, _SCENE_MIN_SIZE, _SCENE_MIN_SIZE)
+        self._draw_grid()
+
+        # Redraw the grid for the visible viewport on scroll/resize
+        # (journey workspace pattern)
+        self.view.horizontalScrollBar().valueChanged.connect(
+            self._draw_grid)
+        self.view.verticalScrollBar().valueChanged.connect(
+            self._draw_grid)
 
     def set_project(self, project_service, layout_data,
                     associate_usecase=None, dissociate_usecase=None):
@@ -194,38 +217,33 @@ class AgentsWorkspace(QWidget):
         self._resolve_entities()
         narrative_map = self.project_service.current_project.narrative_map[0]
 
-        card_w = MatrixCardItem.WIDTH
-        card_h = MatrixCardItem.HEIGHT
-        spacing = _COMPONENT_SPACING
-
-        # State cards: one column per state, along the top, starting
-        # after the agent column (header row, TSC review 26-10-2026)
+        # State cards: one cell per state, along the first row
+        # (columns), centered in their cell
         for column, state in enumerate(self._states):
-            x = _CELLS_LEFT + column * (card_w + spacing)
+            x = _CELLS_LEFT + column * _CELL_WIDTH + _CARD_OFFSET_X
             card = MatrixCardItem(state, 'state', _STATE_COLOR)
             card.setPos(x, _STATES_TOP)
             self.scene.addItem(card)
             self._state_cards[state.id] = card
 
-        # Agent cards: one row per agent, down the left side, starting
-        # after the state row (header column)
+        # Agent cards: one cell per agent, down the first column
+        # (rows), centered in their cell
         for row, agent in enumerate(self._agents):
-            y = _CELLS_TOP + row * (card_h + spacing)
+            y = _CELLS_TOP + row * _CELL_HEIGHT + _CARD_OFFSET_Y
             card = MatrixCardItem(agent, 'agent', _AGENT_COLOR)
             card.setPos(_AGENTS_LEFT, y)
             self.scene.addItem(card)
             self._agent_cards[agent.id] = card
 
-        # Checkboxes at each intersection
+        # Checkboxes at each intersection, centered in their cell
         for row, agent in enumerate(self._agents):
             for column, state in enumerate(self._states):
-                x = _CELLS_LEFT + column * (card_w + spacing)
-                y = _CELLS_TOP + row * (card_h + spacing)
+                x = _CELLS_LEFT + column * _CELL_WIDTH + _CHECK_OFFSET_X
+                y = _CELLS_TOP + row * _CELL_HEIGHT + _CHECK_OFFSET_Y
                 associated = AssociateAgentStateUseCase.find_association(
                     narrative_map, agent.id, state.id) is not None
                 check = MatrixCheckItem(agent, state, associated)
-                check.setPos(x + (card_w - _CHECK_SIZE) / 2,
-                             y + (card_h - _CHECK_SIZE) / 2)
+                check.setPos(x, y)
                 check.toggled = self._on_check_toggled
                 self.scene.addItem(check)
                 self._check_items[(agent.id, state.id)] = check
@@ -234,26 +252,29 @@ class AgentsWorkspace(QWidget):
         self._draw_grid()
 
     def _update_scene_rect(self):
-        """Size the scene to the matrix content (plus margins)."""
-        card_w = MatrixCardItem.WIDTH
-        card_h = MatrixCardItem.HEIGHT
-        spacing = _COMPONENT_SPACING
-        # The matrix occupies the cells area plus the header row and
-        # column, surrounded by the scene margin on every side
-        width = (_SCENE_MARGIN + card_w + spacing
-                 + max(len(self._states), 1) * card_w
-                 + max(len(self._states) - 1, 0) * spacing
-                 + _SCENE_MARGIN)
-        height = (_SCENE_MARGIN + card_h + spacing
-                  + max(len(self._agents), 1) * card_h
-                  + max(len(self._agents) - 1, 0) * spacing
-                  + _SCENE_MARGIN)
-        self.scene.setSceneRect(0, 0, width, height)
+        """Grow the scene rightwards/downwards so the whole matrix is
+        inside the scene rect (TSC review 28-10-2026: the matrix stays
+        anchored to the top-left corner, the scene never shrinks below
+        the minimal size nor extends leftwards/upwards)."""
+        width = _CELL_WIDTH + max(len(self._states), 1) * _CELL_WIDTH
+        height = _CELL_HEIGHT + max(len(self._agents), 1) * _CELL_HEIGHT
+        self._expand_scene_right_down(width, height)
 
-    def _draw_grid(self):
-        """Draw the matrix background grid: major lines only (no 20x20
-        minor grid, TSC review 26-10-2026), offset by half the component
-        spacing so the lines keep a margin with the card edges.
+    def _expand_scene_right_down(self, right, bottom):
+        """Extend the scene rect to include (right, bottom); never
+        towards the left nor the top (the matrix is anchored to the
+        top-left corner)."""
+        rect = self.scene.sceneRect()
+        new_right = max(rect.right(), right)
+        new_bottom = max(rect.bottom(), bottom)
+        if (new_right, new_bottom) != (rect.right(), rect.bottom()):
+            self.scene.setSceneRect(0, 0, new_right, new_bottom)
+
+    def _draw_grid(self, *args):
+        """Draw the background grid for the visible viewport only
+        (journey workspace pattern, TSC review 28-10-2026): one line
+        every 120 px horizontally and 80 px vertically, from the scene
+        origin (the cells frame the matrix slots exactly).
 
         The lines are non-interactive: their shape is empty so they
         never block clicks on the cards and checkboxes (the focus
@@ -265,26 +286,29 @@ class AgentsWorkspace(QWidget):
 
         pen = QPen(QColor(_GRID_COLOR))
         pen.setWidth(1)
-        rect = self.scene.sceneRect()
-        offset = _GRID_OFFSET
 
-        x = offset
-        while x <= rect.right():
-            line = _GridLineItem(x, rect.top(), x, rect.bottom())
+        viewport_rect = self.view.viewport().rect()
+        visible = self.view.mapToScene(viewport_rect).boundingRect()
+        margin = 100
+        visible.adjust(-margin, -margin, margin, margin)
+
+        start_x = int(visible.left() - (visible.left() % _CELL_WIDTH))
+        for x in range(start_x, int(visible.right()) + _CELL_WIDTH,
+                       _CELL_WIDTH):
+            line = _GridLineItem(x, visible.top(), x, visible.bottom())
             line.setPen(pen)
             line.setZValue(-2)
             self.scene.addItem(line)
             self._grid_lines.append(line)
-            x += _GRID_SIZE
 
-        y = offset
-        while y <= rect.bottom():
-            line = _GridLineItem(rect.left(), y, rect.right(), y)
+        start_y = int(visible.top() - (visible.top() % _CELL_HEIGHT))
+        for y in range(start_y, int(visible.bottom()) + _CELL_HEIGHT,
+                       _CELL_HEIGHT):
+            line = _GridLineItem(visible.left(), y, visible.right(), y)
             line.setPen(pen)
             line.setZValue(-2)
             self.scene.addItem(line)
             self._grid_lines.append(line)
-            y += _GRID_SIZE
 
     # ------------------------------------------------------------------
     # Cell edition (TSK09, SU008)
@@ -328,8 +352,9 @@ class AgentsWorkspace(QWidget):
     def _on_card_dragged(self, card, scene_pos):
         """Move the dragged card with the cursor (RG068 reordering).
 
-        States are constrained to their row (horizontal move), agents
-        to their column (vertical move).
+        States are constrained to their cell row (horizontal move),
+        agents to their cell column (vertical move): the card stays
+        centered in its cell on the perpendicular axis.
         """
         if card.kind == 'state':
             card.setPos(scene_pos.x() - MatrixCardItem.WIDTH / 2,
@@ -355,10 +380,8 @@ class AgentsWorkspace(QWidget):
         self._drag_press_pos = None
 
     def _reorder_states(self, card, scene_pos):
-        card_w = MatrixCardItem.WIDTH
-        spacing = _COMPONENT_SPACING
         target_column = round(
-            (scene_pos.x() - _CELLS_LEFT) / (card_w + spacing))
+            (scene_pos.x() - _CELLS_LEFT - _CARD_OFFSET_X) / _CELL_WIDTH)
         target_column = max(0, min(target_column, len(self._states) - 1))
 
         current_column = self._states.index(card.entity)
@@ -381,10 +404,8 @@ class AgentsWorkspace(QWidget):
         self._relayout()
 
     def _reorder_agents(self, card, scene_pos):
-        card_h = MatrixCardItem.HEIGHT
-        spacing = _COMPONENT_SPACING
         target_row = round(
-            (scene_pos.y() - _CELLS_TOP) / (card_h + spacing))
+            (scene_pos.y() - _CELLS_TOP - _CARD_OFFSET_Y) / _CELL_HEIGHT)
         target_row = max(0, min(target_row, len(self._agents) - 1))
 
         current_row = self._agents.index(card.entity)
@@ -408,21 +429,20 @@ class AgentsWorkspace(QWidget):
             a.id for a in self._agents]
 
     def _relayout(self):
-        """Reposition all cards and checkboxes from the ordered lists."""
-        card_w = MatrixCardItem.WIDTH
-        card_h = MatrixCardItem.HEIGHT
-        spacing = _COMPONENT_SPACING
-
+        """Reposition all cards and checkboxes from the ordered lists
+        (each item centered in its cell)."""
         for column, state in enumerate(self._states):
             card = self._state_cards.get(state.id)
             if card is not None:
-                card.setPos(_CELLS_LEFT + column * (card_w + spacing),
-                            _STATES_TOP)
+                card.setPos(
+                    _CELLS_LEFT + column * _CELL_WIDTH + _CARD_OFFSET_X,
+                    _STATES_TOP)
         for row, agent in enumerate(self._agents):
             card = self._agent_cards.get(agent.id)
             if card is not None:
-                card.setPos(_AGENTS_LEFT,
-                            _CELLS_TOP + row * (card_h + spacing))
+                card.setPos(
+                    _AGENTS_LEFT,
+                    _CELLS_TOP + row * _CELL_HEIGHT + _CARD_OFFSET_Y)
         for (agent_id, state_id), check in self._check_items.items():
             column = next(
                 (i for i, s in enumerate(self._states) if s.id == state_id),
@@ -433,10 +453,8 @@ class AgentsWorkspace(QWidget):
             if column is None or row is None:
                 continue
             check.setPos(
-                _CELLS_LEFT + column * (card_w + spacing)
-                + (card_w - _CHECK_SIZE) / 2,
-                _CELLS_TOP + row * (card_h + spacing)
-                + (card_h - _CHECK_SIZE) / 2)
+                _CELLS_LEFT + column * _CELL_WIDTH + _CHECK_OFFSET_X,
+                _CELLS_TOP + row * _CELL_HEIGHT + _CHECK_OFFSET_Y)
 
         self._update_scene_rect()
         if self._focused_state_id is not None:
@@ -495,10 +513,7 @@ class AgentsWorkspace(QWidget):
              if s.id == self._focused_state_id), None)
         if column is None:
             return
-        card_w = MatrixCardItem.WIDTH
-        card_h = MatrixCardItem.HEIGHT
-        spacing = _COMPONENT_SPACING
-        x = _CELLS_LEFT + column * (card_w + spacing)
+        x = _CELLS_LEFT + column * _CELL_WIDTH
 
         if self._focus_highlight is None:
             self._focus_highlight = QGraphicsRectItem()
@@ -508,12 +523,10 @@ class AgentsWorkspace(QWidget):
         color = QColor(_FOCUS_COLOR)
         color.setAlpha(120)
         self._focus_highlight.setBrush(QBrush(color))
-        top = _STATES_TOP
-        bottom = (_CELLS_TOP
-                  + len(self._agents) * (card_h + spacing))
+        top = 0
+        bottom = _CELLS_TOP + len(self._agents) * _CELL_HEIGHT
         self._focus_highlight.setRect(
-            QRectF(x - spacing / 2, top,
-                   card_w + spacing, bottom - top))
+            QRectF(x, top, _CELL_WIDTH, bottom - top))
 
         card.set_highlighted(True)
         for check in self._check_items.values():
@@ -616,6 +629,12 @@ class _MatrixGraphicsView(QGraphicsView):
         if event.type() == QEvent.ToolTip:
             return True
         return super().viewportEvent(event)
+
+    def resizeEvent(self, event):
+        """Redraw the grid for the new visible area (journey workspace
+        pattern)."""
+        super().resizeEvent(event)
+        self._workspace._draw_grid()
 
     def _card_at(self, pos):
         """Return the MatrixCardItem at the viewport position, walking

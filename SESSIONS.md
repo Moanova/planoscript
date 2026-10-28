@@ -370,3 +370,28 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 - Corrections de tests : bloc "pixels de grille" déplacé après la définition de `render`/`offset` dans `offscreen_agents_matrix.py`.
 - Vérifications : py_compile OK, pytest 95 passed, 9 scripts offscreen PASSED.
 - Commit `11fa4d4`, poussé sur `dev`. TSK15 reste "En revue" en attente de validation TSC.
+
+## 28-10-2026 — TSK15 revue n°03 (grille 120×80 centrée + espace extensible)
+
+- **Demande TSC corrigée** : objets State/Agent/cases centrés dans une grille
+  120×80 (cartes : marge 20 px sur les 4 côtés ; cases : 50 px horizontal, 30 px
+  vertical), la grille remplace l'ancienne 80×80, la logique de la matrice est
+  prioritaire. Incohérence initiale détectée et levée avec TSC : le pas de la
+  matrice passe de 100×60 à 120×80 (espacement 40 px entre objets).
+- **Implémentation** (`agents_workspace.py` v5) : constantes `_CELL_WIDTH`/
+  `_CELL_HEIGHT` (config `agents_view_cell_width`/`_height`, anciennes clés
+  `agents_view_component_spacing` retirée), offsets dérivés 20/20 (cartes) et
+  50/30 (cases) ; grille dessinée sur le viewport uniquement (pattern Journey,
+  redraw sur scroll/resize), origine (0,0), lignes non interactives ; scène
+  minimale 4000×4000 extensible uniquement vers la droite/le bas
+  (`_expand_scene_right_down`) ; reorder et focus recalés sur la grille
+  cellulaire.
+- **Vérifications** : py_compile OK ; pytest 95 passed ; 9 scripts offscreen
+  PASSED ; rendu QImage MainWindow validé visuellement (grille alignée sur les
+  cellules, cartes/cases centrées, grille sur tout le viewport, ancrée
+  haut-gauche).
+- **Leçon retenue** : avec l'antialiasing, un trait 1 px sur coordonnée entière
+  rend des pixels ~52-63 (pas la couleur pleine #4A4A4A=74) — le test de rendu
+  vérifie une plage entre le fond (#1E1E1E) et la couleur de grille, et doit
+  scanner à la position visible (après retour du scroll à l'origine).
+- **État** : TSK15 en « Doing » (revue n°03), en attente de validation TSC.
