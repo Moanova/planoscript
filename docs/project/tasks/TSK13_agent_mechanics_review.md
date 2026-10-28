@@ -1,7 +1,7 @@
 # TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
 
 - **Épic** : EPC01/EPC02 (gestion des agents, associations)
-- **Statut** : En revue (implémentation + 3 retours de test TSC traités + correction retour n°1 le 28-10-2026, attente validation TSC)
+- **Statut** : En revue (implémentation + 3 retours de test TSC traités + correction retour n°1 + repositionnement des badges d'évènement le 28-10-2026, attente validation TSC)
 - **Date de création** : 24-10-2026
 - **Dépendances** : TSK15 (Done)
 
@@ -124,3 +124,13 @@ Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
   `mw._refresh_agents_view_event_badges()` à la création/suppression d'arc.
   `EventBadgeService` + tests unitaires restaurés. La vue Journey ne porte que
   le badge d'agents (TSK05). Tests : 106 passed (pytest) + 10 offscreen PASSED.
+- 28-10-2026 (revue TSC, repositionnement des badges d'évènement) : les badges
+  d'évènement des cartes d'état (vue Agents) sont repositionnés aux **mêmes
+  coordonnées que les ports de connexion** des états en vue Journey — centrés
+  verticalement, à cheval sur les bords gauche/droite (`_position_event_badges`
+  de `MatrixCardItem` : `y = h/2 - d/2`, `x_in = -d/2`, `x_out = w - d/2` ;
+  constante `EVENT_BADGE_MARGIN` supprimée). Tests offscreen mis à jour
+  (assertions de position + centres en coordonnées locales via `mapToScene`).
+  Doc : `04_interface` FR/EN (section 6.bis), `98_layout_revision-FR.md`
+  (ligne badges d'évènement). Tests : 106 passed (pytest) + 10 offscreen
+  PASSED. Kanban : Doing → En revue (attente validation TSC).

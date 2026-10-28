@@ -75,7 +75,7 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 | Sélection | Contour de l'objet, en pointillés | Teinte du type (`#E5C07B` ou `#D19A66`) |
 | Ancres (entrantes et sortantes) | Cercles de connexion | `#F0F0F0` |
 | Badge d'agents (pastille sur les nœuds d'état de la vue parcours, bas à droite) | Remplissage / contour / texte | `#E5C07B` / `#F0F0F0` / `#1E1E1E` |
-| Badges d'évènement (deux pastilles sur les cartes d'état de la vue agents : gauche = événements sources entrants, droite = événements cibles sortants ; coins bas de la carte) | Remplissage / contour / texte | `#D19A66` / `#F0F0F0` / `#1E1E1E` |
+| Badges d'évènement (deux pastilles sur les cartes d'état de la vue agents : gauche = événements sources entrants, droite = événements cibles sortants ; centrés verticalement, à cheval sur les bords G/D — coordonnées des ports de connexion de la vue parcours, TSC 28-10-2026) | Remplissage / contour / texte | `#D19A66` / `#F0F0F0` / `#1E1E1E` |
 
 Règle de priorité des contours : sélection > survol > type. Un objet survolé affiche un contour blanc doux continu ; un objet sélectionné affiche un contour pointillé de la teinte de son type, même au survol.
 

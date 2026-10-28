@@ -64,11 +64,13 @@ class MatrixCardItem(QGraphicsRectItem):
 
     LABEL_MAX_DISPLAY_LENGTH = 8  # same truncation rule as BaseNode
 
-    # Event badge constants (state cards, bottom-left and bottom-right
-    # corners): same style as the journey agent badge (charter 98),
-    # copper fill (event tint) per the TSK13 decision.
+    # Event badge constants (state cards): same style as the journey
+    # agent badge (charter 98), copper fill (event tint) per the TSK13
+    # decision. Position (TSC 28-10-2026): centered vertically, straddling
+    # the left/right edges — the same coordinates as the journey
+    # connection ports (input left, output right), so the badge marks
+    # the same side as the port it counts.
     EVENT_BADGE_DIAMETER = 16.0
-    EVENT_BADGE_MARGIN = 3.0
     EVENT_BADGE_BG_COLOR = theme.color(
         "event_badge_bg_color", theme.EVENT_COLOR)
     EVENT_BADGE_BORDER_COLOR = theme.color(
@@ -186,20 +188,22 @@ class MatrixCardItem(QGraphicsRectItem):
         self._position_event_badges()
 
     def _position_event_badges(self) -> None:
-        """Place the event badges in the bottom-left (source events) and
-        bottom-right (target events) corners of the state card."""
+        """Place the event badges on the state card, centered vertically
+        and straddling the left (source events) and right (target
+        events) edges — the same coordinates as the journey connection
+        ports (TSC 28-10-2026)."""
         if self.event_badge_in is None:
             return
         diameter = self.EVENT_BADGE_DIAMETER
         rect = self.rect()
-        y = rect.height() - diameter - self.EVENT_BADGE_MARGIN
-        self.event_badge_in.setPos(self.EVENT_BADGE_MARGIN, y)
+        y = rect.height() / 2 - diameter / 2
+        self.event_badge_in.setPos(-diameter / 2, y)
         text_rect = self.event_badge_in_text.boundingRect()
         self.event_badge_in_text.setPos(
             (diameter - text_rect.width()) / 2,
             (diameter - text_rect.height()) / 2
         )
-        x = rect.width() - diameter - self.EVENT_BADGE_MARGIN
+        x = rect.width() - diameter / 2
         self.event_badge_out.setPos(x, y)
         text_rect = self.event_badge_out_text.boundingRect()
         self.event_badge_out_text.setPos(

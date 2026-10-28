@@ -44,7 +44,7 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; **retours de test TSC du 28-10-2026 traités** : (1) badges d'évènement déplacés de la vue Journey vers les cartes d'état de la vue Agents, (2) menu Agent différencié selon la vue + sélection des cartes avec contour pointillé, (3) confirmation SU003 suppression State/Event en vue Journey — tests 106 passed + 10 offscreen PASSED (détail dans `tasks/TSK13_agent_mechanics_review.md`)
+- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; retours de test TSC du 28-10-2026 traités ; **repositionnement des badges d'évènement traité** (centrés verticalement, à cheval sur les bords G/D des cartes d'état — mêmes coordonnées que les ports de connexion de la vue Journey, validé TSC) — détail dans `tasks/TSK13_agent_mechanics_review.md`
 
 ## Done
 

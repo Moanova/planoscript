@@ -698,14 +698,29 @@ tooltip = card.toolTip()
 assert f"Events (in): {ev_in.lb}" in tooltip, f"badges: tooltip in: {tooltip}"
 assert f"Events (out): {ev_out.lb}" in tooltip, f"badges: tooltip out: {tooltip}"
 
-# Badge positions: bottom corners of the card (same vertical position)
-y = card.rect().height() - card.EVENT_BADGE_DIAMETER - card.EVENT_BADGE_MARGIN
+# Badge positions: centered vertically, straddling the left/right edges
+# — the same coordinates as the journey connection ports (TSC 28-10-2026)
+d = card.EVENT_BADGE_DIAMETER
+y = card.rect().height() / 2 - d / 2
 assert card.event_badge_in.pos().y() == y, "badges: left badge vertical position"
 assert card.event_badge_out.pos().y() == y, "badges: right badge vertical position"
-assert card.event_badge_in.pos().x() == card.EVENT_BADGE_MARGIN, "badges: left at left corner"
+assert card.event_badge_in.pos().x() == -d / 2, "badges: left straddling the left edge"
 assert card.event_badge_out.pos().x() == \
-    card.rect().width() - card.EVENT_BADGE_DIAMETER - card.EVENT_BADGE_MARGIN, \
-    "badges: right at right corner"
+    card.rect().width() - d / 2, \
+    "badges: right straddling the right edge"
+# Same centers as the journey ports: (0, h/2) and (w, h/2) in the
+# card's local frame (the card's sceneBoundingRect includes the 2 px pen
+# margin, so compare against the local rect edges)
+card_rect = card.rect()
+assert card.event_badge_in.sceneBoundingRect().center().x() == \
+    card.mapToScene(card_rect.left(), 0).x(), \
+    "badges: left badge center on the left edge"
+assert card.event_badge_out.sceneBoundingRect().center().x() == \
+    card.mapToScene(card_rect.right(), 0).x(), \
+    "badges: right badge center on the right edge"
+assert card.event_badge_in.sceneBoundingRect().center().y() == \
+    card.mapToScene(0, card_rect.height() / 2).y(), \
+    "badges: left badge centered vertically"
 
 # Agent cards carry no event badges
 agent_card = agents_ws._agent_cards[watcher.id]

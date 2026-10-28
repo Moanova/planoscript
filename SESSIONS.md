@@ -587,3 +587,25 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   ne jamais conserver de référence sur un item supprimé (RuntimeError
   libshiboken) ; re-fetch via `_state_cards[...]`.
 - **Kanban** : TSK13 En revue (correction retour n°1, attente validation TSC).
+
+
+## 28-10-2026 — TSK13 : repositionnement des badges d'évènement (vue Agents)
+
+- **Demande TSC** : repositionner les badges d'évènement des cartes d'état de
+  la vue Agents aux **mêmes coordonnées que les ports de connexion** des états
+  en vue Journey (évalué faisable : ports = cercles 8 px à cheval sur les
+  bords G/D, centrés verticalement).
+- **Implémentation** : `_position_event_badges` de `MatrixCardItem` — `y =
+  h/2 - d/2`, `x_in = -d/2`, `x_out = w - d/2` (centrés verticalement, à
+  cheval sur les bords G/D) ; constante `EVENT_BADGE_MARGIN` supprimée ;
+  commentaires mis à jour. Test offscreen TSK13 : assertions de position +
+  centres vérifiés en coordonnées locales via `mapToScene` (le
+  `sceneBoundingRect` de la carte inclut la marge de plume de 2 px).
+- **Doc** : `04_interface` FR/EN section 6.bis, `98_layout_revision-FR.md`
+  (ligne badges d'évènement), fiche TSK13 (journal + statut).
+- **Tests** : 106 passed (pytest) + 10 offscreen PASSED.
+- **Points de vigilance actés** : chevauchement possible badge/texte pour les
+  libellés longs (à revoir ultérieurement si besoin) ; les menus « Project >
+  View » et « Display > Journey » seront à revoir ultérieurement (décision
+  TSC).
+- **Kanban** : TSK13 Doing → En revue (attente validation TSC).
