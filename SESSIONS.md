@@ -363,3 +363,10 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   sombre, écart 20 px).
 - **État** : TSK15 en « En revue », commit 0314ee0 poussé sur dev. En attente de
   validation TSC avant passage en Done et démarrage de TSK13.
+
+## 26-10-2026 — TSK15 revue n°2 (grille + message de rejet)
+- Grille majeure de fond de la matrice agents×états : lignes espacées de 80 px, décalées de 10 px (moitié de l'espacement composants), couleur `#4A4A4A`, zValue -2. Lignes non interactives via sous-classe `_GridLineItem` (`shape()` vide) — le monkey-patching d'instance ne fonctionne pas en PySide6.
+- Message info bar quand le déplacement de l'état initial est rejeté : signal `reorderRejected(str)` sur `AgentsWorkspace`, connecté à `info_bar.show_message` dans `MainWindow` (connexion déplacée après la création de l'info bar — bug attrapé par les tests offscreen).
+- Corrections de tests : bloc "pixels de grille" déplacé après la définition de `render`/`offset` dans `offscreen_agents_matrix.py`.
+- Vérifications : py_compile OK, pytest 95 passed, 9 scripts offscreen PASSED.
+- Commit `11fa4d4`, poussé sur `dev`. TSK15 reste "En revue" en attente de validation TSC.
