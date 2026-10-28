@@ -55,12 +55,15 @@ node.refresh_agent_badge(10, labels)
 assert node.agent_badge_text.toPlainText() == "9+"
 assert node.toolTip().endswith("Agents: A1, A2, A3 +7 more")
 
-# Badge position (TSK17): centered on the bottom-right corner,
-# straddling the X and Y edges of the node outline
+# Badge position (TSK17): bottom-right corner, mostly inside the
+# outline — 2/3 of the badge inside, 1/3 outside (rounded to an
+# integer: 5 px out of a 16 px diameter)
 rect = node.rect()
+outside = round(node.BADGE_DIAMETER / 3)
+assert outside == 5
 badge_pos = node.agent_badge.pos()
-assert badge_pos.x() == rect.width() - node.BADGE_DIAMETER / 2
-assert badge_pos.y() == rect.height() - node.BADGE_DIAMETER / 2
+assert badge_pos.x() == rect.width() - node.BADGE_DIAMETER + outside
+assert badge_pos.y() == rect.height() - node.BADGE_DIAMETER + outside
 
 # Render check: badge pixels drawn inside the node area
 image = node.toImage() if hasattr(node, "toImage") else None

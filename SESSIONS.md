@@ -626,3 +626,18 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   (la marge du badge n'existe plus dans le périmètre).
 - **Tests** : 106 passed (pytest) + 10 offscreen PASSED.
 - **Kanban** : TSK17 Doing → En revue (attente validation TSC).
+
+
+## 28-10-2026 — TSK17 : retour de revue (ratio 2/3 dedans / 1/3 dehors)
+
+- **Retour TSC** : recaler le badge d'agents vers la gauche et vers le haut
+  pour que la partie extérieure au contour ne paraisse pas trop importante ;
+  ratio proposé 2/3 dedans, 1/3 dehors.
+- **Implémentation** : `StateNode._position_agent_badge` — `outside =
+  round(diameter / 3)` = 5 px sur un diamètre de 16 ; `x = w - d + outside`,
+  `y = h - d + outside` (11 px dedans, 5 px dehors). Test offscreen
+  `offscreen_state_badges.py` mis à jour (assertion `outside == 5`).
+- **Doc** : `98_layout_revision-FR.md`, `04_interface` FR/EN, fiche TSK17
+  (statut, périmètre, journal).
+- **Tests** : 106 passed (pytest) + 10 offscreen PASSED.
+- **Kanban** : TSK17 reste En revue (attente validation TSC).
