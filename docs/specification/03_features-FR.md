@@ -1,9 +1,9 @@
 # Planoscript ::: Fonctionnalités
 
 ## Document Version
-- **Version** : 2.0
-- **Date** : 08-09-2026
-- **Status** : Version corrigée et enrichie, réalignée sur les user stories v2.0 (29-08-2026) et sur le menu général v2.0 (27-08-2026)
+- **Version** : 2.1
+- **Date** : 28-10-2026
+- **Status** : Version corrigée et enrichie, réalignée sur les user stories v2.0 (29-08-2026) et sur le menu général v2.0 (27-08-2026) ; section « Agents et associations agent-état » mise à jour (implémentation EPC01–EPC04, TSK01–TSK15)
 
 ---
 
@@ -341,7 +341,7 @@
     - L'application empêche la création d'une association en double (RG063).
     - Les agents associés à un état sont représentés par des badges sur le node de l'état dans la vue parcours.
     - Toute association ou dissociation marque la carte, et donc le projet, comme modifiés.
-- **État** : Non implémenté.
+- **État** : Implémenté (TSK03/TSK04/TSK05/TSK09 : use case d'association, dialogue « Associer des agents... », badges, édition des cellules de la matrice).
 
 ## FN031 : Gérer les agents du projet
 
@@ -351,7 +351,7 @@
     - Un agent appartient au projet ; il est caractérisé par un identifiant entier unique au sein du projet, un libellé, un type (sujet ou objet) et une note optionnelle.
     - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable.
     - Toute création, modification ou suppression d'agent marque le projet comme modifié.
-- **État** : Non implémenté (le node graphique AgentNode existe, mais l'entrée de menu de création d'agent est désactivée et aucune gestion dédiée des agents n'est en place).
+- **État** : Implémenté (TSK01/TSK02 : création/édition/suppression via dialogue de gestion des agents, entrée de menu activée, cascade RG064).
 
 ## FN032 : Basculer entre la vue parcours et la vue agents (navigation croisée)
 
@@ -362,7 +362,7 @@
     - Depuis la vue agents, « Voir dans la vue parcours » bascule vers la vue parcours et met en évidence l'ensemble des états associés à l'agent ciblé ; le reste du graphe est atténué.
     - Le focus est un état visuel temporaire (RG067) : un clic dans le vide ou la touche Échap le relâche.
     - La navigation ne marque ni la carte ni le projet comme modifiés.
-- **État** : Non implémenté (priorité P2 ; le contrat de focus est spécifié dès la conception).
+- **État** : Implémenté (TSK10 : bascule et focus dans les deux sens, relâchement par Échap/clic, aucune persistance).
 
 ---
 

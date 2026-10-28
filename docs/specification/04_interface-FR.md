@@ -1,9 +1,9 @@
 # Planoscript ::: Spécification de l'interface utilisateur
 
 ## Version du document
-- **Version** : 2.0
-- **Date** : 27-08-2026
-- **Statut** : Mise à jour rétrospective reflétant l'implémentation actuelle (dernier redesign)
+- **Version** : 2.1
+- **Date** : 28-10-2026
+- **Statut** : Mise à jour rétrospective reflétant l'implémentation actuelle (dernier redesign + EPC01–EPC04 : gestion des agents, associations agent-état, vue agents)
 
 ---
 
@@ -62,10 +62,10 @@
 
   - **Projet** :
     - **Vue** :
-      - Parcours — Non implémenté
-      - Agents — Non implémenté (SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
+      - Parcours — Non implémenté (la vue est active via la barre d'onglets, pas via ce menu)
+      - Agents — Non implémenté (la vue est active via la barre d'onglets ; SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
     - **Composants...** :
-      - Agent — Non implémenté (entrée de menu désactivée ; gestion des agents spécifiée dans FN031)
+      - Agent — Fonctionnel (ouvre le dialogue de gestion des agents, FN031 : créer/éditer/supprimer avec cascade RG064)
       - **État** :
         - Nouveau... — Fonctionnel
         - Éditer — Non implémenté (actif si un node État est sélectionné)
@@ -76,6 +76,7 @@
         - Supprimer — Non implémenté (actif si un node Événement est sélectionné)
     - **Relations...** :
       - Lier État et Événement — Fonctionnel
+      - Associer des agents à un état — Fonctionnel (FN030, SU008 : dialogue d'association depuis le menu ou le menu contextuel d'un état)
       - Éditer — Non implémenté (actif si une relation est sélectionnée)
       - Supprimer — Non implémenté (actif si une relation est sélectionnée)
 
@@ -156,7 +157,7 @@
 
 - **Éléments** :
   - Onglet « Parcours » — **Actif par défaut**
-  - Onglet « Agents » — *Non implémenté* (second espace de travail, matrice agents × états — SU009)
+  - Onglet « Agents » — **Fonctionnel** (second espace de travail, matrice agents × états — SU009, TSK07–TSK15)
   - Les onglets « Relations » et « Chapitres » sont des reliquats d'une version antérieure : ils ne font pas partie du MVP et sont retirés de la spécification.
 
 - **Style des onglets** :
@@ -241,23 +242,23 @@
       - Devrait avoir un arrière-plan blanc semi-transparent pour la lisibilité.
 
 
-### 6.bis. Vue agents (Espace de travail secondaire) — *Non implémentée*
+### 6.bis. Vue agents (Espace de travail secondaire) — *Implémentée (TSK07–TSK15)*
 
-- **Fichier** : `./src/ui/views/agents_workspace.py` (à créer)
-- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Agents » de la barre d'onglets.
-- **Représentation** : Matrice agents × états.
-  - Une ligne par agent du projet ; une colonne par état de la carte narrative courante.
-  - L'ordre des colonnes suit une règle de gestion à déterminer (voir SU009).
-  - Chaque colonne affiche le libellé de l'état (tronqué selon les règles d'affichage courantes) et son type (icône/couleur du type d'état).
-  - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cochant/décochant la cellule.
-- **Contrat de focus (navigation croisée, P2)** :
-  - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne ; agent cible → surbrillance de la ligne et, dans la vue parcours, surbrillance des nodes des états associés avec atténuation du reste du graphe).
+- **Fichier** : `./src/ui/views/agents_workspace.py`
+- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Agents » de la barre d'onglets. `QGraphicsView` (comme la vue parcours, TSK15).
+- **Représentation** : Matrice agents × états en vue graphique.
+  - Une carte par agent du projet (colonne de gauche, lignes) ; une carte par état de la carte narrative courante (ligne du haut, colonnes) ; une case à cocher 20×20 à chaque intersection.
+  - Cartes 80×40 rendues comme les nœuds de la vue parcours (surface `#2D2D2D`, contour teinté du type : or `#E5C07B` pour les états, cuivre `#D19A66` pour les agents) ; libellé tronqué à 8 caractères, infobulle immédiate au survol.
+  - Grille de fond 120×80 (config `agents_view_cell_width`/`_height`) : chaque carte et chaque case est centrée dans sa cellule (marges 20 px pour les cartes, 50/30 px pour les cases). La grille est redessinée sur la zone visible (pattern vue parcours) et la scène s'étend vers la droite/le bas uniquement : la matrice reste ancrée au coin haut-gauche.
+  - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
+  - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
+- **Contrat de focus (navigation croisée, TSK10/RG067)** :
+  - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue parcours avec atténuation du reste du graphe).
   - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
 - **Rôles** :
   - Afficher les associations agent-état de la carte courante.
   - Éditer les associations (cocher/décocher).
-  - Créer, renommer, modifier, supprimer des agents du projet.
-  - (P2) Navigation croisée vers la vue parcours ciblée sur les états d'un agent.
+  - Gérer les agents du projet via le menu (créer, renommer, modifier, supprimer — FN031) ; le menu contextuel d'une carte agent propose « Voir dans la vue parcours » (TSK10).
 ### 7. Barre d'informations (Bas gauche)
 - **Fichier** : `./src/ui/widgets/info_bar.py`
 - **Description** : Affiche des informations contextuelles sur l'objet sélectionné.
@@ -339,11 +340,16 @@
 - [x] Barre d'informations contextuelles
 - [x] Gestion de l'état modifié du projet
 - [x] Boîtes de dialogue « À propos » et « Journal des modifications »
+- [x] Gestion des agents du projet (créer, éditer, supprimer avec cascade RG064 — FN031, TSK01/TSK02)
+- [x] Associations agent-état depuis la vue parcours (dialogue « Associer des agents... » — FN030, TSK04)
+- [x] Badges d'agents sur les nœuds d'état dans la vue parcours (TSK05)
+- [x] Vue « Agents » : matrice agents × états en vue graphique, édition des cellules, ordre RG068, grille 120×80 (TSK07–TSK15, SU008/SU009)
+- [x] Navigation croisée entre vues avec focus (RG067 — TSK10)
 
 ### Partiellement implémentées
 - [ ] Barre de composants (existe mais non intégrée)
 - [ ] Barre de parcours (existe mais non intégrée)
-- [ ] Barre d'onglets (existe mais seul « Parcours » est actif)
+- [ ] Barre d'onglets (les deux onglets Parcours/Agents sont actifs)
 - [ ] Barre de zoom (existe mais non connectée)
 - [ ] Nœuds de référence temporelle (classe non implémentée)
 - [ ] Nœuds de référence spatiale (classe non implémentée)
@@ -360,7 +366,6 @@
 - [ ] Historique des modifications
 - [ ] Export/Import de carte
 - [ ] Projets récents
-- [ ] Vue « Agents » (matrice agents × états, SU008/SU009)
 - [ ] Suppression de nœuds/relations
 
 

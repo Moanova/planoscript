@@ -45,9 +45,11 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- [ ] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QTableWidget → QGraphicsView, cartes style Journey, cases 20×20, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — revue TSC n°3 terminée (grille 120×80 centrée sur les objets, grille viewport extensible vers la droite/le bas) : implémentation et tests terminés, en attente de validation TSC
+- (aucune tâche en revue)
 
 ## Done
+
+- [x] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QGraphicsView, cartes style Journey 80×40, cases 20×20, grille 120×80 centrée, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — validée TSC le 28-10-2026 (3 revues : QGraphicsView, grille 120×80 + espace extensible, libellés 9 pt)
 
 - [x] TSK12 — Finalisation de la révision du layout — 12 points de la revue visuelle TSK11 + 2 correctifs de revue (carré bas-gauche, cases de la matrice) + en-têtes non redimensionnables — validée TSC le 26-10-2026 (détail dans `tasks/TSK12_layout_finalization.md`)
 - [x] TSK11 — Révision esthétique du layout (charte `docs/specification/98_layout_revision-FR.md`, maquette `97_layout_revision-EN.svg` — détail dans `tasks/TSK11_layout_revision.md`) — thème sombre implémenté et validé en revue visuelle par TSC ; finalisation des points restants transférée à TSK12

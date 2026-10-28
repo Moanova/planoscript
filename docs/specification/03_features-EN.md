@@ -1,9 +1,9 @@
 # Planoscript ::: Features
 
 ## Document Version
-- **Version** : 2.0
-- **Date** : 08-09-2026
-- **Status** : Corrected and enriched version, realigned with user stories v2.0 (29-08-2026) and the general menu v2.0 (27-08-2026)
+- **Version** : 2.1
+- **Date** : 28-10-2026
+- **Status** : Corrected and enriched version, realigned with user stories v2.0 (29-08-2026) and the general menu v2.0 (27-08-2026); "Agents and agent-state associations" section updated (EPC01–EPC04 implementation, TSK01–TSK15)
 
 ---
 
@@ -341,7 +341,7 @@
     - The application prevents creating a duplicate association (RG063).
     - Agents associated with a state are represented by badges on the state node in the journey view.
     - Any association or dissociation marks the map, and therefore the project, as modified.
-- **Status** : Not implemented.
+- **Status** : Implemented (TSK03/TSK04/TSK05/TSK09: association use case, "Associate agents..." dialog, badges, matrix cell editing).
 
 ## FN031 : Manage project agents
 
@@ -351,7 +351,7 @@
     - An agent belongs to the project; it is characterized by an integer identifier unique within the project, a label, a type (subject or object) and an optional note.
     - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation.
     - Any agent creation, modification or deletion marks the project as modified.
-- **Status** : Not implemented (the AgentNode graphic class exists, but the agent creation menu entry is disabled and no dedicated agent management is in place).
+- **Status** : Implemented (TSK01/TSK02: create/edit/delete via the agent management dialog, menu entry enabled, RG064 cascade).
 
 ## FN032 : Switch between the journey view and the agents view (cross-navigation)
 
@@ -362,7 +362,7 @@
     - From the agents view, "Show in journey view" switches to the journey view and highlights all the states associated with the target agent; the rest of the graph is dimmed.
     - The focus is a temporary visual state (RG067): a click on empty space or the Escape key releases it.
     - The navigation does not mark the map or the project as modified.
-- **Status** : Not implemented (priority P2; the focus contract is specified at design time).
+- **Status** : Implemented (TSK10: switching and focus in both directions, released by Escape/click, no persistence).
 
 ---
 

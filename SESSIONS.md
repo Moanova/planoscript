@@ -438,3 +438,43 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 - **Leçon retenue** : `QFont(family, size)` prend une taille en *points*, pas
   en pixels — la clé `node_label_font_size_px` était trompeuse (12 pt ≈ 16 px
   à 96 dpi, rendu ~27 px de haut avec l'espacement de ligne).
+
+## 28-10-2026 — Clôture TSK15 et audit d'alignement documentaire
+
+- **Clôture TSK15** : validée TSC (3 revues : QGraphicsView, grille 120×80 +
+  espace extensible, libellés 9 pt), déplacée de « En revue » à « Done » dans le
+  kanban.
+- **Audit** : comparaison des spécifications (`docs/specification/`) avec les
+  développements consignés dans SESSIONS.md (EPC01–EPC04, TSK01–TSK15).
+- **Écarts trouvés et corrigés** :
+  - `04_interface-FR.md` et `04_interface-EN.md` (v2.0, 27-08-2026 → v2.1,
+    28-10-2026) : menu Projet>Composants>Agent « Non implémenté » → Fonctionnel
+    (FN031) ; entrée « Associer des agents à un état » ajoutée au menu Relations
+    (FN030) ; onglet « Agents » → Fonctionnel (TSK07–TSK15) ; section 6.bis
+    réécrite (matrice graphique QGraphicsView, cartes 80×40, cases 20×20,
+    grille 120×80 centrée, RG068, contrat de focus RG067, rôles) ; checklists
+    mises à jour (+5 fonctionnalités agents, − « Vue Agents » des non
+    implémentées, note barre d'onglets).
+  - `03_features-FR.md` et `03_features-EN.md` (v2.0, 08-09-2026 → v2.1,
+    28-10-2026) : FN030, FN031, FN032 « Non implémenté » → Implémenté avec
+    références TSK (FN030 : TSK03/04/05/09 ; FN031 : TSK01/02 ; FN032 : TSK10).
+  - `05_menu-EN.yaml` (v2.0, 27-08-2026 → v2.1, 28-10-2026) : notes View>Agents,
+    Components>Agent et Relations>« Associate agents with State » mises à jour
+    (implémenté / actif via la barre d'onglets).
+  - `01_user_stories-FR.md` / `-EN.md` (SU009) : deux corrections — l'onglet de
+    la vue agents s'appelle « Agents » et non « Relations » (TSK07) ; chaque
+    colonne affiche le libellé de l'état, le type étant matérialisé par la
+    couleur du contour et précisé dans l'infobulle (TSK12 point 03, le libellé
+    de type ayant été supprimé).
+- **Documents vérifiés conformes, sans modification** : `02_business_rules`
+    (RG063–RG068 présents, FR=EN), `99_mvp_scope` (agents dans le MVP),
+    `98_layout_revision` (typographie 9 pt à jour), `07_data_model`
+    (Agent/State_agent_rel présents).
+- **Écarts mineurs laissés en l'état** (information) : la section 6 de
+    `04_interface` (vue Journey) décrit encore les anciennes couleurs du thème
+    clair (`#e0e0e0`/`#808080`, fonds blancs) antérieures au thème sombre — la
+    charte 98 fait autorité.
+- **Vérifications** : cohérence des mentions de statut relue par grep (aucune
+  mention « Non implémenté » résiduelle liée aux agents hors l'entrée de menu
+  View>Agents, volontairement conservée comme relique) ; `05_menu-EN.yaml`
+  parsé (YAML OK).

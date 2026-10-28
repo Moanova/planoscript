@@ -1,9 +1,9 @@
 # Planoscript ::: User Interface Specification
 
 ## Document Version
-- **Version**: 2.0
-- **Date**: 27-08-2026
-- **Status**: Retrospective update to reflect the current implementation (latest redesign)
+- **Version**: 2.1
+- **Date**: 28-10-2026
+- **Status**: Retrospective update to reflect the current implementation (latest redesign + EPC01–EPC04: agent management, agent-state associations, agents view)
 
 ---
 
@@ -62,10 +62,10 @@
 
   - **Project**:
     - **View**:
-      - Journey - Not implemented
-      - Agents - Not implemented (SU009; the Relations and Chapters entries are leftovers removed from the MVP)
+      - Journey - Not implemented (the view is activated via the tab bar, not via this menu)
+      - Agents - Not implemented (the view is activated via the tab bar; SU009; the Relations and Chapters entries are leftovers removed from the MVP)
     - **Components...**:
-      - Agent - Not implemented (menu entry disabled; agent management specified in FN031)
+      - Agent - Functional (opens the agent management dialog, FN031: create/edit/delete with RG064 cascade)
       - **State**:
         - New... - Functional
         - Edit - Not implemented (enabled when a State node is selected)
@@ -76,6 +76,7 @@
         - Delete - Not implemented (enabled when an Event node is selected)
     - **Relations...**:
       - Connect State and Event - Functional
+      - Associate agents with State - Functional (FN030, SU008: association dialog from the menu or the state context menu)
       - Edit - Not implemented (enabled when a relation is selected)
       - Delete - Not implemented (enabled when a relation is selected)
 
@@ -156,7 +157,7 @@
 
 - **Elements**:
   - "Journeys" tab - **Active by default**
-  - "Agents" tab - *Not implemented* (second workspace, agents × states matrix - SU009)
+  - "Agents" tab - **Functional** (second workspace, agents × states matrix - SU009, TSK07–TSK15)
   - The "Relations" and "Chapters" tabs are leftovers from an earlier version: they are not part of the MVP and are removed from the specification.
 
 - **Tab Style**:
@@ -241,23 +242,23 @@
       - Should have a semi-transparent white background for readability.
 
 
-### 6.bis. Agents View (Secondary Workspace) - *Not implemented*
+### 6.bis. Agents View (Secondary Workspace) - *Implemented (TSK07–TSK15)*
 
-- **File** : `./src/ui/views/agents_workspace.py` (to be created)
-- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar.
-- **Representation** : Agents × states matrix.
-  - One row per project agent; one column per state of the current narrative map.
-  - The column order follows a management rule to be determined (see SU009).
-  - Each column displays the state label (truncated according to the current display rules) and its type (state type icon/color).
-  - A checked cell materializes an agent-state association (SU008). Editing is done by checking/unchecking the cell.
-- **Focus contract (cross-view navigation, P2)** :
-  - Method common to both views: "focus on an entity" (target state → column highlight + scroll; target agent → row highlight and, in the journey view, highlight of the associated state nodes with the rest of the graph dimmed).
+- **File** : `./src/ui/views/agents_workspace.py`
+- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar. `QGraphicsView` (like the journey view, TSK15).
+- **Representation** : Agents × states matrix in graphical view.
+  - One card per project agent (left column, rows); one card per state of the current narrative map (top row, columns); one 20×20 checkbox at each intersection.
+  - 80×40 cards rendered like the journey view nodes (surface `#2D2D2D`, outline tinted by type: gold `#E5C07B` for states, copper `#D19A66` for agents); label truncated to 8 characters, immediate tooltip on hover.
+  - Background grid 120×80 (config `agents_view_cell_width`/`_height`): each card and each checkbox is centered in its cell (20 px margins for cards, 50/30 px for checkboxes). The grid is redrawn over the visible area (journey view pattern) and the scene extends right/down only: the matrix stays anchored at the top-left corner.
+  - The column order follows business rule RG068 (creation order by default, manual reordering persisted by drag and drop, initial state pinned to the first column with a rejection message in the info bar).
+  - A checked cell materializes an agent-state association (SU008). Editing is done by clicking the checkbox (TSK09).
+- **Focus contract (cross-view navigation, TSK10/RG067)** :
+  - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the journey view with the rest of the graph dimmed).
   - The focus is a temporary visual state (RG067): no modified marking, no persistence. A click on empty space or the Escape key releases it.
 - **Roles** :
   - Display the agent-state associations of the current map.
   - Edit associations (check/uncheck).
-  - Create, rename, modify, delete project agents.
-  - (P2) Cross-navigation to the journey view focused on an agent's states.
+  - Manage project agents via the menu (create, rename, modify, delete — FN031); the agent card context menu offers "Show in journey view" (TSK10).
 ### 7. Information Bar (Bottom Left)
 - **File**: `./src/ui/widgets/info_bar.py`
 - **Description**: Displays contextual information about the selected object.
@@ -339,11 +340,16 @@
 - [x] Contextual information bar
 - [x] Management of project modified state
 - [x] "About" and "Change Log" dialogs
+- [x] Project agent management (create, edit, delete with RG064 cascade — FN031, TSK01/TSK02)
+- [x] Agent-state associations from the journey view ("Associate agents..." dialog — FN030, TSK04)
+- [x] Agent badges on state nodes in the journey view (TSK05)
+- [x] "Agents" view: agents × states matrix in graphical view, cell editing, RG068 order, 120×80 grid (TSK07–TSK15, SU008/SU009)
+- [x] Cross-view navigation with focus (RG067 — TSK10)
 
 ### Partially Implemented
 - [ ] Components bar (exists but not integrated)
 - [ ] Journeys bar (exists but not integrated)
-- [ ] Tab bar (exists but only "Journeys" is active)
+- [ ] Tab bar (both "Journeys" and "Agents" tabs are active)
 - [ ] Zoom bar (exists but not connected)
 - [ ] Time Reference nodes (class not implemented)
 - [ ] Spatial Reference nodes (class not implemented)
@@ -360,7 +366,6 @@
 - [ ] Modification history
 - [ ] Map Export/Import
 - [ ] Recent projects
-- [ ] "Agents" view (agents × states matrix, SU008/SU009)
 - [ ] Deletion of nodes/relations
 
 

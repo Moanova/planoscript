@@ -1,7 +1,7 @@
 # Planoscript ::: General Application Menu
-# Version : 2.0
-# Date : 27-08-2026
-# Content : Retrospective update to reflect the current implementation in main_window.py (latest redesign)
+# Version : 2.1
+# Date : 28-10-2026
+# Content : Retrospective update to reflect the current implementation in main_window.py (latest redesign + EPC01–EPC04: agent management, agent-state associations, agents view)
 
 menu:
   name: General Menu
@@ -91,13 +91,13 @@ menu:
         - name: View
           items:
             - name: Journey
-              note: "Not implemented - Tab present in TabBar but not connected"
+              note: "Not implemented - Tab present in TabBar, active via the tab bar (not via this menu)"
             - name: Agents
-              note: "Specified (SU009) - Agents view (agents × states matrix) - Not implemented; the former 'Relations' tab is a leftover from an earlier version and is removed from the MVP"
+              note: "Not implemented - The view is active via the tab bar (SU009, TSK07–TSK15: agents × states matrix in graphical view); the former 'Relations' tab is a leftover from an earlier version and is removed from the MVP"
         - name: Components...
           items:
             - name: Agent
-              note: "Not implemented - Menu entry currently disabled; agent management specified in FN031 (SU008, SU009)"
+              note: "Implemented - Opens the agent management dialog (FN031, TSK01/TSK02: create/edit/delete with RG064 cascade; SU008, SU009)"
             - name: State
               items:
                 - name: New...
@@ -119,7 +119,7 @@ menu:
             - name: Connect State and Event
               note: "Implemented - Activates State-Event relationship creation mode"
             - name: Associate agents with State
-              note: "Specified (SU008) - Opens the agent association dialog for the selected State - Not implemented"
+              note: "Implemented (FN030, SU008, TSK04) - Opens the agent association dialog for the selected State"
             - name: Edit
               note: "Not implemented - Enabled only when a relation is selected"
             - name: Delete
@@ -135,4 +135,4 @@ menu:
   legend:
     description: |
       Elements marked 'dynamic: true' are dynamically generated from application data.
-      The notes indicate the current implementation status (27-08-2026).
+      The notes indicate the current implementation status (28-10-2026).
