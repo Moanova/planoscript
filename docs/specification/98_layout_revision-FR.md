@@ -42,7 +42,7 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 
 - Famille : `Segoe UI, system-ui, sans-serif` ;
 - Menus et libellés de panneaux : environ 12 px ;
-- Texte des nœuds : environ 13 px ;
+- Texte des nœuds (libellé des états, événements et agents, vues Journey et Agents) : 9 pt, taille de l'infobulle (révision TSC 28-10-2026) ;
 - Titres et libellés de type d'objet : environ 14 px, gras.
 
 ## 4. Synthèse des changements

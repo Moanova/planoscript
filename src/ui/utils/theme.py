@@ -40,7 +40,8 @@ MENU_HOVER_BG = _get_config("menu_hover_bg", "#383838")
 ERROR_COLOR = _get_config("error_color", "#D19A66")
 FOCUS_COLOR = _get_config("focus_color", "#383838")
 
-# Typography (charter 98)
+# Typography (charter 98; the node label size is a point size, matching
+# the tooltip size - TSC review 28-10-2026)
 FONT_FAMILY = _get_config("node_font_family", "Segoe UI")
 MENU_FONT_SIZE_PX = _get_config("menu_font_size_px", 12)
 NODE_FONT_SIZE_PX = _get_config("node_font_size_px", 13)

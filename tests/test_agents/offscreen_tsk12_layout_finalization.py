@@ -65,12 +65,12 @@ node_layout = NodeLayout(node_id=state.id, node_type=NodeType.STATE,
 node = StateNode(state, node_layout)
 assert not hasattr(node, "type_label"), "type label must be removed"
 font = node.label.font()
-assert font.pointSize() == 12, font.pointSize()
+assert font.pointSize() == 9, font.pointSize()  # tooltip size (TSC 28-10-2026)
 assert not font.bold()
 label_rect = node.label.boundingRect()
 assert abs(node.label.x() - (80 - label_rect.width()) / 2) < 0.01
 assert abs(node.label.y() - (40 - label_rect.height()) / 2) < 0.01
-print("Points 03/04 OK: no type label, 12px non-bold centered name")
+print("Points 03/04 OK: no type label, 9pt non-bold centered name")
 
 # ---------------------------------------------------------------------
 # Point 05: connection appearances

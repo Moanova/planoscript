@@ -29,7 +29,7 @@
   "node_corner_radius_px": 6.0,
   "menu_font_size_px": 12,
   "node_font_size_px": 13,
-  "node_label_font_size_px": 12,
+  "node_label_font_size_px": 9,
   "node_title_font_size_px": 14,
   "projects_default_dir": "~/PlanoscriptProjects",
   "info_bar_default_message": "",

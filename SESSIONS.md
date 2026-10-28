@@ -417,3 +417,24 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   non-interactivité si l'item doit rester indexé/rendu hors du contenu :
   `boundingRect()` et `shape()` sont indépendants, il faut les surcharger
   tous les deux explicitement.
+
+## 28-10-2026 — TSK15 revue n°03, ajustement police libellés objets (9 pt)
+
+- **Demande TSC** (hors périmètre grille, en clôture de revue) : diminuer la
+  police des libellés des états/événements/agents dans les vues Journey et
+  Agents à la taille de l'infobulle.
+- **Constat** : `node_label_font_size_px` = 12 était en réalité une taille en
+  points (`QFont(family, 12)` = 12 pt, ~27 px de haut) ; l'infobulle
+  (`QToolTip`) est en 9 pt (~22 px). Badge agents (Arial 7 pt gras, en dur)
+  non concerné (décision TSC : libellés uniquement).
+- **Modification** : `config.json` `node_label_font_size_px` 12 → 9 (constante
+  partagée `BaseNode.DEFAULT_FONT` vue Journey et `MatrixCardItem` vue Agents,
+  aucun changement de code nécessaire) ; charte 98 section typographie mise à
+  jour ; commentaire `theme.py` ajusté ; test TSK12 point 04 (assertion
+  `pointSize() == 9`).
+- **Vérifications** : py_compile OK ; pytest 95 passed ; 9 scripts offscreen
+  PASSED ; rendus QImage Journey et Agents validés visuellement (libellés
+  ~22 px, centrés, lisibles ; badge agents inchangé).
+- **Leçon retenue** : `QFont(family, size)` prend une taille en *points*, pas
+  en pixels — la clé `node_label_font_size_px` était trompeuse (12 pt ≈ 16 px
+  à 96 dpi, rendu ~27 px de haut avec l'espacement de ligne).
