@@ -163,6 +163,9 @@ class MainWindow(QMainWindow):
         self.info_bar = InfoBar()
         ##bottom_layout.addWidget(self.info_bar, 4)  # 75%
         bottom_layout.addWidget(self.info_bar)
+        # TSK15: a rejected reorder (initial state pinned, RG068/RG031)
+        # is reported in the info bar
+        self.agents_page.reorderRejected.connect(self.info_bar.show_message)
         
         # Zoom bar (25%)
         #self.zoom_bar = ZoomBar()

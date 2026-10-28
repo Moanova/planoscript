@@ -35,6 +35,7 @@ from ui.views.agents_workspace import (
 )
 from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
 from core.models.data_model import State
+from config.config_loader import get as _get_config
 
 service = ProjectService()
 CreateProjectUseCase(service).execute()
@@ -104,6 +105,31 @@ for card in workspace._agent_cards.values():
 # The matrix is anchored to the top-left corner of the viewport
 assert int(workspace.view.alignment()) == 33  # AlignLeft | AlignTop
 
+# Background grid (TSC review 26-10-2026): major lines only, offset by
+# half the component spacing (10 px), non-interactive
+from ui.views.agents_workspace import (
+    _GridLineItem, _GRID_OFFSET, _GRID_SIZE
+)
+grid_lines = [it for it in workspace.scene.items()
+              if isinstance(it, _GridLineItem)]
+assert len(grid_lines) > 0, "no grid lines"
+v_lines = sorted(l.line().x1() for l in grid_lines
+                 if l.line().x1() == l.line().x2())
+h_lines = sorted(l.line().y1() for l in grid_lines
+                 if l.line().y1() == l.line().y2())
+assert v_lines[0] == _GRID_OFFSET == 10, v_lines[0]
+assert h_lines[0] == _GRID_OFFSET == 10, h_lines[0]
+assert v_lines[1] - v_lines[0] == _GRID_SIZE == 80  # major only
+assert h_lines[1] - h_lines[0] == _GRID_SIZE == 80
+for line in grid_lines:
+    assert line.zValue() == -2
+    assert line.shape().isEmpty()  # non-interactive
+# Grid lines must not block clicks
+from PySide6.QtCore import QPointF
+item = workspace.view.itemAt(
+    workspace.view.mapFromScene(QPointF(_GRID_OFFSET + _GRID_SIZE, 200)))
+assert item is None, "grid line blocks clicks"
+
 # Card colors: state tint (gold) on state cards, event tint (copper) on
 # agent cards (decision TSC 26-10-2026)
 from PySide6.QtGui import QColor
@@ -134,6 +160,20 @@ def count_pixels(rect, predicate):
                 count += 1
     return count
 
+
+# Grid pixels rendered (config major color on the dark background)
+grid_rgb = tuple(int(_get_config("grid_major_color", "#4A4A4A")[i:i + 2], 16)
+                 for i in (1, 3, 5))
+found = 0
+for x in range(0, 400):
+    p = workspace.view.mapFromScene(x, 5)
+    px = render.pixel(p.x() + offset.x(), p.y() + offset.y())
+    r, g, b = (px >> 16 & 0xFF), (px >> 8 & 0xFF), (px & 0xFF)
+    # Antialiased grid pixel: between the background and the grid color
+    if (grid_rgb[0] - 25 < r < grid_rgb[0] + 25
+            and abs(r - g) < 10 and abs(g - b) < 10):
+        found += 1
+assert found >= 3, f"grid not rendered ({found} px)"
 
 # Checked checkbox: light check mark pixels inside the box
 r = check.sceneBoundingRect()

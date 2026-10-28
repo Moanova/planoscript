@@ -25,10 +25,10 @@ state pinned to the first column (RG031).
 import logging
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import (
-    QFrame, QGraphicsRectItem, QGraphicsScene, QGraphicsView, QMenu,
-    QVBoxLayout, QWidget
+    QFrame, QGraphicsItem, QGraphicsLineItem, QGraphicsRectItem,
+    QGraphicsScene, QGraphicsView, QMenu, QVBoxLayout, QWidget
 )
 
 from config.config_loader import get as _get_config
@@ -49,6 +49,23 @@ _CHECK_SIZE = _get_config("agents_view_checkbox_size", 20)
 _STATE_COLOR = theme.color("state_color", theme.STATE_COLOR)
 _AGENT_COLOR = theme.color("event_color", theme.EVENT_COLOR)
 _FOCUS_COLOR = theme.color("focus_color", theme.FOCUS_COLOR)
+
+# Matrix background grid (TSC review 26-10-2026): major lines only
+# (no 20x20 minor grid), offset by half the component spacing so the
+# lines keep a margin with the card edges. Lines are non-interactive
+# (they must not block clicks on the cards and checkboxes).
+_GRID_SIZE = _get_config("grid_major_size", 80)
+_GRID_COLOR = _get_config("grid_major_color", "#4A4A4A")
+_GRID_OFFSET = _COMPONENT_SPACING / 2  # 10 px with the default spacing
+
+
+class _GridLineItem(QGraphicsLineItem):
+    """Non-interactive grid line: painted normally but invisible to
+    hit-testing (empty shape), so it never blocks clicks on the cards
+    and checkboxes."""
+
+    def shape(self):
+        return QPainterPath()
 
 # Margins around the matrix content inside the scene
 _SCENE_MARGIN = _COMPONENT_SPACING
@@ -82,6 +99,10 @@ class AgentsWorkspace(QWidget):
     # the journey view (TSK10, cross-view navigation)
     focusAgentInJourneyViewRequested = Signal(int)  # agent_id
 
+    # Emitted when a reorder attempt is rejected (initial state pinned,
+    # RG068/RG031): the main window reports it in the info bar
+    reorderRejected = Signal(str)  # message
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.project_service = None
@@ -109,6 +130,8 @@ class AgentsWorkspace(QWidget):
         # Drag state (RG068 reordering)
         self._dragged_card = None
         self._drag_press_pos = None
+        # Background grid lines (redrawn on refresh)
+        self._grid_lines = []
 
         self.scene.setBackgroundBrush(QBrush(QColor(_BG_PRIMARY)))
 
@@ -159,11 +182,13 @@ class AgentsWorkspace(QWidget):
         self._state_cards.clear()
         self._check_items.clear()
         self._focus_highlight = None
+        self._grid_lines.clear()
 
         if not self.project_service or not self.project_service.current_project:
             self._agents = []
             self._states = []
             self._update_scene_rect()
+            self._draw_grid()
             return
 
         self._resolve_entities()
@@ -206,6 +231,7 @@ class AgentsWorkspace(QWidget):
                 self._check_items[(agent.id, state.id)] = check
 
         self._update_scene_rect()
+        self._draw_grid()
 
     def _update_scene_rect(self):
         """Size the scene to the matrix content (plus margins)."""
@@ -223,6 +249,42 @@ class AgentsWorkspace(QWidget):
                   + max(len(self._agents) - 1, 0) * spacing
                   + _SCENE_MARGIN)
         self.scene.setSceneRect(0, 0, width, height)
+
+    def _draw_grid(self):
+        """Draw the matrix background grid: major lines only (no 20x20
+        minor grid, TSC review 26-10-2026), offset by half the component
+        spacing so the lines keep a margin with the card edges.
+
+        The lines are non-interactive: their shape is empty so they
+        never block clicks on the cards and checkboxes (the focus
+        highlight band and the viewport's empty-area click still work).
+        """
+        for line in self._grid_lines:
+            self.scene.removeItem(line)
+        self._grid_lines.clear()
+
+        pen = QPen(QColor(_GRID_COLOR))
+        pen.setWidth(1)
+        rect = self.scene.sceneRect()
+        offset = _GRID_OFFSET
+
+        x = offset
+        while x <= rect.right():
+            line = _GridLineItem(x, rect.top(), x, rect.bottom())
+            line.setPen(pen)
+            line.setZValue(-2)
+            self.scene.addItem(line)
+            self._grid_lines.append(line)
+            x += _GRID_SIZE
+
+        y = offset
+        while y <= rect.bottom():
+            line = _GridLineItem(rect.left(), y, rect.right(), y)
+            line.setPen(pen)
+            line.setZValue(-2)
+            self.scene.addItem(line)
+            self._grid_lines.append(line)
+            y += _GRID_SIZE
 
     # ------------------------------------------------------------------
     # Cell edition (TSK09, SU008)
@@ -302,8 +364,14 @@ class AgentsWorkspace(QWidget):
         current_column = self._states.index(card.entity)
         # RG068/RG031: the initial state (first column) cannot be moved,
         # and no other state can take the first column
-        if current_column == 0 or target_column == 0 \
-                or target_column == current_column:
+        if current_column == 0 or target_column == 0:
+            if current_column == 0 and target_column != current_column:
+                self.reorderRejected.emit(
+                    f"State '{card.entity.lb}' is the initial state "
+                    "and cannot be moved")
+            self._relayout()
+            return
+        if target_column == current_column:
             self._relayout()
             return
 

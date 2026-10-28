@@ -89,15 +89,23 @@ assert layout.agents_view_column_order == [initial.id, s3.id, s2.id]
 # ---------------------------------------------------------------------
 # Initial state pinned (RG068/RG031): two rejected moves
 # ---------------------------------------------------------------------
-# Another state dropped onto the first column: rejected
+rejected_msgs = []
+workspace.reorderRejected.connect(lambda msg: rejected_msgs.append(msg))
+
+# Another state dropped onto the first column: rejected (no message:
+# the pinned state is not the one being moved)
 card = workspace._state_cards[s2.id]
 x_col0 = _CELLS_LEFT + card_w / 2
 workspace._on_card_released(card, QPointF(x_col0, _STATES_TOP))
 assert workspace._states[0].typ == "Initial"
-# The initial state dragged away: rejected
+assert not rejected_msgs, rejected_msgs
+
+# The initial state dragged away: rejected, with an info message
 card = workspace._state_cards[initial.id]
 workspace._on_card_released(card, QPointF(x_col1, _STATES_TOP))
 assert workspace._states[0].typ == "Initial"
+assert len(rejected_msgs) == 1, rejected_msgs
+assert "initial state" in rejected_msgs[0].lower(), rejected_msgs[0]
 assert layout.agents_view_column_order == [initial.id, s3.id, s2.id]
 
 # ---------------------------------------------------------------------

@@ -164,3 +164,25 @@ chargé au populate et tenu à jour par la vue).
   - Tests offscreen mis à jour (géométrie attendue, assertion de
     non-chevauchement, assertion d'ancrage haut-gauche) ; py_compile
     OK, pytest 95 passed, 9 offscreen PASSED.
+- 26-10-2026 (revue TSC n°2) : grille majeure de fond + message de rejet.
+  - **Grille** : lignes majeures uniquement (pas de grille 20×20), décalées
+    de 10 px (moitié de l'espacement composants) en horizontal et vertical,
+    couleur `#4A4A4A` paramétrée (`grid_major_size`, `grid_major_color` dans
+    config.json), zValue -2 (sous les cartes et cases). Les lignes sont des
+    `_GridLineItem` (sous-classe `QGraphicsLineItem` avec `shape()` vide) :
+    non interactives — le monkey-patching d'instance de `shape()` ne
+    fonctionne pas en PySide6, la sous-classe oui. Vérifié : `itemAt` sur une
+    ligne retourne None, les cartes restent cliquables, pixels de grille
+    rendus (couleur antialiasée ~`#343434`).
+  - **Message de rejet** : nouveau signal `reorderRejected(str)` sur
+    `AgentsWorkspace`, émis uniquement quand l'état initial lui-même est
+    déplacé (pas quand un autre état cible la colonne 0, ni sur un
+    réordonnancement valide). Connecté dans `MainWindow` à
+    `info_bar.show_message` (connexion placée après la création de
+    l'info bar). Message : `"State '<lb>' is the initial state and cannot
+    be moved"`.
+  - Tests : assertions grille dans `offscreen_agents_matrix.py` (offset 10,
+    espacement 80, non-interactivité, rendu pixels) ; assertions message de
+    rejet dans `offscreen_matrix_reorder.py` (3 scénarios).
+  - Vérifications : py_compile OK, pytest 95 passed, 9 scripts offscreen
+    PASSED.
