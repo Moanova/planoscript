@@ -641,3 +641,23 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   (statut, périmètre, journal).
 - **Tests** : 106 passed (pytest) + 10 offscreen PASSED.
 - **Kanban** : TSK17 reste En revue (attente validation TSC).
+
+
+## 28-10-2026 — Clôture TSK13 + TSK17 et audit README
+
+- **Kanban** : TSK13 et TSK17 passées en « Terminé » (validées TSC le
+  28-10-2026). TSK13 : 3 retours de test + correction retour n°01 +
+  repositionnement des badges d'évènement. TSK17 : 2 revues (centrage à
+  cheval sur le coin, puis ratio 2/3 dedans / 1/3 dehors).
+- **Audit README.md** (inchangé depuis le 29-08-2026) :
+  - **Corrigé** : note du créateur du 22-08-2026 — suppression de la
+    remarque fausse « there are no tests » ; ajout d'une note du
+    28-10-2026 (MVP agents en développement actif, suite de tests :
+    106 pytest + 10 offscreen).
+  - **Écarts signalés à TSC (en attente de décision)** : section
+    Features (pas de mention des agents ni de la double vue,
+    « drag-and-drop » inexact) ; workflow (parcours narratifs et export
+    décrits mais non implémentés — SU005/SU007) ; installation (aucune
+    procédure dev).
+  - **Acceptable** : badges PySide6 6.4.0 / Python 3.10+ = contraintes
+    minimales du `pyproject.toml`.

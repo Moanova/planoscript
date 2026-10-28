@@ -44,10 +44,12 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- [ ] TSK17 — Ajustement esthétique : badge d'agents des nœuds d'état (vue Journey) centré sur le coin bas-droit, à cheval sur les bords X et Y du contour (comme les badges d'évènement de la vue Agents, TSK13) — détail dans `tasks/TSK17_agent_badge_position.md`
-- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; retours de test TSC du 28-10-2026 traités ; **repositionnement des badges d'évènement traité** (centrés verticalement, à cheval sur les bords G/D des cartes d'état — mêmes coordonnées que les ports de connexion de la vue Journey, validé TSC) — détail dans `tasks/TSK13_agent_mechanics_review.md`
+- (aucune tâche en revue)
 
 ## Done
+
+- [x] TSK17 — Ajustement esthétique : badge d'agents des nœuds d'état (vue Journey) centré sur le coin bas-droit, à cheval sur les bords X et Y du contour (comme les badges d'évènement de la vue Agents, TSK13) — détail dans `tasks/TSK17_agent_badge_position.md` — validée TSC le 28-10-2026 (2 revues : centrage à cheval sur le coin, puis ratio 2/3 dedans / 1/3 dehors)
+- [x] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; retours de test TSC du 28-10-2026 traités ; **repositionnement des badges d'évènement traité** (centrés verticalement, à cheval sur les bords G/D des cartes d'état — mêmes coordonnées que les ports de connexion de la vue Journey, validé TSC) — détail dans `tasks/TSK13_agent_mechanics_review.md` — validée TSC le 28-10-2026 (3 retours de test + correction retour n°01 + repositionnement des badges d'évènement)
 
 - [x] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QGraphicsView, cartes style Journey 80×40, cases 20×20, grille 120×80 centrée, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — validée TSC le 28-10-2026 (3 revues : QGraphicsView, grille 120×80 + espace extensible, libellés 9 pt)
 

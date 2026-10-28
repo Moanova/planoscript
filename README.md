@@ -49,7 +49,10 @@ This project is licensed under the **[MIT](LICENSE)** licence.
 Planoscript is primarily a learning project and, in its current state, should be viewed as such.
 Consequently, its design and implementation are evolving in tandem as the project progresses and unforeseen complexities come to light.
 The project is currently being redesigned; as a result, the code no longer aligns with the data model and the intended application logic.
-Likewise, there are no tests... for the time being.
+
+### 28 October 2026
+The redesign has progressed: the agent MVP is under active development (State/Event/Agent components, Journey view and agents × states matrix view, cross-view navigation).
+The project now ships a test suite: unit tests (`pytest`, 106 tests) plus offscreen UI scenario scripts (10 scripts).
 
 ---
 ## Acknowledgements
