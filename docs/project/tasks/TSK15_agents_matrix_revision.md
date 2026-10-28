@@ -222,3 +222,25 @@ chargé au populate et tenu à jour par la vue).
   - Vérifications : py_compile OK ; pytest 95 passed ; 9 scripts offscreen PASSED ;
     rendu QImage validé visuellement (grille 120×80 alignée sur les cellules, cartes
     et cases centrées, grille sur tout le viewport, matrice ancrée haut-gauche).
+- 28-10-2026 (revue TSC n°03, correctif) : la grille disparaissait au défilement.
+  - **Symptôme** : au-delà du contenu de la matrice, le viewport n'affichait plus
+    que le fond sombre, sans lignes de grille (constaté en test utilisateur TSC).
+  - **Cause racine** : `_GridLineItem.shape()` retourne un `QPainterPath` vide
+    (non-interactivité), et Qt en déduit un `boundingRect()` dégénéré (2×2 px pour
+    une ligne axis-aligned,via `shape().boundingRect()`). L'index de scène
+    (`QGraphicsScene` BSP) retirait alors les lignes de l'index dès que le
+    `sceneRect` (4000×4000) dépassait le `itemsBoundingRect` (~250×150) : au
+    premier scroll, `_draw_grid` recréait les lignes sur la zone visible, mais le
+    rendu sautait les items hors index. La vue Journey n'est pas touchée (ses
+    lignes de grille sont des `QGraphicsLineItem` standard, `boundingRect` couvrant
+    le trait).
+  - **Correctif** : `boundingRect()` surchargé sur `_GridLineItem` pour couvrir
+    le trait peint (rect englobant `line().p1()`/`p2()` ± 1 px), `shape()`
+    conserve son path vide (non-interactivité préservée : `itemAt` sur une ligne
+    retourne toujours None, les clics sur cases/cartes fonctionnent).
+  - **Test de régression** : `offscreen_agents_matrix.py` — rendu direct de la
+    scène sur la zone visible (`scene.render`) après scroll à (500,300) et
+    (1500,1200) : pixels de grille présents (> 1000 px) ; `itemAt` sur une ligne
+    retourne None.
+  - Vérifications : py_compile OK ; pytest 95 passed ; 9 scripts offscreen
+    PASSED.

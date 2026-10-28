@@ -22,7 +22,8 @@ import sys
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from PySide6.QtCore import QPoint, QPointF, Qt
+from PySide6.QtCore import QPoint, QPointF, QRectF, Qt
+from PySide6.QtGui import QImage, QPainter
 from PySide6.QtWidgets import QApplication
 
 app = QApplication([])
@@ -166,6 +167,45 @@ assert len(grid_lines) > 0, "grid not redrawn on scroll"
 v_lines = sorted(set(l.line().x1() for l in grid_lines
                      if l.line().x1() == l.line().x2()))
 assert all(x % _CELL_WIDTH == 0 for x in v_lines), v_lines[:5]
+
+# The grid stays visible when scrolling past the matrix content
+# (regression TSC 28-10-2026: an empty shape() collapsed the item
+# boundingRect, the scene index skipped the lines once the scene rect
+# was larger than the items bounding rect, and the grid disappeared)
+from PySide6.QtGui import QPainter
+from PySide6.QtCore import QRectF
+
+
+def grid_pixels_in_visible_area():
+    visible = workspace.view.mapToScene(
+        workspace.view.viewport().rect()).boundingRect()
+    img = QImage(792, 592, QImage.Format.Format_ARGB32)
+    img.fill(0xFF1E1E1E)
+    painter = QPainter(img)
+    workspace.scene.render(painter, QRectF(0, 0, 792, 592), visible)
+    painter.end()
+    bg_r = int(_get_config("bg_primary", "#1E1E1E")[1:3], 16)
+    found = 0
+    for y in range(img.height()):
+        for x in range(img.width()):
+            px = img.pixel(x, y)
+            r, g, b = (px >> 16 & 0xFF), (px >> 8 & 0xFF), (px & 0xFF)
+            if (r > bg_r + 10 and abs(r - g) < 10 and abs(g - b) < 10):
+                found += 1
+    return found
+
+
+assert grid_pixels_in_visible_area() > 1000, \
+    "grid disappears when scrolling past the matrix content"
+workspace.view.horizontalScrollBar().setValue(1500)
+workspace.view.verticalScrollBar().setValue(1200)
+app.processEvents()
+assert grid_pixels_in_visible_area() > 1000, \
+    "grid disappears far from the matrix content"
+# Grid lines still do not block clicks (empty shape preserved)
+item = workspace.view.itemAt(
+    workspace.view.mapFromScene(QPointF(1560, 1240)))
+assert item is None, "grid line blocks clicks"
 # Scroll back to the matrix origin for the rendering checks
 workspace.view.horizontalScrollBar().setValue(0)
 workspace.view.verticalScrollBar().setValue(0)

@@ -67,10 +67,31 @@ _GRID_COLOR = _get_config("grid_major_color", "#4A4A4A")
 class _GridLineItem(QGraphicsLineItem):
     """Non-interactive grid line: painted normally but invisible to
     hit-testing (empty shape), so it never blocks clicks on the cards
-    and checkboxes."""
+    and checkboxes.
+
+    boundingRect() is overridden to cover the painted line: with an
+    empty shape(), the default boundingRect() collapses to an empty
+    rect and Qt's scene indexing skips the item entirely when the scene
+    rect is larger than the items bounding rect (the grid then
+    disappears as soon as the view scrolls past the matrix content,
+    unlike the journey workspace where the grid follows the viewport).
+    """
 
     def shape(self):
         return QPainterPath()
+
+    def boundingRect(self):
+        # Cover the painted line (plus the pen width), so the scene
+        # index keeps the item even though its shape is empty. The rect
+        # is in item coordinates: the line runs from line().p1() to
+        # line().p2(), the default QGraphicsLineItem rect is degenerate
+        # for axis-aligned lines (zero width or height).
+        line = self.line()
+        left = min(line.x1(), line.x2())
+        top = min(line.y1(), line.y2())
+        right = max(line.x1(), line.x2())
+        bottom = max(line.y1(), line.y2())
+        return QRectF(left - 1, top - 1, right - left + 2, bottom - top + 2)
 
 # Geometry (TSC review 28-10-2026): every matrix slot is a cell of the
 # background grid. The state cards occupy the cells of the first row

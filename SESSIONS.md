@@ -397,3 +397,23 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 - **État** : TSK15 en « Doing » (revue n°03), en attente de validation TSC.
 - Commit `3c62f6f` poussé sur `dev`. TSK15 déplacée en « En revue » (revue n°03
   terminée), en attente de validation TSC avant passage en Done et démarrage de TSK13.
+
+## 28-10-2026 — TSK15 revue n°03, correctif disparition grille au scroll
+
+- **Signalement TSC** : la grille de la vue Agents disparaît quand on défile
+  au-delà du contenu de la matrice (comportement non attendu, la grille doit
+  rester visible comme dans la vue Journey).
+- **Cause racine** : `_GridLineItem.shape()` vide (non-interactivité) ⇒
+  `boundingRect()` dégénéré (2×2 px) ⇒ l'index BSP de `QGraphicsScene` exclut
+  les lignes dès que `sceneRect` (4000×4000) dépasse `itemsBoundingRect` ;
+  au scroll, `_draw_grid` recrée les lignes mais le rendu les saute.
+  La vue Journey n'est pas touchée (lignes standard, `boundingRect` OK).
+- **Correctif** : `boundingRect()` surchargé sur `_GridLineItem` (rect couvrant
+  le trait peint ± 1 px) ; `shape()` vide conservé (non-interactivité OK).
+- **Vérifications** : py_compile OK ; pytest 95 passed ; 9 scripts offscreen
+  PASSED ; test de régression ajouté (rendu scène sur zone visible après scroll
+  à (500,300) et (1500,1200) : grille visible, `itemAt` sur ligne = None).
+- **Leçon retenue** : en Qt, `shape()` vide ne suffit pas pour la
+  non-interactivité si l'item doit rester indexé/rendu hors du contenu :
+  `boundingRect()` et `shape()` sont indépendants, il faut les surcharger
+  tous les deux explicitement.
