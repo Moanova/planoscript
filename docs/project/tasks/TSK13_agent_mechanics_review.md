@@ -1,7 +1,7 @@
 # TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
 
 - **Épic** : EPC01/EPC02 (gestion des agents, associations)
-- **Statut** : En revue (implémentation + tests terminés le 28-10-2026, attente validation TSC)
+- **Statut** : En revue (implémentation + 3 retours de test TSC traités le 28-10-2026, attente validation TSC)
 - **Date de création** : 24-10-2026
 - **Dépendances** : TSK15 (Done)
 
@@ -52,18 +52,15 @@ Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
    Agent » (création, reste dans la vue Agents), « New State » (création,
    reste dans la vue Agents), « New Event » (création puis bascule Journey,
    point 3).
-7. **Badges d'évènements sur les nœuds State (vue Journey)** : deux badges
-   par nœud, même style que le badge agents (pastille + compteur) :
-   - badge **gauche** = nombre d'évènements **sources** (arcs
-     `Event_to_state` pointant vers l'état) ;
-   - badge **droite** = nombre d'évènements **cibles** (arcs
-     `State_to_event` partant de l'état) ;
-   - position verticale identique au badge agents (bas du nœud), badges
-     gauche et droite de même style (cuivre `event_color`) ;
-   - infobulle : lignes « Events (in): ... » / « Events (out): ... » avec
-     les libellés (même pattern que la ligne « Agents: ... ») ;
-   - rafraîchissement dynamique à la création/suppression d'une relation et
-     au chargement du projet.
+7. **Badges d'événements sur les nœuds State (vue Journey)** — **point
+   abandonné en revue TSC (28-10-2026, retour n°1)** : les badges
+   d'évènement sont retirés de la vue Journey (les connexions y sont
+   visibles, les badges surchargeaient les objets). Implémentation
+   initiale complète (deux badges pastille + compteur, cuivre
+   `event_badge_bg_color` #D19A66, `EventBadgeService`, refresh
+   dynamique), puis **suppression complète** du code, des tests et de
+   la configuration (`event_badge_bg_color` retiré de config.json) ;
+   seuls les badges d'agents (TSK05) restent sur les nœuds State.
 
 ## Contexte (existant mobilisable)
 
@@ -95,3 +92,18 @@ Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
   (`offscreen_tsk13_agent_mechanics.py` couvre les 7 points). Documentation :
   `04_interface` FR/EN v2.2, `03_features` FR/EN v2.2, `05_menu-EN.yaml` v2.2,
   `98_layout_revision-FR.md` (badges d'évènement). Kanban : Doing → En revue.
+- 28-10-2026 (revue TSC, 3 retours) : **retour n°1** — badges d'évènement
+  retirés de la vue Journey (suppression complète : `EventBadgeService`,
+  `event_badge_in/out` de `StateNode`, `refresh_event_badges` de
+  `JourneyWorkspace`, config `event_badge_bg_color`, tests, doc) ; **retour
+  n°2** — sous-menu Agent différencié selon la vue (vue Parcours : dialogues
+  avec libellé par défaut « Agent {id} » éditable ; vue Agents : création
+  directe, édition/suppression directes de la carte sélectionnée, grisé sans
+  sélection) + sélection des cartes en vue Agents (clic = sélection avec
+  contour pointillé teinte du type, drag RG068 maintenu, clic droit =
+  sélection + menu, signal `cardSelectionChanged`) + alignement du menu
+  contextuel carte agent sur le menu général ; **retour n°3** — confirmation
+  SU003 en vue Journey (State : arcs + associations agents ; Event : arcs),
+  factorisée dans `_confirm_component_deletion` partagée avec la vue Agents.
+  Tests : 95 passed (pytest) + 10 offscreen PASSED. Kanban : Doing (retours
+  en cours de traitement).

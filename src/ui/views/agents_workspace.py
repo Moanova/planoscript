@@ -138,6 +138,10 @@ class AgentsWorkspace(QWidget):
     # RG068/RG031): the main window reports it in the info bar
     reorderRejected = Signal(str)  # message
 
+    # Emitted when the card selection changes (TSK13 review): the main
+    # window re-evaluates the Agent menu activation
+    cardSelectionChanged = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.project_service = None
@@ -151,6 +155,7 @@ class AgentsWorkspace(QWidget):
         self.view = _MatrixGraphicsView(self)
         self.scene = QGraphicsScene(self.view)
         self.view.setScene(self.scene)
+        self.scene.selectionChanged.connect(self.cardSelectionChanged)
 
         layout.addWidget(self.view, 1)
 
@@ -221,6 +226,24 @@ class AgentsWorkspace(QWidget):
     # ------------------------------------------------------------------
     # Build / refresh
     # ------------------------------------------------------------------
+
+    def selected_agent(self):
+        """Return the entity of the selected agent card, or None
+        (TSK13 review: single card selection, aligned on the journey
+        view)."""
+        for item in self.scene.selectedItems():
+            if isinstance(item, MatrixCardItem) and item.kind == 'agent':
+                return item.entity
+        return None
+
+    def selected_state(self):
+        """Return the entity of the selected state card, or None
+        (TSK13 review: single card selection, aligned on the journey
+        view)."""
+        for item in self.scene.selectedItems():
+            if isinstance(item, MatrixCardItem) and item.kind == 'state':
+                return item.entity
+        return None
 
     def refresh(self):
         """Rebuild the whole matrix from the current project data."""
@@ -564,26 +587,25 @@ class AgentsWorkspace(QWidget):
 
     def _on_agent_card_menu(self, card, global_pos):
         """Context menu of an agent card (TSK10/TSK13): edit, delete
-        (RG064 confirmation) and show in journey view."""
-        if not self.project_service or not self.project_service.current_project:
-            return
-        project = self.project_service.current_project
-        agent = next(
-            (a for a in project.agent if a.id == card.entity.id), None)
-        if agent is None:
-            return
+        (RG064 confirmation) and show in journey view. TSK13 review:
+        the entries are aligned on the global Agent menu — they act on
+        the card selection (the clicked card is selected by the view
+        before the menu opens), through the same main-window handlers
+        as the global menu."""
         main_window = getattr(self, 'main_window', None)
+        if main_window is None:
+            return
         menu = QMenu(self)
         # Dark theme for the context menu (charter 98)
         menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
         handlers = {}
         handlers[menu.addAction("Edit Agent")] = (
-            lambda: main_window._edit_agent_entity(agent))
+            lambda: main_window._edit_agent())
         handlers[menu.addAction("Delete Agent")] = (
-            lambda: main_window._delete_agent_with_confirmation(agent))
+            lambda: main_window._delete_agent())
         show_action = menu.addAction("Show in journey view")
         handlers[show_action] = (
-            lambda: self.focusAgentInJourneyViewRequested.emit(agent.id))
+            lambda: self.focusAgentInJourneyViewRequested.emit(card.entity.id))
         chosen = menu.exec(global_pos)
         handler = handlers.get(chosen)
         if handler:
@@ -734,15 +756,23 @@ class _MatrixGraphicsView(QGraphicsView):
         return None
 
     def mousePressEvent(self, event):
-        """Left press on a card starts a drag (RG068); a press in the
-        empty area releases the cross-view focus (RG067)."""
+        """Left press on a card selects it and starts a drag (RG068);
+        a press in the empty area clears the card selection and
+        releases the cross-view focus (RG067) (TSK13 review: card
+        selection aligned on the journey view)."""
         if event.button() == Qt.MouseButton.LeftButton:
             card = self._card_at(event.pos())
             if card is not None:
+                # Single card selection, like the journey nodes; the
+                # drag for reordering still works on top of it
+                if not card.isSelected():
+                    self._workspace.scene.clearSelection()
+                    card.setSelected(True)
                 self._workspace._dragged_card = card
                 self._workspace._drag_press_pos = self.mapToScene(event.pos())
                 event.accept()
                 return
+            self._workspace.scene.clearSelection()
             if self._workspace.has_focus():
                 self._workspace.clear_focus()
         super().mousePressEvent(event)
@@ -767,12 +797,18 @@ class _MatrixGraphicsView(QGraphicsView):
 
     def _on_context_menu(self, pos):
         """Right-click dispatch (TSK13): card menus for agent/state
-        cards, creation menu on the grid."""
+        cards, creation menu on the grid. Like the journey view, the
+        clicked card is selected before the menu opens (TSK13 review)."""
         card = self._card_at(pos)
         global_pos = self.mapToGlobal(pos)
-        if card is not None and card.kind == 'agent':
-            self._workspace._on_agent_card_menu(card, global_pos)
-        elif card is not None and card.kind == 'state':
-            self._workspace._on_state_card_menu(card, global_pos)
+        if card is not None:
+            if not card.isSelected():
+                self._workspace.scene.clearSelection()
+                card.setSelected(True)
+            if card.kind == 'agent':
+                self._workspace._on_agent_card_menu(card, global_pos)
+            else:
+                self._workspace._on_state_card_menu(card, global_pos)
         else:
+            self._workspace.scene.clearSelection()
             self._workspace._on_grid_menu(global_pos)

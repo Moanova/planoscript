@@ -24,15 +24,19 @@ class AgentDialog(QDialog):
     Agent: lb, typ, note
 
     Works in both modes:
-    - creation: entity is None, form empty, type defaults to "Subject"
+    - creation: entity is None, form prefilled with default_label
+      (editable), type defaults to "Subject"
     - edition: entity is an Agent, form prefilled from the entity
     """
 
     AGENT_TYPES = ["Subject", "Object"]
 
-    def __init__(self, entity=None, parent=None):
+    def __init__(self, entity=None, parent=None, default_label=None):
         super().__init__(parent)
         self.entity = entity
+        # TSK13 review: default label in creation mode, like the state
+        # and event creation ("State {id}" / "Event {id}")
+        self.default_label = default_label
         self._setup_ui()
         self._setup_content()
 
@@ -52,7 +56,10 @@ class AgentDialog(QDialog):
     def _setup_content(self):
         # Label field
         self.lb_edit = QLineEdit()
-        self.lb_edit.setText(getattr(self.entity, 'lb', ''))
+        if self.entity is not None:
+            self.lb_edit.setText(getattr(self.entity, 'lb', ''))
+        elif self.default_label:
+            self.lb_edit.setText(self.default_label)
         self.form.addRow("Label:", self.lb_edit)
 
         # Type field

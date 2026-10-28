@@ -66,10 +66,17 @@
       - Agents — Non implémenté (la vue est active via la barre d'onglets ; SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
     - **Composants...** :
       - **Agent** :
-        - Nouveau... — Fonctionnel (ouvre directement le dialogue « New Agent » ; actif dès qu'un projet est ouvert ; FN031, TSK13)
-        - Éditer — Fonctionnel (ouvre un dialogue de sélection de l'agent à éditer, puis le dialogue « New Agent » pré-rempli ; actif dès qu'au moins un agent existe ; la sélection se fait dans le dialogue, sans dépendance à la sélection de l'espace de travail ; TSK13)
-        - Supprimer — Fonctionnel (ouvre un dialogue de sélection de l'agent à supprimer, avec confirmation indiquant le nombre d'associations supprimées en cascade RG064 ; actif dès qu'au moins un agent existe ; TSK13)
-      - Menu global (barre de menus) : accessible depuis les vues « Parcours » et « Agents ».
+        - Nouveau... — Fonctionnel, comportement selon la vue active (FN031, TSK13 + revue TSC 28-10-2026) :
+          - Vue « Parcours » : ouvre directement le dialogue « New Agent », pré-rempli avec un libellé par défaut « Agent {id} » (comme les états/événements), éditable dans le dialogue.
+          - Vue « Agents » : création directe d'un agent dans la ligne de la matrice, avec le libellé par défaut (pas de dialogue).
+          - Actif dès qu'un projet est ouvert, dans les deux vues.
+        - Éditer — Fonctionnel, comportement selon la vue active (TSK13 + revue TSC 28-10-2026) :
+          - Vue « Parcours » : ouvre un dialogue de sélection de l'agent à éditer, puis le dialogue « New Agent » pré-rempli ; actif dès qu'au moins un agent existe (la sélection se fait dans le dialogue).
+          - Vue « Agents » : ouvre directement le dialogue d'édition de l'agent dont la carte est sélectionnée ; grisé si aucune carte agent n'est sélectionnée.
+        - Supprimer — Fonctionnel, comportement selon la vue active (TSK13 + revue TSC 28-10-2026) :
+          - Vue « Parcours » : dialogue de sélection de l'agent à supprimer, puis confirmation indiquant le nombre d'associations supprimées en cascade (RG064) ; actif dès qu'au moins un agent existe.
+          - Vue « Agents » : suppression directe de l'agent dont la carte est sélectionnée, avec la même confirmation RG064 ; grisé si aucune carte agent n'est sélectionnée.
+      - Menu global (barre de menus) : accessible depuis les vues « Parcours » et « Agents » ; le menu contextuel d'une carte agent (vue « Agents ») offre les mêmes actions « Edit Agent »/« Delete Agent », alignées sur le menu général.
       - **État** :
         - Nouveau... — Fonctionnel
         - Éditer — Non implémenté (actif si un node État est sélectionné)
@@ -213,8 +220,8 @@
 
   - **Menu contextuel** (clic droit ; indisponible pendant la création d'une relation) :
     - Sur la grille (hors nœuds et relations) : « New State », « New Event », « New Agent » (TSK13 : ouvre directement le dialogue « New Agent », sans bascule de vue), « Connect State and Event ».
-    - Sur un nœud État : « Edit State », « Associate agents... » (FN030), « Show in agents view » (TSK10/RG067, désactivé si l'état n'a aucune association agent), « Delete State » (désactivé pour l'état initial, RG031).
-    - Sur un nœud Événement : « Edit Event », « Delete Event ».
+    - Sur un nœud État : « Edit State », « Associate agents... » (FN030), « Show in agents view » (TSK10/RG067, désactivé si l'état n'a aucune association agent), « Delete State » (désactivé pour l'état initial, RG031 ; **confirmation SU003 si l'état est connecté à au moins un évènement et/ou associé à au moins un agent** — revue TSC 28-10-2026, cascade arcs + RG065).
+    - Sur un nœud Événement : « Edit Event », « Delete Event » (**confirmation SU003 si l'évènement est connecté à au moins un état** — revue TSC 28-10-2026, cascade des arcs).
     - Sur une relation : « Edit Relation », « Delete Relation ».
     - Le clic sélectionne l'élément sous le curseur avant d'ouvrir le menu, de sorte que les actions s'appliquent à l'élément cliqué.
 
@@ -237,9 +244,8 @@
     - **Contenu** :
       - **Nom** : Texte en haut, Arial 10 pt **gras**.
       - **Description** : *Non affichée* — à implémenter.
-    - **Badges sur les nœuds État** (TSK05, TSK13) :
+    - **Badge sur les nœuds État** (TSK05) :
       - **Badge d'agents** (bas à droite de la carte) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
-      - **Badges d'évènement** (TSK13) : deux pastilles avec compteur, même style que le badge d'agents mais en cuivre `#D19A66` (teinte du type Événement), à la même hauteur verticale (bas de la carte) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au chargement du projet.
     - **Points d'accroche** :
       - 4 points (haut, bas, gauche, droite) — *Pas encore visuellement implémentés*.
       - Devraient être visibles au survol (carrés de 8 px, couleur `#4CAF50`).
@@ -266,13 +272,14 @@
   - Grille de fond 120×80 (config `agents_view_cell_width`/`_height`) : chaque carte et chaque case est centrée dans sa cellule (marges 20 px pour les cartes, 50/30 px pour les cases). La grille est redessinée sur la zone visible (pattern vue parcours) et la scène s'étend vers la droite/le bas uniquement : la matrice reste ancrée au coin haut-gauche.
   - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
+- **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue parcours, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
 - **Contrat de focus (navigation croisée, TSK10/RG067, étendu par TSK13)** :
   - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue parcours avec atténuation du reste du graphe ; état cible depuis la vue agents → bascule vers la vue parcours et focus du node de l'état, TSK13).
   - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
-- **Menus contextuels (TSK13)** :
-  - Carte agent : « Edit Agent » (dialogue « New Agent » pré-rempli), « Delete Agent » (confirmation avec le nombre d'associations supprimées en cascade, RG064), « Show in journey view » (TSK10).
+- **Menus contextuels (TSK13, alignés sur le menu général par la revue TSC 28-10-2026)** :
+  - Carte agent : « Edit Agent » et « Delete Agent » ont le même comportement que le menu général en vue « Agents » (édition/suppression directe de la carte sélectionnée — le clic droit sélectionne la carte cliquée ; « Delete Agent » avec confirmation RG064), « Show in journey view » (TSK10).
   - Carte état : « Edit State » (dialogue pré-rempli), « Delete State » (désactivé pour l'état initial, RG031 ; confirmation si des arcs ou associations existent, cascade RG065), « Show in journey view » (bascule vers la vue parcours + focus du node, extension du contrat TSK10/RG067).
-  - Grille (hors matrice) : « New Agent » (reste dans la vue agents), « New State » (reste dans la vue agents ; la nouvelle colonne apparaît dans la matrice), « New Event » (crée le node dans la vue parcours, bascule vers la vue parcours et sélectionne le node — même comportement que le point 03).
+  - Grille (hors matrice) : « New Agent » (création directe dans la ligne de la matrice, reste dans la vue agents), « New State » (reste dans la vue agents ; la nouvelle colonne apparaît dans la matrice), « New Event » (crée le node dans la vue parcours, bascule vers la vue parcours et sélectionne le node — même comportement que le point 03).
 - **Création d'un événement depuis la vue agents (TSK13)** : que la création parte du menu global « Project > Components... > Event > New... » ou du menu contextuel de la grille, la vue bascule sur « Parcours » une fois l'événement créé, et le node créé est sélectionné. La création d'un agent ou d'un état depuis la vue agents ne bascule pas la vue.
 - **Rôles** :
   - Afficher les associations agent-état de la carte courante.
@@ -362,7 +369,6 @@
 - [x] Gestion des agents du projet (créer, éditer, supprimer avec cascade RG064 — FN031, TSK01/TSK02 ; sous-menu « Agent » Nouveau.../Éditer/Supprimer avec dialogue de sélection — TSK13)
 - [x] Associations agent-état depuis la vue parcours (dialogue « Associer des agents... » — FN030, TSK04)
 - [x] Badges d'agents sur les nœuds d'état dans la vue parcours (TSK05)
-- [x] Badges d'évènement (source/cible) sur les nœuds d'état dans la vue parcours (TSK13)
 - [x] Vue « Agents » : matrice agents × états en vue graphique, édition des cellules, ordre RG068, grille 120×80 (TSK07–TSK15, SU008/SU009)
 - [x] Navigation croisée entre vues avec focus (RG067 — TSK10, étendu état→parcours par TSK13)
 - [x] Menus contextuels des vues parcours et agents (création/édition/suppression agent, édition/suppression état, bascule après création d'événement — TSK13)
@@ -387,7 +393,7 @@
 - [ ] Historique des modifications
 - [ ] Export/Import de carte
 - [ ] Projets récents
-- [ ] Suppression de nœuds/relations
+- [ ] Suppression de relations (la suppression de nœuds État/Événement est fonctionnelle via les menus contextuels avec confirmation SU003 — TSK13 + revue TSC 28-10-2026)
 
 
 ---

@@ -149,6 +149,9 @@ class MainWindow(QMainWindow):
         # TSK13: cross-view navigation request (state -> journey view)
         self.agents_page.focusStateInJourneyViewRequested.connect(
             self._focus_state_in_journey_view)
+        # TSK13 review: card selection changes re-evaluate the Agent
+        # menu activation in the agents view
+        self.agents_page.cardSelectionChanged.connect(self._update_menu_state)
         self.pages.addWidget(self.agents_page)
 
         self.pages.setCurrentWidget(self.welcome_page)
@@ -443,16 +446,30 @@ class MainWindow(QMainWindow):
         self.menu_actions['relation_delete'].setEnabled(has_project and has_relation)
         self.menu_actions['associate_agents'].setEnabled(has_project and has_state)
 
-        # TSK13: the agent submenu does not depend on the workspace
-        # selection (the agent is picked in a selection dialog):
-        # "New..." needs an open project, "Edit"/"Delete" need at least
-        # one agent in the project
+        # TSK13 + TSK13 review: the agent submenu depends on the active
+        # view. Journey view: "New..." needs an open project, "Edit"/
+        # "Delete" need at least one agent (picked in a selection
+        # dialog). Agents view: "Edit"/"Delete" act directly on the
+        # selected agent card and need a selected agent card.
+        # (tab_bar/agents_page do not exist yet on the first call from
+        # _create_menu_bar)
+        tab_bar = getattr(self, 'tab_bar', None)
+        agents_page = getattr(self, 'agents_page', None)
+        in_agents_view = bool(
+            tab_bar is not None and tab_bar.currentTab() == "Agents")
         has_agent = bool(
             has_project and self.project_service.current_project
             and self.project_service.current_project.agent)
+        agent_card_selected = bool(
+            has_project and in_agents_view and agents_page is not None
+            and agents_page.selected_agent() is not None)
         self.menu_actions['agent_new'].setEnabled(has_project)
-        self.menu_actions['agent_edit'].setEnabled(has_agent)
-        self.menu_actions['agent_delete'].setEnabled(has_agent)
+        if in_agents_view:
+            self.menu_actions['agent_edit'].setEnabled(agent_card_selected)
+            self.menu_actions['agent_delete'].setEnabled(agent_card_selected)
+        else:
+            self.menu_actions['agent_edit'].setEnabled(has_agent)
+            self.menu_actions['agent_delete'].setEnabled(has_agent)
 
 
     def _show_welcome_message(self):
@@ -1085,16 +1102,10 @@ class MainWindow(QMainWindow):
         self._refresh_agents_view()
         self._update_menu_state()
 
-    def _new_agent(self):
-        """Create an agent from the "Project > Components... > Agent >
-        New..." menu entry (TSK13, FN031): opens the creation dialog
-        directly and returns to the workspace on validation."""
-        dialog = AgentDialog(parent=self)
-        if dialog.exec() != AgentDialog.Accepted:
-            return
-        values = dialog.get_values()
-        result = self.create_agent_usecase.execute(
-            lb=values['lb'], typ=values['typ'], note=values['note'])
+    def _create_agent_from_values(self, lb, typ, note):
+        """Shared agent creation (use case + refreshes). Returns True on
+        success."""
+        result = self.create_agent_usecase.execute(lb=lb, typ=typ, note=note)
         if result and result.get('success'):
             self.info_bar.show_message("Agent created")
             # TSK08: a new agent row may have appeared -> refresh
@@ -1102,13 +1113,44 @@ class MainWindow(QMainWindow):
             # project as modified -> re-enable "Save"
             self._refresh_agents_view()
             self._update_menu_state()
-        else:
-            self.info_bar.show_message("Cannot create agent: invalid data")
+            return True
+        self.info_bar.show_message("Cannot create agent: invalid data")
+        return False
+
+    def _new_agent(self):
+        """Create an agent from the "Project > Components... > Agent >
+        New..." menu entry (TSK13, FN031). TSK13 review: the behavior
+        depends on the active view — journey view: the "New Agent"
+        dialog opens, prefilled with a default label (editable);
+        agents view: the agent is created directly in the matrix row,
+        with the default label."""
+        if self.tab_bar.currentTab() == "Agents":
+            project = self.project_service.current_project
+            default_lb = f"Agent {project.get_next_id('agent')}" if project else None
+            self._create_agent_from_values(lb=default_lb, typ="Subject", note=None)
+            return
+        project = self.project_service.current_project
+        default_lb = f"Agent {project.get_next_id('agent')}" if project else None
+        dialog = AgentDialog(parent=self, default_label=default_lb)
+        if dialog.exec() != AgentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        self._create_agent_from_values(
+            lb=values['lb'], typ=values['typ'], note=values['note'])
 
     def _edit_agent(self):
         """Edit an agent from the "Project > Components... > Agent >
-        Edit" menu entry (TSK13, FN031): opens a selection dialog, then
-        the edition dialog prefilled with the selected agent."""
+        Edit" menu entry (TSK13, FN031). TSK13 review: journey view ->
+        selection dialog, then the edition dialog; agents view -> the
+        edition dialog opens directly on the selected agent card (the
+        entry is disabled when no agent card is selected)."""
+        if self.tab_bar.currentTab() == "Agents":
+            agent = self.agents_page.selected_agent()
+            if agent is None:
+                self.info_bar.show_message("No agent selected")
+                return
+            self._edit_agent_entity(agent)
+            return
         agent = self._select_agent()
         if agent is None:
             return
@@ -1130,8 +1172,18 @@ class MainWindow(QMainWindow):
 
     def _delete_agent(self):
         """Delete an agent from the "Project > Components... > Agent >
-        Delete" menu entry (TSK13, FN031): opens a selection dialog,
-        then deletes the selected agent with confirmation (RG064)."""
+        Delete" menu entry (TSK13, FN031). TSK13 review: journey view ->
+        selection dialog, then confirmation (RG064); agents view -> the
+        selected agent card is deleted directly, with the same
+        confirmation (the entry is disabled when no agent card is
+        selected)."""
+        if self.tab_bar.currentTab() == "Agents":
+            agent = self.agents_page.selected_agent()
+            if agent is None:
+                self.info_bar.show_message("No agent selected")
+                return
+            self._delete_agent_with_confirmation(agent)
+            return
         agent = self._select_agent()
         if agent is None:
             return
@@ -1316,6 +1368,13 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message("Selected component type is not deletable")
             return
 
+        # SU003 (TSK13 review): confirmation when associated data
+        # exists — arcs for both types, plus agent-state associations
+        # for states (same rule as the agents view context menu)
+        if not self._confirm_component_deletion(entity, entity_type,
+                                                narrative_map):
+            return
+
         # Delete all arcs referencing this entity (State_to_event + Event_to_state)
         ArcService.delete_related_arcs(narrative_map, entity.id, entity_type)
         # RG065: cascade the deletion to the agent-state associations
@@ -1348,6 +1407,35 @@ class MainWindow(QMainWindow):
         self._refresh_agents_view()
         self._update_menu_state()
 
+    def _confirm_component_deletion(self, entity, entity_type,
+                                    narrative_map) -> bool:
+        """SU003: ask for confirmation before deleting a component with
+        associated data (TSK13 review: same rule in the journey and
+        agents views). Arcs count for both types; agent-state
+        associations count for states. Returns True when the deletion
+        may proceed (no associated data, or the user confirmed)."""
+        arc_count = len(ArcService.get_connected_entities(
+            narrative_map, entity.id, entity_type))
+        association_count = 0
+        if isinstance(entity, State):
+            association_count = sum(
+                1 for rel in narrative_map.state_agent_rel
+                if rel.state_id == entity.id)
+        if not arc_count and not association_count:
+            return True
+        message = f"{entity_type} '{entity.lb}' is connected to "
+        if arc_count:
+            message += f"{arc_count} event(s)"
+        if arc_count and association_count:
+            message += " and "
+        if association_count:
+            message += f"{association_count} agent(s)"
+        noun = "state" if entity_type == "State" else "event"
+        message += f". Delete the {noun} and all its relations?"
+        reply = QMessageBox.question(self, "Confirmation", message,
+                                     QMessageBox.Yes | QMessageBox.No)
+        return reply == QMessageBox.Yes
+
     def _delete_state_entity(self, state):
         """Delete a specific state entity (TSK13, from the agents view
         context menu). SU003: confirmation when associated data exists;
@@ -1366,19 +1454,9 @@ class MainWindow(QMainWindow):
 
         # SU003: confirmation when the state has associated data (arcs
         # or agent-state associations)
-        arc_count = len(ArcService.get_connected_entities(
-            narrative_map, state.id, "State"))
-        association_count = sum(
-            1 for rel in narrative_map.state_agent_rel
-            if rel.state_id == state.id)
-        if arc_count or association_count:
-            message = (f"State '{state.lb}' is connected to {arc_count} "
-                       f"event(s) and associated with {association_count} "
-                       f"agent(s). Delete the state and all its relations?")
-            reply = QMessageBox.question(self, "Confirmation", message,
-                                         QMessageBox.Yes | QMessageBox.No)
-            if reply != QMessageBox.Yes:
-                return
+        if not self._confirm_component_deletion(state, "State",
+                                                narrative_map):
+            return
 
         # Delete all arcs referencing this state (State_to_event + Event_to_state)
         ArcService.delete_related_arcs(narrative_map, state.id, "State")

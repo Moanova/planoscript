@@ -75,7 +75,6 @@ Règle de priorité des contours : sélection (pointillés) > survol (blanc doux
 | Sélection | Contour de l'objet, en pointillés | Teinte du type (`#E5C07B` ou `#D19A66`) |
 | Ancres (entrantes et sortantes) | Cercles de connexion | `#F0F0F0` |
 | Badge d'agents (pastille sur les nœuds d'état, bas à droite) | Remplissage / contour / texte | `#E5C07B` / `#F0F0F0` / `#1E1E1E` |
-| Badges d'évènement (deux pastilles sur les nœuds d'état : gauche = événements sources entrants, droite = événements cibles sortants ; même position verticale que le badge d'agents) | Remplissage / contour / texte | `#D19A66` / `#F0F0F0` / `#1E1E1E` |
 
 Règle de priorité des contours : sélection > survol > type. Un objet survolé affiche un contour blanc doux continu ; un objet sélectionné affiche un contour pointillé de la teinte de son type, même au survol.
 
@@ -98,7 +97,6 @@ Règle de priorité des contours : sélection > survol > type. Un objet survolé
   --badge-bg: #E5C07B;     /* remplissage des badges d'agents (teinte des objets State) */
   --badge-border: #F0F0F0; /* contour des badges d'agents */
   --badge-text: #1E1E1E;   /* texte des badges d'agents (lisible sur fond clair) */
-  --event-badge-bg: #D19A66; /* remplissage des badges d'évènement (teinte des objets Event, même style que les badges d'agents) */
   --selected-style: dashed; /* sélection : contour pointillé, teinte du type conservée */
   --radius: 6px;
   font-family: "Segoe UI", system-ui, sans-serif;

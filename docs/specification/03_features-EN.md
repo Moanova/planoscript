@@ -205,7 +205,7 @@
   - If data is associated with the component, a confirmation is requested.
   - Deletion triggers the cascade deletion of all relations connecting the component to other components.
   - Any deletion marks the map, and therefore the project, as modified.
-- **Status** : Partially implemented. Agent deletion via the "Project › Components... › Agent › Delete" submenu (selection dialog + RG064 confirmation) and via the agent card context menu in the agents view (TSK13); state deletion via the state card context menu in the agents view (TSK13: confirmation when arcs/associations exist, entry disabled for the initial state RG031, RG065 cascades) and via the state node context menu in the journey view (disabled for the initial state). The "State › Delete" / "Event › Delete" menu options remain specified but not implemented; they are enabled only when a node of the relevant type is selected in the workspace.
+- **Status** : Partially implemented. Agent deletion via the "Project › Components... › Agent › Delete" submenu (selection dialog + RG064 confirmation; in the agents view: direct deletion of the selected card — TSC review 28-10-2026) and via the agent card context menu in the agents view (TSK13); state deletion via the state card context menu in the agents view (TSK13: confirmation when arcs/associations exist, entry disabled for the initial state RG031, RG065 cascades) and via the state node context menu in the journey view (disabled for the initial state, **SU003 confirmation when the state is connected to at least one event and/or associated with at least one agent** — TSC review 28-10-2026); event deletion via the event node context menu in the journey view (**SU003 confirmation when the event is connected to at least one state** — TSC review 28-10-2026). The "State › Delete" / "Event › Delete" menu options remain specified but not implemented; they are enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN019 : Manage the membership of a component to journeys
 - **Description** : Modify the list of journeys to which a component is attached.
@@ -354,7 +354,7 @@
     - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation showing the number of deleted associations.
     - Any agent creation, modification or deletion marks the project as modified.
     - The submenu is global (menu bar): accessible from both the "Journey" and "Agents" views.
-- **Status** : Implemented (TSK01/TSK02: create/edit/delete with RG064 cascade; TSK13: New.../Edit/Delete submenu with `AgentSelectionDialog`, context menus of both views, "New Agent" in the journey grid context menu).
+- **Status** : Implemented (TSK01/TSK02: create/edit/delete with RG064 cascade; TSK13: New.../Edit/Delete submenu, context menus of both views, "New Agent" in the journey grid context menu; **TSC review 28-10-2026: submenu behavior depends on the active view** — "Journey" view: dialogs (creation with an editable default label "Agent {id}", selection then edit/delete with the RG064 confirmation); "Agents" view: direct creation in the matrix with the default label, direct edit/delete of the selected agent card (disabled without selection), based on the card selection aligned on the journey view).
 
 ## FN032 : Switch between the journey view and the agents view (cross-navigation)
 

@@ -528,3 +528,37 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 - **Reste à faire (information)** : section 6 de `04_interface` (couleurs thème
   clair, charte 98 autorité) ; menus « Project > View » et « Display > Journey »
   à revoir ultérieurement (décision TSC).
+
+## 28-10-2026 — TSK13 : traitement des 3 retours de test TSC
+
+- **Retour n°1 (badges d'évènement en vue Journey)** : suppression complète —
+  `EventBadgeService`, `event_badge_in/out` + tooltip de `StateNode`,
+  `refresh_event_badges` de `JourneyWorkspace`, config `event_badge_bg_color`,
+  tests unitaires/offscreen, doc (04_interface, charte 98). Seuls les badges
+  d'agents (TSK05) restent sur les nœuds State.
+- **Retour n°2 (menu Agent selon la vue + sélection vue Agents)** :
+  - Sélection des cartes (agents et états) : clic = sélection (une seule carte,
+    contour pointillé teinte du type, charte 98), clic vide = désélection,
+    clic droit = sélection + menu, drag RG068 maintenu (clic sélectionne,
+    déplacement réordonne) ; signal `cardSelectionChanged` → `_update_menu_state`.
+  - Sous-menu Agent différencié : vue Parcours = dialogues (New... pré-rempli
+    « Agent {id} » éditable via `AgentDialog(default_label=...)`, Edit/Delete via
+    `AgentSelectionDialog`) ; vue Agents = création directe avec libellé par
+    défaut, édition/suppression directes de la carte sélectionnée (grisé sans
+    sélection). Menu contextuel carte agent aligné sur le menu général
+    (`_edit_agent`/`_delete_agent` comme handlers communs).
+- **Retour n°3 (confirmation suppression en vue Journey, SU003)** : helper
+  `_confirm_component_deletion` partagé entre `_delete_selected_component`
+  (Journey : State → arcs + associations agents, Event → arcs) et
+  `_delete_state_entity` (vue Agents).
+- **Tests** : 95 passed (pytest, −11 tests du service supprimé) + 10 offscreen
+  PASSED ; `offscreen_tsk13_agent_mechanics.py` couvre les 3 retours
+  (sélection/pointillé, grisés, création/édition/suppression directes,
+  confirmations SU003 Yes/No, sans confirmation si isolé).
+- **Leçons Qt** : `QGraphicsView.scene` est une méthode C++ — dans
+  `_MatrixGraphicsView`, passer par `self._workspace.scene` ; `itemChange`
+  reçoit la nouvelle valeur de sélection (paramètre `selected` explicite,
+  même pattern que `BaseNode._apply_outline`) ; `DashLine` + pattern custom
+  rendu comme `CustomDashLine` par Qt ; un `refresh()` de la matrice recrée
+  les items → la sélection est perdue (re-sélectionner après édition).
+- **Kanban** : TSK13 Doing (retours traités, en attente de validation TSC).

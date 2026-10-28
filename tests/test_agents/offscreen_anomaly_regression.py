@@ -45,7 +45,7 @@ def make_agent_dialog(lb):
     class StubAgentDialog:
         Accepted = 1
 
-        def __init__(self, entity=None, parent=None):
+        def __init__(self, entity=None, parent=None, default_label=None):
             pass
 
         def exec(self):
@@ -71,12 +71,12 @@ initial_state = narrative_map.state[0]
 
 # ---------------------------------------------------------------------
 # Anomalies 1 + 4: create an agent from the Projects menu while the
-# project is in a saved state and the agents view is displayed
+# project is in a saved state and the journey view is displayed
+# (TSK13 review: in the agents view, "New..." creates the agent
+# directly, without a dialog)
 # ---------------------------------------------------------------------
 mw.project_service.set_modified(False)
 mw.menu_actions['save'].setEnabled(False)  # simulate the post-save state
-mw.tab_bar.setCurrentTab("Agents")
-app.processEvents()
 rows_before = mw.agents_page.agent_count()
 
 import ui.main_window as main_window_module
@@ -165,7 +165,16 @@ mw.workspace.scene.clearSelection()
 target_item.setSelected(True)
 app.processEvents()
 
-mw._delete_selected_component("State")  # raised TypeError before the fix
+# The state has arcs and an association: SU003 confirmation is expected
+# (TSK13 review); auto-confirm with Yes
+import ui.main_window as main_window_module
+orig_question = main_window_module.QMessageBox.question
+main_window_module.QMessageBox.question = staticmethod(
+    lambda *a, **k: main_window_module.QMessageBox.Yes)
+try:
+    mw._delete_selected_component("State")  # raised TypeError before the fix
+finally:
+    main_window_module.QMessageBox.question = orig_question
 
 assert target not in narrative_map.state, "anomaly 5: state not deleted"
 assert not any(rel.state_id == target.id

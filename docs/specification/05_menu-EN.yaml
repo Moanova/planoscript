@@ -99,12 +99,12 @@ menu:
             - name: Agent
               items:
                 - name: New...
-                  note: "Implemented (TSK13) - Opens the 'New Agent' dialog directly; enabled as soon as a project is open (FN031, TSK01/TSK02; SU008, SU009)"
+                  note: "Implemented (TSK13 + TSC review 28-10-2026) - Behavior depends on the active view. Journey view: opens the 'New Agent' dialog, pre-filled with a default label 'Agent {id}' (editable). Agents view: creates the agent directly in the matrix row, with the default label (no dialog). Enabled as soon as a project is open (FN031, TSK01/TSK02; SU008, SU009)"
                 - name: Edit
-                  note: "Implemented (TSK13) - Opens an agent selection dialog, then the pre-filled 'New Agent' dialog; enabled as soon as at least one agent exists (FN031; RG064 cascade unchanged)"
+                  note: "Implemented (TSK13 + TSC review 28-10-2026) - Journey view: opens an agent selection dialog, then the pre-filled 'New Agent' dialog; enabled as soon as at least one agent exists. Agents view: opens the edition dialog directly on the selected agent card; disabled when no agent card is selected (FN031; RG064 cascade unchanged)"
                 - name: Delete
-                  note: "Implemented (TSK13) - Opens an agent selection dialog, then a confirmation with the number of cascaded associations (RG064); enabled as soon as at least one agent exists (FN031)"
-              note: "Global menu (menu bar): accessible from both the Journey and Agents views (TSK13)"
+                  note: "Implemented (TSK13 + TSC review 28-10-2026) - Journey view: opens an agent selection dialog, then a confirmation with the number of cascaded associations (RG064); enabled as soon as at least one agent exists. Agents view: deletes the selected agent card directly, with the same RG064 confirmation; disabled when no agent card is selected (FN031)"
+              note: "Global menu (menu bar): accessible from both the Journey and Agents views (TSK13); the agent card context menu offers the same actions, aligned on the global menu (TSC review 28-10-2026)"
             - name: State
               items:
                 - name: New...

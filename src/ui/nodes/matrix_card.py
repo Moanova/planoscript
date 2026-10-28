@@ -39,6 +39,11 @@ class MatrixCardItem(QGraphicsRectItem):
     Not movable by itself: the agents workspace controls the drag (RG068
     reordering, initial state pinned). Reports press/release positions
     through callbacks set by the workspace.
+
+    Selectable (TSK13 review): like the journey nodes, a card can be
+    selected; the selection is shown by a dashed outline in the type
+    color (charter 98: selection > hover > type). A click selects the
+    card, a drag still reorders it (RG068).
     """
 
     WIDTH = _get_config("node_default_width", 80.0)
@@ -57,7 +62,7 @@ class MatrixCardItem(QGraphicsRectItem):
         self._hovered = False
 
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptHoverEvents(True)
 
         self.setPen(QPen(self._border_color, 2))
@@ -106,6 +111,39 @@ class MatrixCardItem(QGraphicsRectItem):
         else:
             self.setBrush(QBrush(theme.color("bg_surface", theme.BG_SURFACE)))
 
+    def itemChange(self, change, value):
+        """Apply the charter 98 outline priority (selection > hover >
+        type) when the selection changes (TSK13 review). During
+        ItemSelectedChange, isSelected() still holds the previous
+        state, so the new value is passed explicitly (same pattern as
+        BaseNode._apply_outline)."""
+        if change == QGraphicsItem.ItemSelectedChange:
+            self._apply_outline(selected=bool(value))
+        return super().itemChange(change, value)
+
+    def _apply_outline(self, selected=None) -> None:
+        """Apply the outline according to the priority rule (charter
+        98): selection (dashed, type color) > hover (soft white, solid)
+        > type. DashLine with a 6/4 pattern matches the charter's dotted
+        selection outline (Qt.DotLine renders a fixed dot pattern).
+
+        Args:
+            selected: Explicit selection state. During
+                itemChange(ItemSelectedChange), isSelected() still
+                holds the previous state, so the new value must be
+                passed.
+        """
+        if selected if selected is not None else self.isSelected():
+            pen = QPen(self._border_color, 2)
+            pen.setStyle(Qt.DashLine)
+            pen.setDashPattern([6.0, 4.0])
+            pen.setCapStyle(Qt.FlatCap)
+            self.setPen(pen)
+        elif self._hovered:
+            self.setPen(QPen(self.HOVER_BORDER_COLOR, 2))
+        else:
+            self.setPen(QPen(self._border_color, 2))
+
     def _rounded_path(self) -> QPainterPath:
         path = QPainterPath()
         path.addRoundedRect(self.rect(), self.CORNER_RADIUS,
@@ -125,7 +163,7 @@ class MatrixCardItem(QGraphicsRectItem):
 
     def hoverEnterEvent(self, event) -> None:
         self._hovered = True
-        self.setPen(QPen(self.HOVER_BORDER_COLOR, 2))
+        self._apply_outline()
         # Immediate tooltip (AGENTS.md pattern): the workspace swallows
         # Qt's delayed automatic tooltip event
         lb = getattr(self.entity, 'lb', None)
@@ -136,7 +174,7 @@ class MatrixCardItem(QGraphicsRectItem):
 
     def hoverLeaveEvent(self, event) -> None:
         self._hovered = False
-        self.setPen(QPen(self._border_color, 2))
+        self._apply_outline()
         QToolTip.hideText()
         super().hoverLeaveEvent(event)
 
