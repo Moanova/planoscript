@@ -331,3 +331,35 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
 
 - TSC confirme le fonctionnement des en-têtes non redimensionnables et valide la tâche.
 - TSK12 passée de « En revue » à « Terminé » (Done) dans le kanban.
+
+## 2026-10-26 — TSK15 : matrice agents × états en vue graphique (EPC04)
+
+- **Demande TSC** : revoir l'implémentation de la matrice d'association agents × états
+  (vue Agents) du point de vue UX/esthétique — option B retenue : remplacer le
+  QTableWidget par une QGraphicsView, cohérente avec la vue Journey.
+- **Travaux** :
+  - Étude d'options (A : délégués QTableWidget custom / B : QGraphicsView / C : widgets
+    purs) — B retenue par TSC.
+  - Kanban : EPC04 créé (TSK15 → TSK13), TSK16 créée (paramétrage config.json des
+    dimensions de la vue Journey actuellement en constantes de classe).
+  - Implémentation : `matrix_card.py` (MatrixCardItem + MatrixCheckItem),
+    `agents_workspace.py` réécrit, contrat public inchangé (main_window.py non modifié
+    hors correction de persistance).
+  - Bug corrigé en passant : `_do_save` lisait `_current_workspace_layout` (jamais
+    initialisé) → l'ordre personnalisé RG068 n'était jamais sauvegardé ; lit désormais
+    `agents_page.layout_data`.
+- **Choix actés** : agents en cuivre #D19A66 (teinte Event, les agents n'ont pas de nœud
+  dans la vue Journey) ; cases 20×20 toujours visibles, fond #383838, coche #F0F0F0,
+  clic actif uniquement dans la case ; espacement 20 px et dimensions des cases dans
+  config.json ; fond #1E1E1E sans grille ; épinglage de l'état initial par contrainte
+  applicative au lâcher du drag.
+- **Problèmes rencontrés** : environnement bac à sable dépourvu de PySide6 et des libs
+  GL/X11 — installation pip (PySide6, pytest, Pillow) + extraction de paquets .deb dans
+  /tmp/gllibs (LD_LIBRARY_PATH) pour exécuter les tests offscreen.
+- **Vérifications** : py_compile OK ; pytest 95 passed (--ignore=test_application,
+  pywinauto indisponible) ; 9 scripts offscreen PASSED (matrice, édition, reorder,
+  régression anomalies, navigation croisée, onglets, dialogue association, badges,
+  finalisation TSK12) ; rendu QImage validé (cases peintes, contours or/cuivre, fond
+  sombre, écart 20 px).
+- **État** : TSK15 en « En revue », commit 0314ee0 poussé sur dev. En attente de
+  validation TSC avant passage en Done et démarrage de TSK13.
