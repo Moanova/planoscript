@@ -130,6 +130,10 @@ class AgentsWorkspace(QWidget):
     # the journey view (TSK10, cross-view navigation)
     focusAgentInJourneyViewRequested = Signal(int)  # agent_id
 
+    # Emitted when the user requests to show a state in the journey
+    # view (TSK13, extension of the TSK10 focus contract)
+    focusStateInJourneyViewRequested = Signal(int)  # state_id
+
     # Emitted when a reorder attempt is rejected (initial state pinned,
     # RG068/RG031): the main window reports it in the info bar
     reorderRejected = Signal(str)  # message
@@ -555,12 +559,12 @@ class AgentsWorkspace(QWidget):
                 check.set_highlighted(True)
 
     # ------------------------------------------------------------------
-    # Agent card context menu (TSK10)
+    # Context menus (TSK10/TSK13)
     # ------------------------------------------------------------------
 
     def _on_agent_card_menu(self, card, global_pos):
-        """Context menu of an agent card (TSK10): offers to show the
-        states of the agent in the journey view."""
+        """Context menu of an agent card (TSK10/TSK13): edit, delete
+        (RG064 confirmation) and show in journey view."""
         if not self.project_service or not self.project_service.current_project:
             return
         project = self.project_service.current_project
@@ -568,13 +572,72 @@ class AgentsWorkspace(QWidget):
             (a for a in project.agent if a.id == card.entity.id), None)
         if agent is None:
             return
+        main_window = getattr(self, 'main_window', None)
         menu = QMenu(self)
         # Dark theme for the context menu (charter 98)
         menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
-        action = menu.addAction("Show in journey view")
+        handlers = {}
+        handlers[menu.addAction("Edit Agent")] = (
+            lambda: main_window._edit_agent_entity(agent))
+        handlers[menu.addAction("Delete Agent")] = (
+            lambda: main_window._delete_agent_with_confirmation(agent))
+        show_action = menu.addAction("Show in journey view")
+        handlers[show_action] = (
+            lambda: self.focusAgentInJourneyViewRequested.emit(agent.id))
         chosen = menu.exec(global_pos)
-        if chosen is action:
-            self.focusAgentInJourneyViewRequested.emit(agent.id)
+        handler = handlers.get(chosen)
+        if handler:
+            handler()
+
+    def _on_state_card_menu(self, card, global_pos):
+        """Context menu of a state card (TSK13): edit, delete (RG031:
+        disabled for the initial state, RG065 cascades) and show in
+        journey view (focus, TSK10 contract extended)."""
+        if not self.project_service or not self.project_service.current_project:
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        state = next(
+            (s for s in narrative_map.state if s.id == card.entity.id), None)
+        if state is None:
+            return
+        main_window = getattr(self, 'main_window', None)
+        menu = QMenu(self)
+        # Dark theme for the context menu (charter 98)
+        menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
+        handlers = {}
+        handlers[menu.addAction("Edit State")] = (
+            lambda: main_window._edit_state_entity(state))
+        delete_action = menu.addAction("Delete State")
+        # RG031: the initial state can never be deleted
+        if getattr(state, 'typ', None) == "Initial":
+            delete_action.setEnabled(False)
+        handlers[delete_action] = (
+            lambda: main_window._delete_state_entity(state))
+        handlers[menu.addAction("Show in journey view")] = (
+            lambda: self.focusStateInJourneyViewRequested.emit(state.id))
+        chosen = menu.exec(global_pos)
+        handler = handlers.get(chosen)
+        if handler:
+            handler()
+
+    def _on_grid_menu(self, global_pos):
+        """Context menu of the grid, outside the matrix (TSK13):
+        creation entries for agents, states and events."""
+        main_window = getattr(self, 'main_window', None)
+        menu = QMenu(self)
+        # Dark theme for the context menu (charter 98)
+        menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
+        handlers = {}
+        handlers[menu.addAction("New Agent")] = (
+            lambda: main_window._new_agent())
+        handlers[menu.addAction("New State")] = (
+            lambda: main_window._create_new_node("State"))
+        handlers[menu.addAction("New Event")] = (
+            lambda: main_window._create_new_node("Event"))
+        chosen = menu.exec(global_pos)
+        handler = handlers.get(chosen)
+        if handler:
+            handler()
 
     # ------------------------------------------------------------------
     # Accessors used by the offscreen tests
@@ -638,7 +701,10 @@ class _MatrixGraphicsView(QGraphicsView):
         self.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setDragMode(QGraphicsView.DragMode.NoDrag)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        # TSK13: right-click opens a context menu (on a card: entity
+        # actions; on the grid: creation entries)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._on_context_menu)
         # The matrix is anchored to the top-left corner of the viewport,
         # not centered (TSC review 26-10-2026)
         self.setAlignment(Qt.AlignmentFlag.AlignLeft
@@ -699,10 +765,14 @@ class _MatrixGraphicsView(QGraphicsView):
             return
         super().mouseReleaseEvent(event)
 
-    def contextMenuEvent(self, event):
-        """Right-click on an agent card opens its context menu
-        (TSK10)."""
-        card = self._card_at(event.pos())
+    def _on_context_menu(self, pos):
+        """Right-click dispatch (TSK13): card menus for agent/state
+        cards, creation menu on the grid."""
+        card = self._card_at(pos)
+        global_pos = self.mapToGlobal(pos)
         if card is not None and card.kind == 'agent':
-            self._workspace._on_agent_card_menu(card, event.globalPos())
-        event.accept()
+            self._workspace._on_agent_card_menu(card, global_pos)
+        elif card is not None and card.kind == 'state':
+            self._workspace._on_state_card_menu(card, global_pos)
+        else:
+            self._workspace._on_grid_menu(global_pos)

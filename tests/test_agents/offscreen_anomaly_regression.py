@@ -31,7 +31,6 @@ app = QApplication([])
 
 from ui.main_window import MainWindow
 from ui.dialogs.agent_dialog import AgentDialog
-from ui.dialogs.agent_management_dialog import AgentManagementDialog
 from core.services.arc_service import ArcService
 from usecases.agent_association.associate_agent_state_usecase import (
     AssociateAgentStateUseCase
@@ -39,36 +38,6 @@ from usecases.agent_association.associate_agent_state_usecase import (
 from usecases.agent_association.dissociate_agent_state_usecase import (
     DissociateAgentStateUseCase
 )
-
-
-class StubManagementDialog:
-    """AgentManagementDialog stub: one accepted iteration returning the
-    action, then a rejected one so the chaining loop of _manage_agents
-    exits. The call count is shared at class level: _manage_agents
-    re-instantiates the dialog after each operation (by design, FN031)."""
-
-    Accepted = 1
-    Rejected = 0
-    calls = 0
-
-    def __init__(self, project_service, parent=None):
-        pass
-
-    def exec(self):
-        StubManagementDialog.calls += 1
-        return (StubManagementDialog.Accepted
-                if StubManagementDialog.calls == 1
-                else StubManagementDialog.Rejected)
-
-    def get_action(self):
-        return StubManagementDialog.action, None
-
-
-def make_management_dialog(action):
-    """Build the AgentManagementDialog stub class for the given action."""
-    StubManagementDialog.calls = 0
-    StubManagementDialog.action = action
-    return StubManagementDialog
 
 
 def make_agent_dialog(lb):
@@ -111,14 +80,11 @@ app.processEvents()
 rows_before = mw.agents_page.agent_count()
 
 import ui.main_window as main_window_module
-orig_mgmt = main_window_module.AgentManagementDialog
 orig_dlg = main_window_module.AgentDialog
-main_window_module.AgentManagementDialog = make_management_dialog("new")
 main_window_module.AgentDialog = make_agent_dialog("Hero")
 try:
-    mw._manage_agents()
+    mw._new_agent()  # TSK13: "Project > Components... > Agent > New..."
 finally:
-    main_window_module.AgentManagementDialog = orig_mgmt
     main_window_module.AgentDialog = orig_dlg
 
 # Anomaly 1: the agent was created (modified flag) and "Save" is enabled

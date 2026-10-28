@@ -26,7 +26,6 @@ EPC04 : TSK15 → TSK13
 ## To do
 
 - [ ] **EPC04 — Révision de la mécanique de gestion des agents et des associations avec les états**
-  - [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents → #TSK15
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 - [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Journey actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre/marge du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
@@ -45,7 +44,7 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés et testés : sous-menu Agent New/Edit/Delete + AgentSelectionDialog, « New Agent » menu contextuel Journey, bascule Journey après création Event (menu global + contextuel), menus contextuels cartes agent/état vue Agents (Edit/Delete/Show in journey view), menu contextuel grille Agents (New Agent/State/Event), badges évènements source/cible sur les nœuds State (cuivre #D19A66, refresh dynamique) — tests 106 passed + 10 offscreen PASSED (détail dans `tasks/TSK13_agent_mechanics_review.md`)
 
 ## Done
 

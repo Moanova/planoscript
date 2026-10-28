@@ -53,7 +53,7 @@ from usecases.view_management.create_relation_usecase import CreateRelationUseCa
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
 from ui.dialogs.component_dialog import ComponentDialog
 from ui.dialogs.agent_dialog import AgentDialog
-from ui.dialogs.agent_management_dialog import AgentManagementDialog
+from ui.dialogs.agent_selection_dialog import AgentSelectionDialog
 from ui.dialogs.agent_association_dialog import AgentAssociationDialog
 from config.config_loader import get as _get_config
 from config.user_state_loader import get as _get_user_state, set as _set_user_state
@@ -138,11 +138,17 @@ class MainWindow(QMainWindow):
 
         # Agents workspace page: placeholder until TSK08
         self.agents_page = AgentsWorkspace()
+        # TSK13: the agents view context menus act on entities through
+        # the main window (the workspace only emits requests)
+        self.agents_page.main_window = self
         # TSK09: matrix cell editions refresh the journey view (SU008)
         self.agents_page.associationChanged.connect(self._on_matrix_association_changed)
         # TSK10: cross-view navigation request
         self.agents_page.focusAgentInJourneyViewRequested.connect(
             self._focus_agent_in_journey_view)
+        # TSK13: cross-view navigation request (state -> journey view)
+        self.agents_page.focusStateInJourneyViewRequested.connect(
+            self._focus_state_in_journey_view)
         self.pages.addWidget(self.agents_page)
 
         self.pages.setCurrentWidget(self.welcome_page)
@@ -221,6 +227,24 @@ class MainWindow(QMainWindow):
         # _on_tab_changed has refreshed the matrix: apply the focus on
         # the rebuilt columns
         self.agents_page.set_focus(state_id)
+
+    def _focus_state_in_journey_view(self, state_id):
+        """Show a state in the journey view, focused (TSK13, RG067).
+
+        Switches to the Journey tab and highlights the node of the
+        state. The focus is temporary: no modification flag, no
+        persistence (RG067).
+        """
+        project = self.project_service.current_project
+        state = next(
+            (s for s in project.narrative_map[0].state if s.id == state_id),
+            None)
+        if state is None:
+            return
+        self.tab_bar.setCurrentTab("Journey")
+        if isinstance(self.workspace, JourneyWorkspace):
+            self.workspace.set_focus([state_id])
+        self.info_bar.show_message(f"State '{state.lb}' highlighted")
 
     def _focus_agent_in_journey_view(self, agent_id):
         """Show the states of an agent in the journey view, focused
@@ -324,7 +348,14 @@ class MainWindow(QMainWindow):
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
-        self.components_menu.addAction("Agent", self._manage_agents)
+
+        # Agent submenu (Type → Action, TSK13): New... opens the
+        # creation dialog directly; Edit/Delete open a selection dialog
+        # and apply the action to the selected agent
+        self.agent_menu = self.components_menu.addMenu("Agent")
+        self.menu_actions['agent_new'] = self.agent_menu.addAction("New...", lambda: self._new_agent())
+        self.menu_actions['agent_edit'] = self.agent_menu.addAction("Edit", lambda: self._edit_agent())
+        self.menu_actions['agent_delete'] = self.agent_menu.addAction("Delete", lambda: self._delete_agent())
 
         # State submenu (Type → Action)
         self.state_menu = self.components_menu.addMenu("State")
@@ -411,6 +442,17 @@ class MainWindow(QMainWindow):
         self.menu_actions['relation_edit'].setEnabled(has_project and has_relation)
         self.menu_actions['relation_delete'].setEnabled(has_project and has_relation)
         self.menu_actions['associate_agents'].setEnabled(has_project and has_state)
+
+        # TSK13: the agent submenu does not depend on the workspace
+        # selection (the agent is picked in a selection dialog):
+        # "New..." needs an open project, "Edit"/"Delete" need at least
+        # one agent in the project
+        has_agent = bool(
+            has_project and self.project_service.current_project
+            and self.project_service.current_project.agent)
+        self.menu_actions['agent_new'].setEnabled(has_project)
+        self.menu_actions['agent_edit'].setEnabled(has_agent)
+        self.menu_actions['agent_delete'].setEnabled(has_agent)
 
 
     def _show_welcome_message(self):
@@ -868,6 +910,17 @@ class MainWindow(QMainWindow):
             logger.debug("Node created (%s): %s",
                          result.get('component_type'),
                          entity.to_dict() if entity and hasattr(entity, 'to_dict') else entity)
+            # TSK13: creating an event from the agents view (menu or
+            # context menu) switches back to the journey view, where the
+            # event node lives, and selects it. Creating a state stays in
+            # the agents view (the new column appears in the matrix).
+            if (component_type == "Event"
+                    and self.tab_bar.currentTab() == "Agents"):
+                self.tab_bar.setCurrentTab("Journey")
+                node = self.workspace._find_node_by_entity_id_and_type(
+                    entity.id, Event)
+                if node is not None:
+                    self.workspace._select_item_only(node)
 
 
     def _start_state_event_relation_creation(self):
@@ -978,6 +1031,8 @@ class MainWindow(QMainWindow):
                     'relation_type': relation_type
                 })
             self.info_bar.show_message("State-Event relation created")
+            # TSK13: the event badges of the connected state may have changed
+            self._refresh_all_state_badges()
             self._update_menu_state()
         else:
             self.info_bar.show_message("Error: Cannot create State-Event relation")
@@ -1030,71 +1085,100 @@ class MainWindow(QMainWindow):
         self._refresh_agents_view()
         self._update_menu_state()
 
-    def _manage_agents(self):
-        """Open the agent management dialog and handle creation, edition
-        and deletion of agents (FN031). Reopens the dialog after each
-        operation so they can be chained."""
-        while True:
-            management_dialog = AgentManagementDialog(self.project_service, self)
-            if management_dialog.exec() != AgentManagementDialog.Accepted:
-                return
-            action, agent = management_dialog.get_action()
-            if action == "new":
-                dialog = AgentDialog(parent=self)
-                if dialog.exec() != AgentDialog.Accepted:
-                    continue
-                values = dialog.get_values()
-                result = self.create_agent_usecase.execute(
-                    lb=values['lb'], typ=values['typ'], note=values['note'])
-                if result and result.get('success'):
-                    self.info_bar.show_message("Agent created")
-                    # TSK08: a new agent row may have appeared -> refresh
-                    # the agents view matrix; a new agent marks the
-                    # project as modified -> re-enable "Save"
-                    self._refresh_agents_view()
-                    self._update_menu_state()
-                else:
-                    self.info_bar.show_message("Cannot create agent: invalid data")
-            elif action == "edit":
-                dialog = AgentDialog(entity=agent, parent=self)
-                if dialog.exec() != AgentDialog.Accepted:
-                    continue
-                values = dialog.get_values()
-                result = self.update_agent_usecase.execute(
-                    entity=agent, lb=values['lb'],
-                    typ=values['typ'], note=values['note'])
-                if result and result.get('success'):
-                    self.info_bar.show_message("Agent updated")
-                    # TSK05: agent label may have changed, refresh tooltips
-                    self._refresh_all_state_badges()
-                else:
-                    self.info_bar.show_message("Cannot update agent: invalid data")
-            elif action == "delete":
-                # RG064: cascade information in the confirmation message
-                association_count = self._count_agent_associations(agent)
-                if association_count:
-                    message = (f"This agent is associated with {association_count} "
-                                f"state(s). Delete the agent and all its associations?")
-                else:
-                    message = f"Delete the agent '{agent.lb}'?"
-                reply = QMessageBox.question(self, "Confirmation", message,
-                                             QMessageBox.Yes | QMessageBox.No)
-                if reply != QMessageBox.Yes:
-                    continue
-                result = self.delete_agent_usecase.execute(entity=agent)
-                if result and result.get('success'):
-                    removed = result.get('deleted_associations', 0)
-                    if removed:
-                        self.info_bar.show_message(
-                            f"Agent deleted ({removed} association(s) removed)")
-                    else:
-                        self.info_bar.show_message("Agent deleted")
-                    # TSK05: cascaded associations may have changed badges
-                    self._refresh_all_state_badges()
-                else:
-                    self.info_bar.show_message("Cannot delete agent")
+    def _new_agent(self):
+        """Create an agent from the "Project > Components... > Agent >
+        New..." menu entry (TSK13, FN031): opens the creation dialog
+        directly and returns to the workspace on validation."""
+        dialog = AgentDialog(parent=self)
+        if dialog.exec() != AgentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.create_agent_usecase.execute(
+            lb=values['lb'], typ=values['typ'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message("Agent created")
+            # TSK08: a new agent row may have appeared -> refresh
+            # the agents view matrix; a new agent marks the
+            # project as modified -> re-enable "Save"
+            self._refresh_agents_view()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot create agent: invalid data")
+
+    def _edit_agent(self):
+        """Edit an agent from the "Project > Components... > Agent >
+        Edit" menu entry (TSK13, FN031): opens a selection dialog, then
+        the edition dialog prefilled with the selected agent."""
+        agent = self._select_agent()
+        if agent is None:
+            return
+        dialog = AgentDialog(entity=agent, parent=self)
+        if dialog.exec() != AgentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.update_agent_usecase.execute(
+            entity=agent, lb=values['lb'],
+            typ=values['typ'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message("Agent updated")
+            # TSK05: agent label may have changed, refresh tooltips
+            self._refresh_all_state_badges()
+            self._refresh_agents_view()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot update agent: invalid data")
+
+    def _delete_agent(self):
+        """Delete an agent from the "Project > Components... > Agent >
+        Delete" menu entry (TSK13, FN031): opens a selection dialog,
+        then deletes the selected agent with confirmation (RG064)."""
+        agent = self._select_agent()
+        if agent is None:
+            return
+        self._delete_agent_with_confirmation(agent)
+
+    def _select_agent(self):
+        """Open the agent selection dialog (TSK13) and return the
+        selected agent, or None if the dialog was cancelled or no agent
+        exists."""
+        project = self.project_service.current_project
+        if not project or not project.agent:
+            self.info_bar.show_message("No agent in the project")
+            return None
+        dialog = AgentSelectionDialog(project.agent, parent=self)
+        if dialog.exec() != AgentSelectionDialog.Accepted:
+            return None
+        return dialog.get_selected_agent()
+
+    def _delete_agent_with_confirmation(self, agent):
+        """Delete an agent with confirmation (RG064: the confirmation
+        message reports the number of cascaded associations)."""
+        # RG064: cascade information in the confirmation message
+        association_count = self._count_agent_associations(agent)
+        if association_count:
+            message = (f"This agent is associated with {association_count} "
+                       f"state(s). Delete the agent and all its associations?")
+        else:
+            message = f"Delete the agent '{agent.lb}'?"
+        reply = QMessageBox.question(self, "Confirmation", message,
+                                     QMessageBox.Yes | QMessageBox.No)
+        if reply != QMessageBox.Yes:
+            return
+        result = self.delete_agent_usecase.execute(entity=agent)
+        if result and result.get('success'):
+            removed = result.get('deleted_associations', 0)
+            if removed:
+                self.info_bar.show_message(
+                    f"Agent deleted ({removed} association(s) removed)")
             else:
-                return
+                self.info_bar.show_message("Agent deleted")
+            # TSK05: cascaded associations may have changed badges
+            self._refresh_all_state_badges()
+            # TSK08: the agent row disappeared -> refresh the matrix
+            self._refresh_agents_view()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot delete agent")
 
     def _refresh_all_state_badges(self):
         """Refresh the agent badges of all state nodes (TSK05)."""
@@ -1147,6 +1231,53 @@ class MainWindow(QMainWindow):
             self._update_menu_state()
         else:
             self.info_bar.show_message(f"Cannot update {component_type}: invalid data")
+
+    def _edit_agent_entity(self, agent):
+        """Edit a specific agent entity (TSK13, from the agents view
+        context menu): opens the edition dialog prefilled with the
+        agent."""
+        dialog = AgentDialog(entity=agent, parent=self)
+        if dialog.exec() != AgentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.update_agent_usecase.execute(
+            entity=agent, lb=values['lb'],
+            typ=values['typ'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message("Agent updated")
+            # TSK05: agent label may have changed, refresh tooltips
+            self._refresh_all_state_badges()
+            self._refresh_agents_view()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot update agent: invalid data")
+
+    def _edit_state_entity(self, state):
+        """Edit a specific state entity (TSK13, from the agents view
+        context menu): opens the edition dialog prefilled with the
+        state, then refreshes the matrix column."""
+        dialog = ComponentDialog(state, self)
+        if dialog.exec() != ComponentDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.update_component_usecase.execute(
+            entity=state,
+            lb=values['lb'],
+            note=values['note'],
+            typ=values.get('typ')
+        )
+        if result and result.get('success'):
+            self.info_bar.show_message("State updated")
+            # The label may have changed: refresh the matrix column
+            self._refresh_agents_view()
+            if isinstance(self.workspace, JourneyWorkspace):
+                node = self.workspace._find_node_by_entity_id_and_type(
+                    state.id, State)
+                if node is not None:
+                    node.update_entity_data()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot update State: invalid data")
 
 
     def _delete_selected_component(self, component_type: str):
@@ -1217,6 +1348,71 @@ class MainWindow(QMainWindow):
         self._refresh_agents_view()
         self._update_menu_state()
 
+    def _delete_state_entity(self, state):
+        """Delete a specific state entity (TSK13, from the agents view
+        context menu). SU003: confirmation when associated data exists;
+        cascades arcs and agent-state associations (RG065); RG031
+        protects the initial state (the menu entry is disabled for it,
+        this guard is a safety net)."""
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+
+        # RG031: the initial state can never be deleted
+        if state.typ == "Initial":
+            self.info_bar.show_message("The initial state cannot be deleted (RG031)")
+            return
+
+        # SU003: confirmation when the state has associated data (arcs
+        # or agent-state associations)
+        arc_count = len(ArcService.get_connected_entities(
+            narrative_map, state.id, "State"))
+        association_count = sum(
+            1 for rel in narrative_map.state_agent_rel
+            if rel.state_id == state.id)
+        if arc_count or association_count:
+            message = (f"State '{state.lb}' is connected to {arc_count} "
+                       f"event(s) and associated with {association_count} "
+                       f"agent(s). Delete the state and all its relations?")
+            reply = QMessageBox.question(self, "Confirmation", message,
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply != QMessageBox.Yes:
+                return
+
+        # Delete all arcs referencing this state (State_to_event + Event_to_state)
+        ArcService.delete_related_arcs(narrative_map, state.id, "State")
+        # RG065: cascade the deletion to the agent-state associations
+        cascade = self.remove_state_associations_usecase.execute(state=state)
+        removed_associations = (cascade.get('deleted_associations', 0)
+                                if cascade else 0)
+
+        # Remove the entity from the narrative map's entity list
+        narrative_map.state[:] = [
+            s for s in narrative_map.state if s.id != state.id]
+
+        # Remove the visual node and its attached connections
+        if isinstance(self.workspace, JourneyWorkspace):
+            item = self.workspace._find_node_by_entity_id_and_type(
+                state.id, State)
+            if item is not None:
+                self.workspace.remove_node(item)
+
+        self.node_count -= 1
+
+        # Mark project as modified and update menu state
+        self.project_service.set_modified(True)
+        self.info_bar.show_message("State deleted")
+        if removed_associations:
+            # RG065: information message when the state was associated
+            # with at least one agent
+            self.info_bar.show_message(
+                f"State deleted ({removed_associations} agent association(s) removed)")
+        # The state column disappeared and associations may have been
+        # cascaded (RG065) -> refresh the agents view matrix
+        self._refresh_agents_view()
+        self._update_menu_state()
+
 
     def _edit_selected_relation(self):
         """Edit the currently selected relation (not yet implemented)."""
@@ -1252,6 +1448,8 @@ class MainWindow(QMainWindow):
         # Mark project as modified and update menu state
         self.project_service.set_modified(True)
         self.info_bar.show_message("Relation deleted")
+        # TSK13: the event badges of the connected state may have changed
+        self._refresh_all_state_badges()
         self._update_menu_state()
 
 

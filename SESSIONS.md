@@ -478,3 +478,53 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   mention « Non implémenté » résiduelle liée aux agents hors l'entrée de menu
   View>Agents, volontairement conservée comme relique) ; `05_menu-EN.yaml`
   parsé (YAML OK).
+
+## 28-10-2026 — TSK13 : révision mécanique création/édition agents et associations (EPC04)
+
+- **Cadrage** : 7 points TSC reçus et clarifiés avant implémentation (1 incohérence
+  bloquante détectée et corrigée : point 05 « Edit Event/Delete Event » sur une
+  carte d'état → coquille, remplacé par « Edit State/Delete State » ; précisions
+  actées sur le sous-menu Agent, la bascule Journey, les menus contextuels et les
+  badges d'évènement). Détail dans `docs/project/tasks/TSK13_agent_mechanics_review.md`.
+- **Implémentation (7 points)** :
+  - 01 : sous-menu « Project > Components... > Agent » → New.../Edit/Delete ;
+    `AgentSelectionDialog` (liste + Ok désactivé sans sélection/Cancel) pour
+    Edit/Delete ; « New... » actif dès qu'un projet est ouvert, Edit/Delete dès
+    qu'un agent existe ; `AgentManagementDialog` supprimé (code mort).
+  - 02 : « New Agent » dans le menu contextuel de la grille de la vue Journey
+    (AgentDialog direct, pas de bascule).
+  - 03 : création d'un Event depuis la vue Agents (menu global ET menu
+    contextuel grille) → bascule onglet Journey + sélection du node créé ;
+    création State/Agent depuis la vue Agents → pas de bascule.
+  - 04 : menu contextuel carte agent (vue Agents) : Edit Agent / Delete Agent
+    (confirmation RG064 avec nombre d'associations) / Show in journey view.
+  - 05 : menu contextuel carte état (vue Agents) : Edit State / Delete State
+    (désactivé pour l'état initial RG031, confirmation SU003, cascade RG065) /
+    Show in journey view (extension du contrat de focus TSK10/RG067 :
+    signal `focusStateInJourneyViewRequested`, bascule + focus du node).
+  - 06 : menu contextuel grille (hors matrice, vue Agents) : New Agent / New State /
+    New Event.
+  - 07 : deux badges d'évènement par nœud State (pastille + compteur, style
+    identique au badge agents, cuivre `event_badge_bg_color` #D19A66) : gauche =
+    événements sources (`Event_to_state`), droite = cibles (`State_to_event`),
+    même position verticale que le badge agents ; infobulle « Events (in): ... » /
+    « Events (out): ... » ; refresh dynamique à la création/suppression de relation
+    et au chargement. `EventBadgeService` (miroir d'`AgentBadgeService`).
+- **Tests** : +11 tests unitaires `test_event_badge_service.py` ;
+  `offscreen_tsk13_agent_mechanics.py` couvre les 7 points (menus, bascule,
+  badges logiques + rendu visuel cuivre par différentiel de pixels) ;
+  `offscreen_anomaly_regression.py` mis à jour. **106 passed** (pytest) +
+  **10 scripts offscreen PASSED**.
+- **Leçons Qt** : le test de focus du point 05 assombrit les items non focalisés
+  (overlay translucide) — un rendu de vérification visuelle doit appeler
+  `clear_focus()` au préalable ; `_find_node_by_entity_id_and_type` attend la
+  classe du modèle de données (`State`/`Event`), pas la classe du node.
+- **Documentation** : `04_interface-FR/EN.md` v2.2 (sous-menu Agent, menus
+  contextuels des deux vues, badges d'évènement, checklists), `03_features-FR/EN.md`
+  v2.2 (FN014/FN018/FN031/FN032), `05_menu-EN.yaml` v2.2 (sous-menu Agent,
+  note New... Event), `98_layout_revision-FR.md` (ligne badges d'évènement +
+  variable `--event-badge-bg`).
+- **Kanban** : TSK13 déplacée Doing → En revue (attente validation TSC).
+- **Reste à faire (information)** : section 6 de `04_interface` (couleurs thème
+  clair, charte 98 autorité) ; menus « Project > View » et « Display > Journey »
+  à revoir ultérieurement (décision TSC).

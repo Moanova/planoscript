@@ -1,9 +1,9 @@
 # TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
 
 - **Épic** : EPC01/EPC02 (gestion des agents, associations)
-- **Statut** : To do
+- **Statut** : En revue (implémentation + tests terminés le 28-10-2026, attente validation TSC)
 - **Date de création** : 24-10-2026
-- **Dépendances** : aucune (TSK01–TSK05 Done)
+- **Dépendances** : TSK15 (Done)
 
 ## Périmètre
 
@@ -17,9 +17,53 @@ Revue de la mécanique fonctionnelle (hors esthétique) de :
    (TSK04), édition des cellules de la matrice agents × états (TSK09),
    badges sur les nœuds d'état (TSK05).
 
-Le périmètre précis (points à corriger/améliorer, parcours utilisateur
-cible) sera précisé par TSC. Cette tâche est volontairement ouverte en
-l'attente de ce cadrage.
+Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
+
+1. **Sous-menu « Project > Components... > Agent »** (New... / Edit / Delete),
+   comparable aux sous-menus State et Event :
+   - « New... » ouvre directement le dialogue « New Agent » (`AgentDialog`,
+     création) ; retour à l'espace de travail à la validation.
+   - « Edit » ouvre un nouveau dialogue de sélection `AgentSelectionDialog`
+     (liste des agents, boutons Ok/Cancel, Ok désactivé sans sélection) ;
+     Ok ouvre `AgentDialog` pré-rempli sur l'agent sélectionné.
+   - « Delete » ouvre le même `AgentSelectionDialog` ; Ok supprime l'agent
+     avec confirmation (message RG064 avec nombre d'associations).
+   - Activation : « New... » actif dès qu'un projet est ouvert ; « Edit » et
+     « Delete » actifs dès qu'au moins un agent existe (la sélection se fait
+     dans le dialogue, pas dans l'espace de travail). Menu global : accessible
+     des vues Journey et Agents.
+2. **Menu contextuel vue Journey** (clic sur la grille) : ajout de l'entrée
+   « New Agent » → `AgentDialog` (création), reste dans la vue Journey.
+3. **Bascule vers la vue Journey après création d'un évènement** : lorsque
+   « New Event » est déclenché (menu global « Project > Components... >
+   Event > New... » ou menu contextuel de la grille Agents, point 6) alors
+   que la vue Agents est active, la vue bascule sur Journey et l'évènement
+   créé est sélectionné. La création d'un état ne bascule pas (la colonne
+   apparaît dans la matrice au rafraîchissement).
+4. **Menu contextuel carte agent (vue Agents)** : « Edit Agent » (ouvre
+   `AgentDialog` pré-rempli), « Delete Agent » (confirmation RG064), « Show
+   in journey view » (TSK10, conservé).
+5. **Menu contextuel carte état (vue Agents)** : « Edit State » (ouvre
+   `ComponentDialog` pré-rempli), « Delete State » (désactivé pour l'état
+   initial, RG031 ; confirmation et cascades arcs + RG065), « Show in
+   journey view » (nouveau : bascule vers Journey et met le focus sur le
+   node de l'état — extension du contrat de focus TSK10/RG067).
+6. **Menu contextuel grille Agents** (clic droit hors matrice) : « New
+   Agent » (création, reste dans la vue Agents), « New State » (création,
+   reste dans la vue Agents), « New Event » (création puis bascule Journey,
+   point 3).
+7. **Badges d'évènements sur les nœuds State (vue Journey)** : deux badges
+   par nœud, même style que le badge agents (pastille + compteur) :
+   - badge **gauche** = nombre d'évènements **sources** (arcs
+     `Event_to_state` pointant vers l'état) ;
+   - badge **droite** = nombre d'évènements **cibles** (arcs
+     `State_to_event` partant de l'état) ;
+   - position verticale identique au badge agents (bas du nœud), badges
+     gauche et droite de même style (cuivre `event_color`) ;
+   - infobulle : lignes « Events (in): ... » / « Events (out): ... » avec
+     les libellés (même pattern que la ligne « Agents: ... ») ;
+   - rafraîchissement dynamique à la création/suppression d'une relation et
+     au chargement du projet.
 
 ## Contexte (existant mobilisable)
 
@@ -36,3 +80,18 @@ l'attente de ce cadrage.
 
 - 24-10-2026 : tâche créée à la demande de TSC, en attente de cadrage
   (prochaine séance).
+- 28-10-2026 : cadrage TSC reçu (7 points, complété en revue : coquille point 05
+  corrigée en Edit State/Delete State ; activation du sous-menu Agent, bascule
+  Journey, badges cuivre actés). Implémentation des 7 points : sous-menu
+  Agent New.../Edit/Delete + `AgentSelectionDialog` (`AgentManagementDialog`
+  supprimé), « New Agent » menu contextuel grille Journey, bascule Journey +
+  sélection après création Event depuis la vue Agents (menu global et
+  contextuel), menus contextuels cartes agent/état et grille en vue Agents
+  (Edit/Delete/Show in journey view ; Delete State désactivé pour l'état
+  initial RG031, cascade RG065 ; focus état→parcours via
+  `focusStateInJourneyViewRequested`), badges d'évènement source/cible sur les
+  nœuds State (`EventBadgeService`, cuivre `event_badge_bg_color` #D19A66,
+  refresh dynamique). Tests : 106 passed (pytest) + 10 offscreen PASSED
+  (`offscreen_tsk13_agent_mechanics.py` couvre les 7 points). Documentation :
+  `04_interface` FR/EN v2.2, `03_features` FR/EN v2.2, `05_menu-EN.yaml` v2.2,
+  `98_layout_revision-FR.md` (badges d'évènement). Kanban : Doing → En revue.

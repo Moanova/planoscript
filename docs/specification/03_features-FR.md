@@ -1,9 +1,9 @@
 # Planoscript ::: Fonctionnalités
 
 ## Document Version
-- **Version** : 2.1
+- **Version** : 2.2
 - **Date** : 28-10-2026
-- **Status** : Version corrigée et enrichie, réalignée sur les user stories v2.0 (29-08-2026) et sur le menu général v2.0 (27-08-2026) ; section « Agents et associations agent-état » mise à jour (implémentation EPC01–EPC04, TSK01–TSK15)
+- **Status** : Version corrigée et enrichie, réalignée sur les user stories v2.0 (29-08-2026) et sur le menu général v2.0 (27-08-2026) ; section « Agents et associations agent-état » mise à jour (implémentation EPC01–EPC04, TSK01–TSK15 ; TSK13 : révision mécanique création/édition agents et associations)
 
 ---
 
@@ -167,7 +167,7 @@
     - Il présente deux ports d'attachement actifs : entrant (gauche) et sortant (droite).
     - Il n'est pas redimensionnable.
     - Toute création marque la carte, et donc le projet, comme modifié.
-- **État** : Partiellement implémenté (création via menu, positionnée au centre de l'espace de travail — à aligner sur le comportement attendu "emplacement désigné par l'utilisateur").
+- **État** : Partiellement implémenté (création via menu, positionnée au centre de l'espace de travail — à aligner sur le comportement attendu "emplacement désigné par l'utilisateur"). TSK13 : création d'un événement depuis la vue agents (menu global ou menu contextuel de la grille) bascule vers la vue parcours et sélectionne le node créé ; « New Agent » est proposé dans le menu contextuel de la grille de la vue parcours (création directe, sans bascule) et dans celui de la grille de la vue agents (reste dans la vue agents).
 
 ## FN015 : Modifier les attributs d'un composant
 - **Description** : Modifier les attributs éditables d'un composant via son panneau de propriétés.
@@ -205,7 +205,7 @@
     - Si des données sont associées au composant, une confirmation est demandée.
     - La suppression entraîne la suppression en cascade de toutes les relations reliant le composant aux autres composants.
     - Toute suppression marque la carte, et donc le projet, comme modifié.
-- **État** : Non implémenté. L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
+- **État** : Partiellement implémenté. Suppression d'un agent via le sous-menu « Project › Components... › Agent › Supprimer » (dialogue de sélection + confirmation RG064) et via le menu contextuel d'une carte agent dans la vue agents (TSK13) ; suppression d'un état via le menu contextuel d'une carte état dans la vue agents (TSK13 : confirmation si des arcs/associations existent, entrée désactivée pour l'état initial RG031, cascade RG065) et via le menu contextuel d'un node état dans la vue parcours (désactivé pour l'état initial). L'option de menu « State › Delete » / « Event › Delete » reste spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN019 : Gérer l'appartenance d'un composant aux parcours
 - **Description** : Modifier la liste des parcours auxquels un composant est rattaché.
@@ -346,23 +346,27 @@
 ## FN031 : Gérer les agents du projet
 
 - **Description** : Créer, renommer, modifier ou supprimer un agent du projet.
-- **Références** : SU008, SU009 ; menu "Project › Components... › Agent" ; vue agents.
+- **Références** : SU008, SU009 ; sous-menu "Project › Components... › Agent" (Nouveau.../Éditer/Supprimer) ; vue agents (menus contextuels) ; TSK13.
 - **Comportement attendu** :
     - Un agent appartient au projet ; il est caractérisé par un identifiant entier unique au sein du projet, un libellé, un type (sujet ou objet) et une note optionnelle.
-    - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable.
+    - « Nouveau... » ouvre directement le dialogue « New Agent » ; actif dès qu'un projet est ouvert.
+    - « Éditer » et « Supprimer » ouvrent un dialogue de sélection de l'agent (liste + « Ok »/« Cancel », « Ok » désactivé sans sélection) ; actifs dès qu'au moins un agent existe — la sélection se fait dans le dialogue, sans dépendance à la sélection de l'espace de travail. Dans les trois cas, la validation ramène à l'espace de travail.
+    - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable indiquant le nombre d'associations supprimées.
     - Toute création, modification ou suppression d'agent marque le projet comme modifié.
-- **État** : Implémenté (TSK01/TSK02 : création/édition/suppression via dialogue de gestion des agents, entrée de menu activée, cascade RG064).
+    - Le sous-menu est global (barre de menus) : accessible depuis les vues « Parcours » et « Agents ».
+- **État** : Implémenté (TSK01/TSK02 : création/édition/suppression avec cascade RG064 ; TSK13 : sous-menu Nouveau.../Éditer/Supprimer avec dialogue de sélection `AgentSelectionDialog`, menus contextuels des deux vues, « New Agent » dans le menu contextuel de la grille de la vue parcours).
 
 ## FN032 : Basculer entre la vue parcours et la vue agents (navigation croisée)
 
 - **Description** : Basculer d'une vue à l'autre en ciblant une entité (état ou agent) afin d'examiner ses relations dans l'autre représentation.
-- **Références** : SU009 ; RG067 ; menu contextuel d'un état « Voir dans la vue agents » (vue parcours) ; menu contextuel d'un agent « Voir dans la vue parcours » (vue agents).
+- **Références** : SU009 ; RG067 ; menu contextuel d'un état « Voir dans la vue agents » (vue parcours) ; menu contextuel d'un agent « Voir dans la vue parcours » (vue agents) ; menu contextuel d'un état « Voir dans la vue parcours » (vue agents, TSK13).
 - **Comportement attendu** :
     - Depuis la vue parcours, « Voir dans la vue agents » bascule vers la vue agents et met en évidence la colonne de l'état ciblé (surbrillance + défilement).
     - Depuis la vue agents, « Voir dans la vue parcours » bascule vers la vue parcours et met en évidence l'ensemble des états associés à l'agent ciblé ; le reste du graphe est atténué.
+    - Depuis la vue agents, « Voir dans la vue parcours » sur un état bascule vers la vue parcours et met le focus sur le node de l'état ciblé (extension du contrat TSK10/RG067 par TSK13).
     - Le focus est un état visuel temporaire (RG067) : un clic dans le vide ou la touche Échap le relâche.
     - La navigation ne marque ni la carte ni le projet comme modifiés.
-- **État** : Implémenté (TSK10 : bascule et focus dans les deux sens, relâchement par Échap/clic, aucune persistance).
+- **État** : Implémenté (TSK10 : bascule et focus dans les deux sens ; TSK13 : navigation état→vue parcours depuis la vue agents).
 
 ---
 

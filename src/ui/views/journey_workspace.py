@@ -615,9 +615,10 @@ class JourneyWorkspace(QGraphicsView, QObject):
         if select:
             self._select_item_only(node)
 
-        # TSK05: initialize the agent badge of state nodes
+        # TSK05/TSK13: initialize the agent and event badges of state nodes
         if isinstance(node, StateNode):
             self.refresh_state_badge(node)
+            self.refresh_event_badges(node)
 
         return node
 
@@ -644,11 +645,38 @@ class JourneyWorkspace(QGraphicsView, QObject):
                 associated_labels.append(agent.lb)
         state_node.refresh_agent_badge(len(associated_labels), associated_labels)
 
+    def refresh_event_badges(self, state_node: StateNode) -> None:
+        """
+        Refresh the event badges of a state node (TSK13).
+
+        Computes the source events (Event_to_state arcs pointing to the
+        state, left badge) and the target events (State_to_event arcs
+        leaving the state, right badge) from the current narrative map
+        and updates the badge counts and tooltip lines.
+        """
+        if not self.narrative_map:
+            return
+        state_id = state_node.entity.id
+        events_by_id = {e.id: e for e in self.narrative_map.event}
+        source_labels = []
+        target_labels = []
+        for arc in self.narrative_map.event_to_state:
+            if arc.state_id == state_id and arc.event_id in events_by_id:
+                source_labels.append(events_by_id[arc.event_id].lb)
+        for arc in self.narrative_map.state_to_event:
+            if arc.state_id == state_id and arc.event_id in events_by_id:
+                target_labels.append(events_by_id[arc.event_id].lb)
+        state_node.refresh_event_badges(
+            len(source_labels), len(target_labels),
+            source_labels, target_labels)
+
     def refresh_all_state_badges(self) -> None:
-        """Refresh the agent badge of every state node in the scene."""
+        """Refresh the agent and event badges of every state node in the
+        scene (TSK05/TSK13)."""
         for item in self.scene.items():
             if isinstance(item, StateNode):
                 self.refresh_state_badge(item)
+                self.refresh_event_badges(item)
 
 
     def create_connection_from_data(self, connection_data: dict):
@@ -906,6 +934,11 @@ class JourneyWorkspace(QGraphicsView, QObject):
         self.horizontalScrollBar().setValue(int(workspace_layout.scroll_x))
         self.verticalScrollBar().setValue(int(workspace_layout.scroll_y))
 
+        # TSK13: initialize the event badges now that all arcs exist
+        # (create_node_from_data initializes them too, but arcs loaded
+        # after their state node would leave stale counts)
+        self.refresh_all_state_badges()
+
         # Clear selection (no item should be selected after load)
         self._clear_all_selections()
 
@@ -990,6 +1023,9 @@ class JourneyWorkspace(QGraphicsView, QObject):
                     'relation_type': RelationType.EVENT_TO_STATE
                 })
 
+        # TSK13: initialize the event badges now that all arcs exist
+        self.refresh_all_state_badges()
+
         # Clear selection
         self._clear_all_selections()
 
@@ -1066,6 +1102,8 @@ class JourneyWorkspace(QGraphicsView, QObject):
             # Context menu for empty area
             handlers[menu.addAction("New State")] = lambda: self.main_window._create_new_node("State")
             handlers[menu.addAction("New Event")] = lambda: self.main_window._create_new_node("Event")
+            # TSK13: agents are project entities managed from the menus
+            handlers[menu.addAction("New Agent")] = lambda: self.main_window._new_agent()
             handlers[menu.addAction("Connect State and Event")] = lambda: self.main_window._start_state_event_relation_creation()
 
         # Show the menu at the cursor position and run the handler matching

@@ -1,9 +1,9 @@
 # Planoscript ::: User Interface Specification
 
 ## Document Version
-- **Version**: 2.1
+- **Version**: 2.2
 - **Date**: 28-10-2026
-- **Status**: Retrospective update to reflect the current implementation (latest redesign + EPC01–EPC04: agent management, agent-state associations, agents view)
+- **Status**: Retrospective update to reflect the current implementation (latest redesign + EPC01–EPC04: agent management, agent-state associations, agents view; TSK13: mechanical review of agent/association creation and edition)
 
 ---
 
@@ -65,7 +65,11 @@
       - Journey - Not implemented (the view is activated via the tab bar, not via this menu)
       - Agents - Not implemented (the view is activated via the tab bar; SU009; the Relations and Chapters entries are leftovers removed from the MVP)
     - **Components...**:
-      - Agent - Functional (opens the agent management dialog, FN031: create/edit/delete with RG064 cascade)
+      - **Agent**:
+        - New... - Functional (opens the "New Agent" dialog directly; enabled as soon as a project is open; FN031, TSK13)
+        - Edit - Functional (opens an agent selection dialog, then the pre-filled "New Agent" dialog; enabled as soon as at least one agent exists; the selection is made in the dialog, with no dependency on the workspace selection; TSK13)
+        - Delete - Functional (opens an agent selection dialog, then a confirmation showing the number of cascaded associations, RG064; enabled as soon as at least one agent exists; TSK13)
+      - Global menu (menu bar): accessible from both the "Journey" and "Agents" views.
       - **State**:
         - New... - Functional
         - Edit - Not implemented (enabled when a State node is selected)
@@ -207,6 +211,13 @@
       - *Nodes do not snap to the grid* during movement.
       - The scene extends automatically when a node is dragged toward the edges.
 
+  - **Context Menu** (right click; unavailable while a relation creation is in progress):
+    - On the grid (outside nodes and relations): "New State", "New Event", "New Agent" (TSK13: opens the "New Agent" dialog directly, without switching views), "Connect State and Event".
+    - On a State node: "Edit State", "Associate agents..." (FN030), "Show in agents view" (TSK10/RG067, disabled when the state has no agent association), "Delete State" (disabled for the initial state, RG031).
+    - On an Event node: "Edit Event", "Delete Event".
+    - On a relation: "Edit Relation", "Delete Relation".
+    - The click selects the item under the cursor before the menu opens, so the actions apply to the clicked item.
+
 - **Visual Elements**:
 
   - **Nodes (Components)**:
@@ -226,6 +237,9 @@
     - **Content**:
       - **Name**: Text at the top, Arial 10pt **bold**.
       - **Description**: *Not displayed* - to be implemented.
+    - **Badges on State nodes** (TSK05, TSK13):
+      - **Agent badge** (bottom right of the card): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
+      - **Event badges** (TSK13): two pills with counters, same style as the agent badge but in copper `#D19A66` (Event type tint), at the same vertical position (bottom of the card): **left** badge = number of **source** events (arcs `Event_to_state` pointing to this state), **right** badge = number of **target** events (arcs `State_to_event` leaving this state). Tooltip "Events (in): ..." / "Events (out): ...". Hidden at 0; refreshed dynamically on relation creation/deletion and on project load.
     - **Anchor Points**:
       - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
       - Should be visible on hover (8px squares, color `#4CAF50`).
@@ -245,20 +259,25 @@
 ### 6.bis. Agents View (Secondary Workspace) - *Implemented (TSK07–TSK15)*
 
 - **File** : `./src/ui/views/agents_workspace.py`
-- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar. `QGraphicsView` (like the journey view, TSK15).
+- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar. `QGraphicsView` (like the journey view, TSK15). Agent and state creation/edition are possible from this view via the global menu and the context menus (TSK13).
 - **Representation** : Agents × states matrix in graphical view.
   - One card per project agent (left column, rows); one card per state of the current narrative map (top row, columns); one 20×20 checkbox at each intersection.
   - 80×40 cards rendered like the journey view nodes (surface `#2D2D2D`, outline tinted by type: gold `#E5C07B` for states, copper `#D19A66` for agents); label truncated to 8 characters, immediate tooltip on hover.
   - Background grid 120×80 (config `agents_view_cell_width`/`_height`): each card and each checkbox is centered in its cell (20 px margins for cards, 50/30 px for checkboxes). The grid is redrawn over the visible area (journey view pattern) and the scene extends right/down only: the matrix stays anchored at the top-left corner.
   - The column order follows business rule RG068 (creation order by default, manual reordering persisted by drag and drop, initial state pinned to the first column with a rejection message in the info bar).
   - A checked cell materializes an agent-state association (SU008). Editing is done by clicking the checkbox (TSK09).
-- **Focus contract (cross-view navigation, TSK10/RG067)** :
-  - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the journey view with the rest of the graph dimmed).
+- **Focus contract (cross-view navigation, TSK10/RG067, extended by TSK13)** :
+  - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the journey view with the rest of the graph dimmed; target state from the agents view → switch to the journey view and focus on the state node, TSK13).
   - The focus is a temporary visual state (RG067): no modified marking, no persistence. A click on empty space or the Escape key releases it.
+- **Context Menus (TSK13)** :
+  - Agent card: "Edit Agent" (pre-filled "New Agent" dialog), "Delete Agent" (confirmation with the number of cascaded associations, RG064), "Show in journey view" (TSK10).
+  - State card: "Edit State" (pre-filled dialog), "Delete State" (disabled for the initial state, RG031; confirmation when arcs or associations exist, RG065 cascades), "Show in journey view" (switches to the journey view + focuses the node, extension of the TSK10/RG067 contract).
+  - Grid (outside the matrix): "New Agent" (stays in the agents view), "New State" (stays in the agents view; the new column appears in the matrix), "New Event" (creates the node in the journey view, switches to the journey view and selects the node — same behavior as point 03).
+- **Event creation from the agents view (TSK13)**: whether the creation starts from the global menu "Project > Components... > Event > New..." or from the grid context menu, the view switches to "Journey" once the event is created, and the created node is selected. Creating an agent or a state from the agents view does not switch the view.
 - **Roles** :
   - Display the agent-state associations of the current map.
   - Edit associations (check/uncheck).
-  - Manage project agents via the menu (create, rename, modify, delete — FN031); the agent card context menu offers "Show in journey view" (TSK10).
+  - Manage project agents via the global menu ("Project > Components... > Agent" submenu: New.../Edit/Delete — FN031, TSK13) and via the context menus (create/edit/delete an agent, edit/delete a state).
 ### 7. Information Bar (Bottom Left)
 - **File**: `./src/ui/widgets/info_bar.py`
 - **Description**: Displays contextual information about the selected object.
@@ -340,11 +359,13 @@
 - [x] Contextual information bar
 - [x] Management of project modified state
 - [x] "About" and "Change Log" dialogs
-- [x] Project agent management (create, edit, delete with RG064 cascade — FN031, TSK01/TSK02)
+- [x] Project agent management (create, edit, delete with RG064 cascade — FN031, TSK01/TSK02; "Agent" submenu New.../Edit/Delete with selection dialog — TSK13)
 - [x] Agent-state associations from the journey view ("Associate agents..." dialog — FN030, TSK04)
 - [x] Agent badges on state nodes in the journey view (TSK05)
+- [x] Event badges (source/target) on state nodes in the journey view (TSK13)
 - [x] "Agents" view: agents × states matrix in graphical view, cell editing, RG068 order, 120×80 grid (TSK07–TSK15, SU008/SU009)
-- [x] Cross-view navigation with focus (RG067 — TSK10)
+- [x] Cross-view navigation with focus (RG067 — TSK10, extended state→journey by TSK13)
+- [x] Context menus of the journey and agents views (agent create/edit/delete, state edit/delete, switch to journey after event creation — TSK13)
 
 ### Partially Implemented
 - [ ] Components bar (exists but not integrated)

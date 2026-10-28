@@ -1,9 +1,9 @@
 # Planoscript ::: Features
 
 ## Document Version
-- **Version** : 2.1
+- **Version** : 2.2
 - **Date** : 28-10-2026
-- **Status** : Corrected and enriched version, realigned with user stories v2.0 (29-08-2026) and the general menu v2.0 (27-08-2026); "Agents and agent-state associations" section updated (EPC01–EPC04 implementation, TSK01–TSK15)
+- **Status** : Corrected and enriched version, realigned with user stories v2.0 (29-08-2026) and the general menu v2.0 (27-08-2026); "Agents and agent-state associations" section updated (EPC01–EPC04 implementation, TSK01–TSK15; TSK13: mechanical review of agent/association creation and edition)
 
 ---
 
@@ -167,7 +167,7 @@
   - It has two active attachment ports: incoming (left) and outgoing (right).
   - It is not resizable.
   - Any creation marks the map, and therefore the project, as modified.
-- **Status** : Partially implemented (creation via menu, positioned at the center of the workspace — to be aligned with the expected behavior "location designated by the user").
+- **Status** : Partially implemented (creation via menu, positioned at the center of the workspace — to be aligned with the expected behavior "location designated by the user"). TSK13: creating an event from the agents view (global menu or grid context menu) switches to the journey view and selects the created node; "New Agent" is offered in the grid context menu of the journey view (direct creation, no view switch) and in the grid context menu of the agents view (stays in the agents view).
 
 ## FN015 : Modify the attributes of a component
 - **Description** : Modify the editable attributes of a component via its properties panel.
@@ -205,7 +205,7 @@
   - If data is associated with the component, a confirmation is requested.
   - Deletion triggers the cascade deletion of all relations connecting the component to other components.
   - Any deletion marks the map, and therefore the project, as modified.
-- **Status** : Not implemented. The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
+- **Status** : Partially implemented. Agent deletion via the "Project › Components... › Agent › Delete" submenu (selection dialog + RG064 confirmation) and via the agent card context menu in the agents view (TSK13); state deletion via the state card context menu in the agents view (TSK13: confirmation when arcs/associations exist, entry disabled for the initial state RG031, RG065 cascades) and via the state node context menu in the journey view (disabled for the initial state). The "State › Delete" / "Event › Delete" menu options remain specified but not implemented; they are enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN019 : Manage the membership of a component to journeys
 - **Description** : Modify the list of journeys to which a component is attached.
@@ -346,23 +346,27 @@
 ## FN031 : Manage project agents
 
 - **Description** : Create, rename, modify or delete a project agent.
-- **References** : SU008, SU009; menu "Project › Components... › Agent"; agents view.
+- **References** : SU008, SU009; submenu "Project › Components... › Agent" (New.../Edit/Delete); agents view (context menus); TSK13.
 - **Expected behavior** :
     - An agent belongs to the project; it is characterized by an integer identifier unique within the project, a label, a type (subject or object) and an optional note.
-    - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation.
+    - "New..." opens the "New Agent" dialog directly; enabled as soon as a project is open.
+    - "Edit" and "Delete" open an agent selection dialog (list + "Ok"/"Cancel", "Ok" disabled without selection); enabled as soon as at least one agent exists — the selection is made in the dialog, with no dependency on the workspace selection. In all three cases, validation returns to the workspace.
+    - Deleting an agent cascades the deletion of all its associations with states (RG064), with prior confirmation showing the number of deleted associations.
     - Any agent creation, modification or deletion marks the project as modified.
-- **Status** : Implemented (TSK01/TSK02: create/edit/delete via the agent management dialog, menu entry enabled, RG064 cascade).
+    - The submenu is global (menu bar): accessible from both the "Journey" and "Agents" views.
+- **Status** : Implemented (TSK01/TSK02: create/edit/delete with RG064 cascade; TSK13: New.../Edit/Delete submenu with `AgentSelectionDialog`, context menus of both views, "New Agent" in the journey grid context menu).
 
 ## FN032 : Switch between the journey view and the agents view (cross-navigation)
 
 - **Description** : Switch from one view to the other while targeting an entity (state or agent) in order to examine its relations in the other representation.
-- **References** : SU009; RG067; state context menu "Show in agents view" (journey view); agent context menu "Show in journey view" (agents view).
+- **References** : SU009; RG067; state context menu "Show in agents view" (journey view); agent context menu "Show in journey view" (agents view); state context menu "Show in journey view" (agents view, TSK13).
 - **Expected behavior** :
     - From the journey view, "Show in agents view" switches to the agents view and highlights the column of the target state (highlight + scroll).
     - From the agents view, "Show in journey view" switches to the journey view and highlights all the states associated with the target agent; the rest of the graph is dimmed.
+    - From the agents view, "Show in journey view" on a state switches to the journey view and focuses on the node of the target state (extension of the TSK10/RG067 contract by TSK13).
     - The focus is a temporary visual state (RG067): a click on empty space or the Escape key releases it.
     - The navigation does not mark the map or the project as modified.
-- **Status** : Implemented (TSK10: switching and focus in both directions, released by Escape/click, no persistence).
+- **Status** : Implemented (TSK10: switching and focus in both directions; TSK13: state→journey view navigation from the agents view).
 
 ---
 
