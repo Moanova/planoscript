@@ -27,7 +27,7 @@ EPC04 : TSK15 → TSK13
 
 - [ ] **EPC04 — Révision de la mécanique de gestion des agents et des associations avec les états**
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
-- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Journey actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre/marge du badge `state_node.py`, largeur de zone cliquable `connection.py`)
+- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Journey actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
@@ -44,6 +44,7 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
+- [ ] TSK17 — Ajustement esthétique : badge d'agents des nœuds d'état (vue Journey) centré sur le coin bas-droit, à cheval sur les bords X et Y du contour (comme les badges d'évènement de la vue Agents, TSK13) — détail dans `tasks/TSK17_agent_badge_position.md`
 - [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; retours de test TSC du 28-10-2026 traités ; **repositionnement des badges d'évènement traité** (centrés verticalement, à cheval sur les bords G/D des cartes d'état — mêmes coordonnées que les ports de connexion de la vue Journey, validé TSC) — détail dans `tasks/TSK13_agent_mechanics_review.md`
 
 ## Done

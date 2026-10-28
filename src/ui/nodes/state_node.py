@@ -31,9 +31,11 @@ class StateNode(TypedNode):
 
     States are displayed with a green color scheme to distinguish them
     from Events. When agents are associated with the state, a single
-    badge in the bottom-right corner shows the number of associated
-    agents (SU008): one badge regardless of the count, hidden when
-    no agent is associated, purely informative (clicks select the node).
+    badge shows the number of associated agents (SU008): one badge
+    regardless of the count, hidden when no agent is associated,
+    purely informative (clicks select the node). The badge is
+    centered on the bottom-right corner of the node outline,
+    straddling the X and Y edges (TSK17, TSC 28-10-2026).
     """
 
     # Charter 98: soft gold outline and type label, shared surface
@@ -45,11 +47,10 @@ class StateNode(TypedNode):
     }
     ENTITY_TYPE_LABEL = "State"
 
-    # Badge constants (agent badge bottom-right)
+    # Badge constants (agent badge centered on the bottom-right corner)
     # Charter 98: soft gold fill (state type color), soft white outline,
     # dark text for readability on the light fill.
     BADGE_DIAMETER = 16.0
-    BADGE_MARGIN = 3.0
     BADGE_BG_COLOR = theme.color("badge_bg_color", theme.BADGE_BG_COLOR)
     BADGE_BORDER_COLOR = theme.color("badge_border_color", theme.BADGE_BORDER_COLOR)
     BADGE_TEXT_COLOR = theme.color("badge_text_color", theme.BADGE_TEXT_COLOR)
@@ -78,7 +79,8 @@ class StateNode(TypedNode):
         self._position_agent_badge()
 
     def _position_agent_badge(self) -> None:
-        """Place the badge in the bottom-right corner of the node.
+        """Place the badge centered on the bottom-right corner of the
+        node, straddling the X and Y edges of the outline (TSK17).
 
         Guard: during BaseNode.__init__, update_from_layout() runs
         before _init_agent_badge() creates the badge items.
@@ -87,8 +89,8 @@ class StateNode(TypedNode):
             return
         diameter = self.BADGE_DIAMETER
         rect = self.rect()
-        x = rect.width() - diameter - self.BADGE_MARGIN
-        y = rect.height() - diameter - self.BADGE_MARGIN
+        x = rect.width() - diameter / 2
+        y = rect.height() - diameter / 2
         self.agent_badge.setPos(x, y)
         # Center the text in the badge
         text_rect = self.agent_badge_text.boundingRect()

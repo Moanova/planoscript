@@ -245,7 +245,7 @@
       - **Nom** : Texte en haut, Arial 10 pt **gras**.
       - **Description** : *Non affichée* — à implémenter.
     - **Badge sur les nœuds État** (TSK05) :
-      - **Badge d'agents** (bas à droite de la carte) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
+      - **Badge d'agents** (centré sur le coin bas-droit de la carte, à cheval sur les bords X et Y du contour — TSK17, TSC 28-10-2026) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
       - *Pas de badge d'évènement en vue parcours* (revue TSC 28-10-2026, retour n°1 : les connexions y sont visibles, les badges surchargeraient les nœuds) — les badges d'évènement sont affichés sur les cartes d'état de la **vue agents** (voir section 6.bis).
     - **Points d'accroche** :
       - 4 points (haut, bas, gauche, droite) — *Pas encore visuellement implémentés*.

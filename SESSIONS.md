@@ -609,3 +609,20 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   View » et « Display > Journey » seront à revoir ultérieurement (décision
   TSC).
 - **Kanban** : TSK13 Doing → En revue (attente validation TSC).
+
+
+## 28-10-2026 — TSK17 : badge d'agents centré sur le coin bas-droit (vue Journey)
+
+- **Demande TSC** : décaler le badge d'agents des nœuds d'état (vue Journey)
+  pour qu'il soit **centré sur le coin bas-droit du contour**, à cheval sur les
+  axes X et Y (débordement 8 px) — même principe que le repositionnement des
+  badges d'évènement (TSK13). Nouvelle tâche TSK17 créée au kanban.
+- **Implémentation** : `StateNode._position_agent_badge` — `x = w - d/2`,
+  `y = h - d/2` ; constante `BADGE_MARGIN` supprimée ; docstrings mises à
+  jour. Test offscreen `offscreen_state_badges.py` : assertions de position
+  mises à jour.
+- **Doc** : `98_layout_revision-FR.md` (ligne badge d'agents), `04_interface`
+  FR/EN (section 6), fiche `TSK17_agent_badge_position.md` créée, kanban TSK16
+  (la marge du badge n'existe plus dans le périmètre).
+- **Tests** : 106 passed (pytest) + 10 offscreen PASSED.
+- **Kanban** : TSK17 Doing → En revue (attente validation TSC).

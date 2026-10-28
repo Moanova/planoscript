@@ -245,7 +245,7 @@
       - **Name**: Text at the top, Arial 10pt **bold**.
       - **Description**: *Not displayed* - to be implemented.
     - **Badge on State nodes** (TSK05):
-      - **Agent badge** (bottom right of the card): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
+      - **Agent badge** (centered on the bottom-right corner of the card, straddling the X and Y edges of the outline — TSK17, TSC 28-10-2026): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
       - *No event badge in the journey view* (TSC review 28-10-2026, feedback n°1: the connections are visible there, the badges would overload the nodes) — the event badges are displayed on the state cards of the **agents view** (see section 6.bis).
     - **Anchor Points**:
       - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
