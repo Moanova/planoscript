@@ -661,3 +661,24 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
     procédure dev).
   - **Acceptable** : badges PySide6 6.4.0 / Python 3.10+ = contraintes
     minimales du `pyproject.toml`.
+
+
+## 28-10-2026 — README : correction de la section Features (fin de séance)
+
+- **Décision TSC** : corriger la section Features ; conserver le workflow
+  (parcours narratifs et export prévus pour le MVP) et l'installation
+  (non prioritaire).
+- **Correction** : la section Features mentionne désormais les agents
+  (création/édition/suppression, association aux états), la double vue
+  synchronisée (Journey + matrice agents × états) avec navigation croisée,
+  et les badges informatifs ; le « drag-and-drop » inexact est remplacé par
+  le mécanisme réel (menus + connexions en mode rubber band).
+- **Fin de séance** : travaux du jour — TSK15 (clôturée), audit doc,
+  TSK13 (7 points + 3 retours + correction + repositionnement badges,
+  validée), TSK17 (badge d'agents 2/3-1/3, validée), audit et correction
+  du README. Aucun problème bloquant. Choix actés : menus « Project >
+  View » et « Display > Journey » à revoir ultérieurement ; chevauchement
+  badge/texte pour libellés longs à revoir si besoin ; section 6 de
+  `04_interface` décrit encore les anciennes couleurs du thème clair
+  (charte 98 autorité). Prochaines tâches : TSK14 (barre latérale
+  gauche), TSK16 (dimensions vue Journey dans config.json).

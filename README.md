@@ -10,7 +10,10 @@ Structure your stories **without code**, manage branching paths and export your 
 
 ---
 ## Features
-- **Visual authoring**: Create narrative maps using **drag-and-drop**.
+- **Visual authoring**: Create narrative maps by adding nodes (states, events) via the menus and linking them with connections (rubber-band mode).
+- **Agents**: Manage agents (create, edit, delete) and associate them with states.
+- **Two synchronized views**: a **Journey** view (graph of states and events) and an **Agents** view (agents × states association matrix), with cross-view navigation.
+- **Informative badges**: state nodes display the number of associated agents (Journey view) and of incoming/outgoing events (Agents view).
 - **Branch management**: Visualise and organise the links between all elements of your narrative.
 - **Readable export**: Share your work as hypertext pages to share it with your team (developers, filmmakers, etc.).
 - **Under development**: MVP beta version in progress.
