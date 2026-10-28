@@ -2,6 +2,7 @@ from ui.nodes.base_node import BaseNode, TypedNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.event_node import EventNode
 from ui.nodes.connection import Connection
+from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
 
 __all__ = [
     "BaseNode",
@@ -9,4 +10,6 @@ __all__ = [
     "StateNode",
     "EventNode",
     "Connection",
+    "MatrixCardItem",
+    "MatrixCheckItem",
 ]

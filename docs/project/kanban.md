@@ -1,7 +1,7 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 3
-- **Date** : 15-10-2026
+- **Version** : 7
+- **Date** : 26-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
 ---
@@ -17,14 +17,18 @@
 ```
 TSK01 → TSK02 → TSK03 → TSK04 → TSK05
                     TSK06 → TSK07 → TSK08 → TSK09 → TSK10
+EPC03 layout : TSK11 → TSK12
+EPC04 : TSK15 → TSK13
 ```
 
 ---
 
 ## To do
 
-- [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
+- [ ] **EPC04 — Révision de la mécanique de gestion des agents et des associations avec les états**
+  - [ ] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents → #TSK15
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
+- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Journey actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre/marge du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
@@ -41,7 +45,7 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (EPC04, vue Agents : QTableWidget → QGraphicsView, cartes style Journey, cases 20×20, RG068 conservé — détail dans `tasks/TSK15_agents_matrix_revision.md`) — implémentation et tests terminés, en attente de validation TSC
 
 ## Done
 

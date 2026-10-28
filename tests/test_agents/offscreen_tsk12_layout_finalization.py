@@ -112,6 +112,13 @@ print("Point 06 OK: scrollbar :pressed/:active rules present")
 
 # ---------------------------------------------------------------------
 # Points 07-12: agents matrix
+# NOTE (TSK15): the matrix is no longer a QTableWidget. Points 07-12
+# were validated on the TSK12 QTableWidget implementation; the TSK15
+# graphical matrix supersedes them and is covered by the dedicated
+# offscreen tests (offscreen_agents_matrix.py, offscreen_matrix_reorder.py).
+# The invariants they protected are re-checked here on the new matrix:
+# no type suffixes, card dimensions 80x40, floating-card look (dark
+# background, no grid), centered checkboxes, association data intact.
 # ---------------------------------------------------------------------
 create_uc = CreateAgentUseCase(service)
 assoc_uc = AssociateAgentStateUseCase(service)
@@ -125,49 +132,34 @@ agents_ws.set_project(service, None)
 agents_ws.refresh()
 
 # Point 11/12: no type suffixes
-assert agents_ws.matrix.verticalHeaderItem(0).text() == "Hero"
-assert agents_ws.matrix.horizontalHeaderItem(0).text().startswith("Init")
-assert "[" not in agents_ws.matrix.horizontalHeaderItem(0).text()
+assert agents_ws.agent_label(0) == "Hero"
+assert agents_ws.state_label(0).startswith("Init")
+assert "[" not in agents_ws.agent_label(0)
+assert "[" not in agents_ws.state_label(0)
 
-# Point 07: row header (agent column) visible even without agents
-agents_ws.set_project(service, None)
-agents_ws.project_service = None
-agents_ws.refresh()
-vh = agents_ws.matrix.verticalHeader()
-assert vh.width() == 80, vh.width()
-agents_ws.set_project(service, None)
-agents_ws.refresh()
-assert vh.isVisibleTo(agents_ws.matrix) or vh.width() == 80
+# Point 10 (transposed): card dimensions 80x40
+from ui.nodes.matrix_card import MatrixCardItem
+assert MatrixCardItem.WIDTH == 80
+assert MatrixCardItem.HEIGHT == 40
 
-# Point 10: header dimensions
-agents_ws.refresh()
-assert agents_ws.matrix.horizontalHeader().defaultSectionSize() == 80
-assert agents_ws.matrix.verticalHeader().defaultSectionSize() == 40
-
-# Final TSC request: headers cannot be resized with the mouse
-from PySide6.QtWidgets import QHeaderView
-assert (agents_ws.matrix.verticalHeader().sectionResizeMode(0)
-        == QHeaderView.ResizeMode.Fixed)
-assert (agents_ws.matrix.horizontalHeader().sectionResizeMode(0)
-        == QHeaderView.ResizeMode.Fixed)
-
-# Point 08: floating-card look: no grid lines, card delegate installed
-assert agents_ws.matrix.showGrid() is False
-assert agents_ws.matrix.itemDelegate().__class__.__name__ == "_MatrixCardDelegate"
-
-# Point 09: centered checkbox drawn by the card delegate (same delegate)
+# Point 08/09 (transposed): dark background, no grid; checkboxes are
+# 20x20 items centered on their cells
+assert agents_ws.scene.backgroundBrush().color().name().upper() == \
+    _get_config("bg_primary", "#1E1E1E").upper()
+check = agents_ws._check_items[(hero.id, map_state.id)]
+assert check.rect().width() == 20 and check.rect().height() == 20
 
 # Association data intact
-assert agents_ws.matrix.item(0, 0).checkState() == Qt.CheckState.Checked
-assert agents_ws.matrix.item(1, 0).checkState() == Qt.CheckState.Unchecked
+assert agents_ws.is_associated(0, 0) is True
+assert agents_ws.is_associated(1, 0) is False
 
-print("Points 07-12 OK: agent column always visible, headers 80x40, "
-      "card spacing, centered checkboxes, no type suffixes")
+print("Points 07-12 OK (TSK15 matrix): card dimensions, dark background, "
+      "centered checkboxes, no type suffixes")
 
 # ---------------------------------------------------------------------
 # Review fixes (2nd TSC pass): info bar square + matrix checkboxes
 # ---------------------------------------------------------------------
-from PySide6.QtCore import QPoint
+from PySide6.QtCore import QPoint, QPointF
 from PySide6.QtTest import QTest
 import logging
 log_msgs = []
@@ -196,7 +188,8 @@ band = [(x, y) for y in range(main.info_bar.y() - 30, main.height())
 assert not band, f"light pixels above info bar: {band[:6]}"
 print("Case 1 OK: no light square at the bottom-left corner")
 
-# Case 2: checkboxes painted + center click toggles through editorEvent
+# Case 2 (TSK15): checkboxes painted + center click toggles through
+# the checkbox item (mousePressEvent)
 hero2 = create_uc.execute(lb="Knight", typ="Subject")['entity']
 dissoc_uc = DissociateAgentStateUseCase(service)
 assoc_uc.execute(agent=hero2, state=map_state)
@@ -211,27 +204,28 @@ app.processEvents()
 _emitted = []
 matrix_ws.associationChanged.connect(
     lambda sid, lb, assoc: _emitted.append((sid, lb, assoc)))
-# Knight is the second agent (row 1): creation order (RG068)
+# Knight is the third agent (row 2): creation order (RG068)
 knight_row = next(
-    r for r in range(matrix_ws.matrix.rowCount())
-    if matrix_ws.matrix.verticalHeaderItem(r).text() == "Knight")
-cell = matrix_ws.matrix.visualItemRect(
-    matrix_ws.matrix.item(knight_row, 0))
-viewport = matrix_ws.matrix.viewport()
+    r for r in range(matrix_ws.agent_count())
+    if matrix_ws.agent_label(r) == "Knight")
+check = matrix_ws._check_items[(hero2.id, map_state.id)]
+cell_rect = check.sceneBoundingRect()
+viewport = matrix_ws.view.viewport()
 render = matrix_ws.grab().toImage()
 offset = viewport.mapTo(matrix_ws, QPoint(0, 0))
-light_px = sum(
-    1 for y in range(cell.top(), cell.bottom())
-    for x in range(cell.left(), cell.right())
-    if ((render.pixel(x + offset.x(), y + offset.y()) >> 16 & 0xFF)
-        + (render.pixel(x + offset.x(), y + offset.y()) >> 8 & 0xFF)
-        + (render.pixel(x + offset.x(), y + offset.y()) & 0xFF)) / 3 > 100)
+light_px = 0
+for y in range(int(cell_rect.top()), int(cell_rect.bottom())):
+    for x in range(int(cell_rect.left()), int(cell_rect.right())):
+        p = matrix_ws.view.mapFromScene(x, y)
+        px = render.pixel(p.x() + offset.x(), p.y() + offset.y())
+        if ((px >> 16 & 0xFF) + (px >> 8 & 0xFF) + (px & 0xFF)) / 3 > 100:
+            light_px += 1
 assert light_px > 20, f"checkbox not painted ({light_px} light px)"
 
 # Click the centered checkbox of a checked cell -> dissociation
 log_msgs.clear()
 QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
-                 pos=QPoint(cell.center()))
+                 pos=matrix_ws.view.mapFromScene(cell_rect.center()))
 app.processEvents()
 assert AssociateAgentStateUseCase.find_association(
     service.current_project.narrative_map[0], hero2.id, map_state.id) is None
@@ -241,7 +235,7 @@ assert _emitted and _emitted[-1] == (map_state.id, "Knight", False)
 # Click again -> re-association
 log_msgs.clear()
 QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
-                 pos=QPoint(cell.center()))
+                 pos=matrix_ws.view.mapFromScene(cell_rect.center()))
 app.processEvents()
 assert AssociateAgentStateUseCase.find_association(
     service.current_project.narrative_map[0], hero2.id, map_state.id) is not None
@@ -251,11 +245,13 @@ assert _emitted[-1] == (map_state.id, "Knight", True)
 # Click on the card but outside the checkbox -> no toggle, no log
 log_msgs.clear()
 _emitted.clear()
-state_before = matrix_ws.matrix.item(knight_row, 0).checkState()
+state_before = matrix_ws.is_associated(knight_row, 0)
+card = matrix_ws._agent_cards[hero2.id]
+outside = card.sceneBoundingRect().topLeft() + QPointF(4, 4)
 QTest.mouseClick(viewport, Qt.MouseButton.LeftButton,
-                 pos=QPoint(cell.center().x(), cell.top() + 6))
+                 pos=matrix_ws.view.mapFromScene(outside))
 app.processEvents()
-assert matrix_ws.matrix.item(knight_row, 0).checkState() == state_before
+assert matrix_ws.is_associated(knight_row, 0) == state_before
 assert not _emitted and not log_msgs
 print("Case 2 OK: checkbox painted, center click toggles, "
       "outside click is a no-op")

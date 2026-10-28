@@ -1,43 +1,66 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
 # Script       : agents_workspace.py
-# Version      : 3
-# Date         : 10-15-2026
+# Version      : 4
+# Date         : 26-10-2026
 # Design       : TSC
 # Build        : Mistral Vibe
 # ---------------------------------------------------------------------
-"""Agents workspace: agents x states matrix (TSK08/TSK09, SU009).
+"""Agents workspace: agents x states matrix (TSK15, SU009).
 
-Second workspace dedicated to the agent-state associations. Displays
-the agents x states matrix: one row per project agent, one column per
-state of the current narrative map, a checked cell materializing each
-existing association. Cell edition (TSK09): clicking a cell toggles
-the association via the association use cases.
+Second workspace dedicated to the agent-state associations. The matrix
+is a QGraphicsView (like the journey workspace): one card per state
+along the top (columns), one card per agent down the left side (rows),
+and a checkbox at each intersection materializing the association.
+Cards are drawn like the journey nodes (surface background, type-colored
+outline, rounded corners); agents use the event tint (copper).
 
-Column and row order follows RG068: creation order by default, manual
-reordering allowed and persisted in the project graphical metadata
-(WorkspaceLayout); the initial state is pinned to the first column and
-cannot be moved.
+Behavior preserved from the previous QTableWidget implementation
+(TSK08/TSK09/TSK10): cell edition through the association use cases,
+associationChanged signal, cross-view focus (RG067), manual reordering
+of rows and columns persisted in the workspace layout (RG068), initial
+state pinned to the first column (RG031).
 """
 
-from PySide6.QtCore import QEvent, Qt, QRect, QSize, Signal
+import logging
+
+from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import (
-    QApplication, QHeaderView, QStyledItemDelegate, QStyle,
-    QStyleOptionViewItem, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget
+    QFrame, QGraphicsRectItem, QGraphicsScene, QGraphicsView, QMenu,
+    QVBoxLayout, QWidget
 )
 
 from config.config_loader import get as _get_config
-from ui.nodes.base_node import BaseNode
+from core.services.layout_service import resolve_matrix_order
+from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
 from ui.utils import theme
 from usecases.agent_association.associate_agent_state_usecase import (
     AssociateAgentStateUseCase
 )
 
+logger = logging.getLogger(__name__)
+
+_BG_PRIMARY = _get_config("bg_primary", theme.BG_PRIMARY)
+# Gap between the matrix components: horizontal for the states
+# (columns), vertical for the agents (rows)
+_COMPONENT_SPACING = _get_config("agents_view_component_spacing", 20)
+_CHECK_SIZE = _get_config("agents_view_checkbox_size", 20)
+_STATE_COLOR = theme.color("state_color", theme.STATE_COLOR)
+_AGENT_COLOR = theme.color("event_color", theme.EVENT_COLOR)
+_FOCUS_COLOR = theme.color("focus_color", theme.FOCUS_COLOR)
+
+# Margins around the matrix content inside the scene
+_SCENE_MARGIN = _COMPONENT_SPACING
+
 
 class AgentsWorkspace(QWidget):
-    """Agents x states matrix workspace (TSK08 display, TSK09 edition)."""
+    """Agents x states matrix workspace (TSK15 graphical matrix).
+
+    Public contract (unchanged since TSK08/TSK09/TSK10):
+    set_project(), refresh(), set_focus(), clear_focus(), has_focus()
+    and the signals associationChanged / focusAgentInJourneyViewRequested.
+    """
 
     # Emitted after a cell edition changed the data (SU008): the journey
     # view refreshes the state badge and the info bar shows a message.
@@ -46,18 +69,6 @@ class AgentsWorkspace(QWidget):
     # Emitted when the user requests to show the states of an agent in
     # the journey view (TSK10, cross-view navigation)
     focusAgentInJourneyViewRequested = Signal(int)  # agent_id
-
-    # Header dimensions (TSK12 point 10): comparable to the Journey
-    # nodes (80x40)
-    _ROW_HEADER_WIDTH = _get_config("agents_view_row_header_width", 80)
-    _COLUMN_HEADER_HEIGHT = _get_config("agents_view_column_header_height", 40)
-
-    # Floating-card spacing (TSK12 point 08): visible gap between the
-    # agents (vertical) and the states (horizontal)
-    _CARD_SPACING = _get_config("agents_view_card_spacing", 4)
-
-    # Rounded corners of the matrix cards (charter 98, ~6px)
-    _CARD_RADIUS = _get_config("agents_view_card_corner_radius_px", 6.0)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,43 +80,25 @@ class AgentsWorkspace(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Dark theme for the matrix (charter 98)
-        self.setStyleSheet(theme.DIALOG_STYLESHEET)
+        self.view = _MatrixGraphicsView(self)
+        self.scene = QGraphicsScene(self.view)
+        self.view.setScene(self.scene)
 
-        self.matrix = QTableWidget()
-        # Edition (TSK09): a single cellClicked handler toggles the
-        # association — one edition point, no double signal
-        self.matrix.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.matrix.cellClicked.connect(self._toggle_cell)
-        # Cross-view navigation (TSK10): context menu on rows
-        self.matrix.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.matrix.customContextMenuRequested.connect(self._show_context_menu)
+        layout.addWidget(self.view, 1)
+
+        # Ordered entity lists (RG068); the visual order follows them
+        self._agents = []   # Agent entities, display order (rows)
+        self._states = []   # State entities, display order (columns)
+        self._agent_cards = {}   # agent_id -> MatrixCardItem
+        self._state_cards = {}   # state_id -> MatrixCardItem
+        self._check_items = {}   # (agent_id, state_id) -> MatrixCheckItem
+        self._focus_highlight = None  # QGraphicsRectItem column tint
         self._focused_state_id = None
-        self.matrix.verticalHeader().setSectionsMovable(True)
-        self.matrix.horizontalHeader().setSectionsMovable(True)
-        self.matrix.horizontalHeader().sectionMoved.connect(self._column_moved)
-        self.matrix.verticalHeader().sectionMoved.connect(self._row_moved)
+        # Drag state (RG068 reordering)
+        self._dragged_card = None
+        self._drag_press_pos = None
 
-        # Header dimensions (TSK12 point 10): rows (agents) 80px wide,
-        # columns (states) 40px high. Fixed sections: the headers cannot
-        # be resized with the mouse (dimensions are set by the config)
-        self.matrix.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Fixed)
-        self.matrix.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Fixed)
-        self.matrix.verticalHeader().setDefaultSectionSize(
-            self._COLUMN_HEADER_HEIGHT)
-        self.matrix.verticalHeader().setMinimumSectionSize(1)
-        self.matrix.horizontalHeader().setDefaultSectionSize(
-            self._ROW_HEADER_WIDTH)
-
-        # Floating cards (TSK12 point 08) + centered checkboxes
-        # (point 09): the delegate draws the cells
-        self.matrix.setShowGrid(False)
-        self._checkbox_delegate = _MatrixCardDelegate(self)
-        self.matrix.setItemDelegate(self._checkbox_delegate)
-
-        layout.addWidget(self.matrix, 1)
+        self.scene.setBackgroundBrush(QBrush(QColor(_BG_PRIMARY)))
 
     def set_project(self, project_service, layout_data,
                     associate_usecase=None, dissociate_usecase=None):
@@ -116,62 +109,254 @@ class AgentsWorkspace(QWidget):
         self.associate_usecase = associate_usecase
         self.dissociate_usecase = dissociate_usecase
 
-    def refresh(self):
-        """Rebuild the whole matrix from the current project data."""
-        if not self.project_service or not self.project_service.current_project:
-            self.matrix.setRowCount(0)
-            self.matrix.setColumnCount(0)
-            self.matrix.verticalHeader().setFixedWidth(self._ROW_HEADER_WIDTH)
-            return
+    # ------------------------------------------------------------------
+    # Data resolution (RG068)
+    # ------------------------------------------------------------------
 
+    def _resolve_entities(self):
+        """Resolve the ordered agent and state lists (RG068).
+
+        Rows: project agents, creation order by default, custom order
+        allowed. Columns: map states, creation order by default, the
+        initial state pinned to the first column (RG031).
+        """
         project = self.project_service.current_project
         narrative_map = project.narrative_map[0]
 
-        from core.services.layout_service import resolve_matrix_order
-
-        # Rows: project agents (RG068: default creation order, custom
-        # order allowed); no pinned entity
         saved_rows = (self.layout_data.agents_view_row_order
                       if self.layout_data else [])
-        agents = resolve_matrix_order(project.agent, saved_rows)
+        self._agents = resolve_matrix_order(project.agent, saved_rows)
 
-        # Columns: map states (RG068: initial state pinned to the first
-        # column, RG031)
         saved_columns = (self.layout_data.agents_view_column_order
                          if self.layout_data else [])
         initial_state = next(
             (s for s in narrative_map.state if s.typ == "Initial"), None)
-        states = resolve_matrix_order(
+        self._states = resolve_matrix_order(
             narrative_map.state, saved_columns,
             pinned_first_id=initial_state.id if initial_state else None)
 
-        self.matrix.setRowCount(len(agents))
-        self.matrix.setColumnCount(len(states))
+    # ------------------------------------------------------------------
+    # Build / refresh
+    # ------------------------------------------------------------------
 
-        for row, agent in enumerate(agents):
-            header = QTableWidgetItem(f"{agent.lb}")
-            header.setData(Qt.ItemDataRole.UserRole, ('agent', agent.id))
-            self.matrix.setVerticalHeaderItem(row, header)
-        for column, state in enumerate(states):
-            label = BaseNode.format_label_for_display(state.lb)
-            header = QTableWidgetItem(label)
-            header.setData(Qt.ItemDataRole.UserRole, ('state', state.id))
-            self.matrix.setHorizontalHeaderItem(column, header)
+    def refresh(self):
+        """Rebuild the whole matrix from the current project data."""
+        self.clear_focus()
+        self.scene.clear()
+        self._agent_cards.clear()
+        self._state_cards.clear()
+        self._check_items.clear()
+        self._focus_highlight = None
 
-        for row, agent in enumerate(agents):
-            for column, state in enumerate(states):
-                item = QTableWidgetItem()
+        if not self.project_service or not self.project_service.current_project:
+            self._agents = []
+            self._states = []
+            self._update_scene_rect()
+            return
+
+        self._resolve_entities()
+        narrative_map = self.project_service.current_project.narrative_map[0]
+
+        card_w = MatrixCardItem.WIDTH
+        card_h = MatrixCardItem.HEIGHT
+        spacing = _COMPONENT_SPACING
+
+        # State cards: one column per state, along the top
+        for column, state in enumerate(self._states):
+            x = _SCENE_MARGIN + column * (card_w + spacing)
+            card = MatrixCardItem(state, 'state', _STATE_COLOR)
+            card.setPos(x, _SCENE_MARGIN)
+            self.scene.addItem(card)
+            self._state_cards[state.id] = card
+
+        # Agent cards: one row per agent, down the left side
+        for row, agent in enumerate(self._agents):
+            y = _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
+            card = MatrixCardItem(agent, 'agent', _AGENT_COLOR)
+            card.setPos(_SCENE_MARGIN, y)
+            self.scene.addItem(card)
+            self._agent_cards[agent.id] = card
+
+        # Checkboxes at each intersection
+        for row, agent in enumerate(self._agents):
+            for column, state in enumerate(self._states):
+                x = _SCENE_MARGIN + column * (card_w + spacing)
+                y = _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
                 associated = AssociateAgentStateUseCase.find_association(
                     narrative_map, agent.id, state.id) is not None
-                item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-                item.setCheckState(
-                    Qt.CheckState.Checked if associated
-                    else Qt.CheckState.Unchecked)
-                self.matrix.setItem(row, column, item)
+                check = MatrixCheckItem(agent, state, associated)
+                check.setPos(x + (card_w - _CHECK_SIZE) / 2,
+                             y + (card_h - _CHECK_SIZE) / 2)
+                check.toggled = self._on_check_toggled
+                self.scene.addItem(check)
+                self._check_items[(agent.id, state.id)] = check
 
-        # Always visible agent column (TSK12 point 07): reserve the row
-        # header width even with no agent
-        self.matrix.verticalHeader().setFixedWidth(self._ROW_HEADER_WIDTH)
+        self._update_scene_rect()
+
+    def _update_scene_rect(self):
+        """Size the scene to the matrix content (plus margins)."""
+        card_w = MatrixCardItem.WIDTH
+        card_h = MatrixCardItem.HEIGHT
+        spacing = _COMPONENT_SPACING
+        width = (2 * _SCENE_MARGIN
+                 + max(len(self._states), 1) * card_w
+                 + max(len(self._states) - 1, 0) * spacing)
+        height = (2 * _SCENE_MARGIN + card_h + spacing
+                  + max(len(self._agents), 1) * card_h
+                  + max(len(self._agents) - 1, 0) * spacing)
+        self.scene.setSceneRect(0, 0, width, height)
+
+    # ------------------------------------------------------------------
+    # Cell edition (TSK09, SU008)
+    # ------------------------------------------------------------------
+
+    def _on_check_toggled(self, agent, state, new_checked):
+        """Toggle the association of a checkbox cell (TSK09, SU008).
+
+        Checking associates the agent with the state, unchecking
+        dissociates them, via the association use cases. On use case
+        failure the checkbox is restored to the data state.
+        """
+        if self.associate_usecase is None or self.dissociate_usecase is None:
+            return
+
+        check = self._check_items.get((agent.id, state.id))
+        if check is None:
+            return
+
+        if new_checked:
+            result = self.associate_usecase.execute(agent=agent, state=state)
+            if result and result.get('success'):
+                check.set_checked(True)
+                self.associationChanged.emit(state.id, agent.lb, True)
+            else:
+                # Failure: restore the visual state to the data state
+                check.set_checked(False)
+        else:
+            result = self.dissociate_usecase.execute(agent=agent, state=state)
+            if result and result.get('success'):
+                check.set_checked(False)
+                self.associationChanged.emit(state.id, agent.lb, False)
+            else:
+                # Failure: restore the visual state to the data state
+                check.set_checked(True)
+
+    # ------------------------------------------------------------------
+    # Reordering (RG068)
+    # ------------------------------------------------------------------
+
+    def _on_card_dragged(self, card, scene_pos):
+        """Move the dragged card with the cursor (RG068 reordering).
+
+        States are constrained to their row (horizontal move), agents
+        to their column (vertical move).
+        """
+        if card.kind == 'state':
+            card.setPos(scene_pos.x() - MatrixCardItem.WIDTH / 2,
+                        _SCENE_MARGIN)
+        else:
+            card.setPos(_SCENE_MARGIN,
+                        scene_pos.y() - MatrixCardItem.HEIGHT / 2)
+
+    def _on_card_released(self, card, scene_pos):
+        """Apply a manual reorder on drag release (RG068).
+
+        States reorder horizontally (columns), agents vertically (rows).
+        The initial state stays pinned to the first column (RG031): a
+        drop that would move it (or place another state first) is
+        rejected and the layout snaps back. The new visual order is
+        persisted into the workspace layout (RG068).
+        """
+        if card.kind == 'state':
+            self._reorder_states(card, scene_pos)
+        else:
+            self._reorder_agents(card, scene_pos)
+        self._dragged_card = None
+        self._drag_press_pos = None
+
+    def _reorder_states(self, card, scene_pos):
+        card_w = MatrixCardItem.WIDTH
+        spacing = _COMPONENT_SPACING
+        target_column = round(
+            (scene_pos.x() - _SCENE_MARGIN) / (card_w + spacing))
+        target_column = max(0, min(target_column, len(self._states) - 1))
+
+        current_column = self._states.index(card.entity)
+        # RG068/RG031: the initial state (first column) cannot be moved,
+        # and no other state can take the first column
+        if current_column == 0 or target_column == 0 \
+                or target_column == current_column:
+            self._relayout()
+            return
+
+        state = self._states.pop(current_column)
+        self._states.insert(target_column, state)
+        self._persist_visual_order()
+        self._relayout()
+
+    def _reorder_agents(self, card, scene_pos):
+        card_h = MatrixCardItem.HEIGHT
+        spacing = _COMPONENT_SPACING
+        agents_top = _SCENE_MARGIN + card_h + spacing
+        target_row = round(
+            (scene_pos.y() - agents_top) / (card_h + spacing))
+        target_row = max(0, min(target_row, len(self._agents) - 1))
+
+        current_row = self._agents.index(card.entity)
+        if target_row == current_row:
+            self._relayout()
+            return
+
+        agent = self._agents.pop(current_row)
+        self._agents.insert(target_row, agent)
+        self._persist_visual_order()
+        self._relayout()
+
+    def _persist_visual_order(self):
+        """Persist the current visual order into the workspace layout
+        (RG068: layout data, no modification flag)."""
+        if not self.layout_data:
+            return
+        self.layout_data.agents_view_column_order = [
+            s.id for s in self._states]
+        self.layout_data.agents_view_row_order = [
+            a.id for a in self._agents]
+
+    def _relayout(self):
+        """Reposition all cards and checkboxes from the ordered lists."""
+        card_w = MatrixCardItem.WIDTH
+        card_h = MatrixCardItem.HEIGHT
+        spacing = _COMPONENT_SPACING
+
+        for column, state in enumerate(self._states):
+            card = self._state_cards.get(state.id)
+            if card is not None:
+                card.setPos(_SCENE_MARGIN + column * (card_w + spacing),
+                            _SCENE_MARGIN)
+        for row, agent in enumerate(self._agents):
+            card = self._agent_cards.get(agent.id)
+            if card is not None:
+                card.setPos(_SCENE_MARGIN,
+                            _SCENE_MARGIN + card_h + spacing
+                            + row * (card_h + spacing))
+        for (agent_id, state_id), check in self._check_items.items():
+            column = next(
+                (i for i, s in enumerate(self._states) if s.id == state_id),
+                None)
+            row = next(
+                (i for i, a in enumerate(self._agents) if a.id == agent_id),
+                None)
+            if column is None or row is None:
+                continue
+            check.setPos(
+                _SCENE_MARGIN + column * (card_w + spacing)
+                + (card_w - _CHECK_SIZE) / 2,
+                _SCENE_MARGIN + card_h + spacing + row * (card_h + spacing)
+                + (card_h - _CHECK_SIZE) / 2)
+
+        self._update_scene_rect()
+        if self._focused_state_id is not None:
+            self._apply_focus_highlight()
 
     # ------------------------------------------------------------------
     # Cross-view navigation focus (TSK10, RG067)
@@ -186,295 +371,210 @@ class AgentsWorkspace(QWidget):
         (RG067).
         """
         self.clear_focus()
+        if state_id not in self._state_cards:
+            return
         self._focused_state_id = state_id
-        for column in range(self.matrix.columnCount()):
-            data = self.matrix.horizontalHeaderItem(column).data(
-                Qt.ItemDataRole.UserRole)
-            if data and data[0] == 'state' and data[1] == state_id:
-                self.matrix.setColumnHidden(column, False)
-                # Tint the whole column cells
-                for row in range(self.matrix.rowCount()):
-                    item = self.matrix.item(row, column)
-                    if item is not None:
-                        item.setBackground(self._focus_color())
-                # Scroll to the column (first cell)
-                first_item = self.matrix.item(0, column)
-                if first_item is not None:
-                    self.matrix.scrollToItem(first_item)
-                self._focused_column = column
-                return
-        self._focused_column = None
+        self._apply_focus_highlight()
+        card = self._state_cards[state_id]
+        self.view.centerOn(card.sceneBoundingRect().center())
 
     def clear_focus(self) -> None:
         """
         Release the focus and restore the normal appearance (RG067).
         """
-        if getattr(self, '_focused_state_id', None) is None:
-            return
-        for column in range(self.matrix.columnCount()):
-            for row in range(self.matrix.rowCount()):
-                item = self.matrix.item(row, column)
-                if item is not None:
-                    # No brush = default background (None is not accepted
-                    # by QTableWidgetItem.setBackground)
-                    item.setBackground(QBrush())
+        if self._focus_highlight is not None:
+            self.scene.removeItem(self._focus_highlight)
+            self._focus_highlight = None
+        for card in self._state_cards.values():
+            card.set_highlighted(False)
+        for check in self._check_items.values():
+            check.set_highlighted(False)
         self._focused_state_id = None
-        self._focused_column = None
 
     def has_focus(self) -> bool:
         """
         Return True if a navigation focus is currently active.
         """
-        return getattr(self, '_focused_state_id', None) is not None
+        return self._focused_state_id is not None
 
-    def _focus_color(self):
-        """Background color of the focused column (dark theme, charter 98:
-        subtle raised surface)."""
-        return QColor(theme.FOCUS_COLOR)
+    def _apply_focus_highlight(self):
+        """Tint the focused state column: a translucent band behind the
+        cards and checkboxes of the column, plus the raised surface on
+        the state card."""
+        if self._focused_state_id is None:
+            return
+        card = self._state_cards.get(self._focused_state_id)
+        if card is None:
+            return
+        column = next(
+            (i for i, s in enumerate(self._states)
+             if s.id == self._focused_state_id), None)
+        if column is None:
+            return
+        card_w = MatrixCardItem.WIDTH
+        card_h = MatrixCardItem.HEIGHT
+        spacing = _COMPONENT_SPACING
+        x = _SCENE_MARGIN + column * (card_w + spacing)
 
-    def _show_context_menu(self, pos):
-        """
-        Context menu of the matrix rows (TSK10): offers to show the
-        states of the row agent in the journey view.
-        """
-        index = self.matrix.indexAt(pos)
-        if not index.isValid():
-            # RG067: clicking empty space releases the focus
-            if self.has_focus():
-                self.clear_focus()
+        if self._focus_highlight is None:
+            self._focus_highlight = QGraphicsRectItem()
+            self._focus_highlight.setPen(QPen(Qt.PenStyle.NoPen))
+            self._focus_highlight.setZValue(-1)
+            self.scene.addItem(self._focus_highlight)
+        color = QColor(_FOCUS_COLOR)
+        color.setAlpha(120)
+        self._focus_highlight.setBrush(QBrush(color))
+        top = _SCENE_MARGIN
+        bottom = (_SCENE_MARGIN + card_h + spacing
+                  + len(self._agents) * (card_h + spacing))
+        self._focus_highlight.setRect(
+            QRectF(x - spacing / 2, top,
+                   card_w + spacing, bottom - top))
+
+        card.set_highlighted(True)
+        for check in self._check_items.values():
+            if check.state.id == self._focused_state_id:
+                check.set_highlighted(True)
+
+    # ------------------------------------------------------------------
+    # Agent card context menu (TSK10)
+    # ------------------------------------------------------------------
+
+    def _on_agent_card_menu(self, card, global_pos):
+        """Context menu of an agent card (TSK10): offers to show the
+        states of the agent in the journey view."""
+        if not self.project_service or not self.project_service.current_project:
             return
-        row = index.row()
-        row_header = self.matrix.verticalHeaderItem(row)
-        if row_header is None:
-            return
-        data = row_header.data(Qt.ItemDataRole.UserRole)
-        if not data or data[0] != 'agent':
-            return
+        project = self.project_service.current_project
         agent = next(
-            (a for a in self.project_service.current_project.agent
-             if a.id == data[1]), None)
+            (a for a in project.agent if a.id == card.entity.id), None)
         if agent is None:
             return
-        from PySide6.QtWidgets import QMenu
         menu = QMenu(self)
         # Dark theme for the context menu (charter 98)
         menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
         action = menu.addAction("Show in journey view")
-        chosen = menu.exec(self.matrix.viewport().mapToGlobal(pos))
+        chosen = menu.exec(global_pos)
         if chosen is action:
             self.focusAgentInJourneyViewRequested.emit(agent.id)
 
-    def _entities_at(self, row, column):
-        """Resolve the Agent and State of a matrix cell (TSK09).
+    # ------------------------------------------------------------------
+    # Accessors used by the offscreen tests
+    # ------------------------------------------------------------------
 
-        Returns:
-            Tuple (agent, state), or (None, None) if the cell cannot be
-            resolved (no project, unknown header data).
+    def agent_count(self) -> int:
+        """Number of agent rows currently displayed."""
+        return len(self._agents)
+
+    def state_count(self) -> int:
+        """Number of state columns currently displayed."""
+        return len(self._states)
+
+    def agent_label(self, row: int) -> str:
+        """Display label of the agent card of the given row."""
+        return MatrixCardItem.display_label(self._agents[row].lb)
+
+    def state_label(self, column: int) -> str:
+        """Display label of the state card of the given column."""
+        return MatrixCardItem.display_label(self._states[column].lb)
+
+    def is_associated(self, row: int, column: int) -> bool:
+        """Association state of the cell (row, column)."""
+        agent = self._agents[row]
+        state = self._states[column]
+        check = self._check_items.get((agent.id, state.id))
+        return check.is_checked() if check is not None else False
+
+    def click_cell(self, row: int, column: int) -> None:
+        """Simulate a click on the checkbox of the cell (row, column).
+
+        Programmatic equivalent of a user click on the checkbox: goes
+        through the same edition path as a real mouse click.
         """
-        if not self.project_service or not self.project_service.current_project:
-            return None, None
-        project = self.project_service.current_project
-        narrative_map = project.narrative_map[0]
-
-        row_header = self.matrix.verticalHeaderItem(row)
-        column_header = self.matrix.horizontalHeaderItem(column)
-        if row_header is None or column_header is None:
-            return None, None
-        row_data = row_header.data(Qt.ItemDataRole.UserRole)
-        column_data = column_header.data(Qt.ItemDataRole.UserRole)
-        if not row_data or not column_data:
-            return None, None
-
-        agent = next(
-            (a for a in project.agent if a.id == row_data[1]), None)
-        state = next(
-            (s for s in narrative_map.state if s.id == column_data[1]), None)
-        return agent, state
-
-    def _toggle_cell(self, row, column):
-        """Toggle the association of the clicked cell (TSK09, SU008).
-
-        Checking associates the row agent with the column state,
-        unchecking dissociates them, via the association use cases. On
-        use case failure the checkbox is restored to the data state.
-        """
-        agent, state = self._entities_at(row, column)
-        if agent is None or state is None:
-            return
-        if self.associate_usecase is None or self.dissociate_usecase is None:
-            return
-
-        item = self.matrix.item(row, column)
-        if item is None:
-            return
-
-        # Point 09 (centered checkbox): only a press on the checkbox
-        # toggles the association; a click elsewhere in the card is a
-        # no-op (the delegate records the hit in editorEvent). Direct
-        # _toggle_cell calls (tests, programmatic) keep the legacy
-        # behavior when no press was recorded.
-        hit = getattr(self, '_last_press_on_indicator', None)
-        self._last_press_on_indicator = None
-        if hit is False:
-            return
-
-        # Qt toggles the check state of a user-checkable item BEFORE
-        # cellClicked is emitted: the check state read here is the state
-        # AFTER the click. The user intent is therefore the opposite:
-        # a now-checked cell means "associate", a now-unchecked cell
-        # means "dissociate".
-        if item.checkState() == Qt.CheckState.Checked:
-            # The user checked the cell: associate
-            result = self.associate_usecase.execute(agent=agent, state=state)
-            if result and result.get('success'):
-                self.associationChanged.emit(state.id, agent.lb, True)
-            else:
-                # Failure: restore the checkbox to the data state
-                item.setCheckState(Qt.CheckState.Unchecked)
-        else:
-            # The user unchecked the cell: dissociate
-            result = self.dissociate_usecase.execute(agent=agent, state=state)
-            if result and result.get('success'):
-                self.associationChanged.emit(state.id, agent.lb, False)
-            else:
-                # Failure: restore the checkbox to the data state
-                item.setCheckState(Qt.CheckState.Checked)
-
-    def _column_moved(self, logical_index, old_visual_index, new_visual_index):
-        """Record a manual column reorder (RG068), keeping the initial
-        state pinned to the first column."""
-        header = self.matrix.horizontalHeader()
-        # RG068/RG031: the initial state (column 0) cannot be moved
-        if old_visual_index == 0:
-            header.moveSection(new_visual_index, 0)
-            return
-        if new_visual_index == 0:
-            # A column was moved onto the pinned slot: push it back
-            header.moveSection(0, 1)
-        self._save_visual_order()
-
-    def _row_moved(self, logical_index, old_visual_index, new_visual_index):
-        """Record a manual row reorder (RG068)."""
-        self._save_visual_order()
-
-    def _save_visual_order(self):
-        """Persist the current visual order into the workspace layout."""
-        if not self.layout_data:
-            return
-        column_ids = []
-        for column in range(self.matrix.columnCount()):
-            data = self.matrix.horizontalHeaderItem(column).data(
-                Qt.ItemDataRole.UserRole)
-            if data and data[0] == 'state':
-                column_ids.append(data[1])
-        self.layout_data.agents_view_column_order = column_ids
-
-        row_ids = []
-        for row in range(self.matrix.rowCount()):
-            data = self.matrix.verticalHeaderItem(row).data(
-                Qt.ItemDataRole.UserRole)
-            if data and data[0] == 'agent':
-                row_ids.append(data[1])
-        self.layout_data.agents_view_row_order = row_ids
+        agent = self._agents[row]
+        state = self._states[column]
+        check = self._check_items.get((agent.id, state.id))
+        if check is not None:
+            self._on_check_toggled(agent, state, not check.is_checked())
 
 
-class _MatrixCardDelegate(QStyledItemDelegate):
-    """Item delegate of the agents x states matrix (TSK12 points
-    08/09).
+class _MatrixGraphicsView(QGraphicsView):
+    """Graphics view of the agents matrix.
 
-    Point 08 (floating cards): each cell is drawn as a rounded card
-    inset from the cell rectangle, so the workspace background shows
-    through the gaps: agents (rows) are spaced vertically, states
-    (columns) horizontally.
-
-    Point 09: the association checkbox is centered in the card (the
-    default QStyle placement keeps it on the left with trailing
-    empty space). Both the painted indicator and the clickable area
-    use the same centered rect (_indicator_rect): the base class
-    editorEvent only toggles the check state for clicks inside the
-    style's default (left-aligned) indicator rect.
+    Swallows Qt's delayed automatic tooltip event (card tooltips are
+    shown immediately by the items, AGENTS.md pattern). Empty-area
+    clicks release the cross-view focus (RG067); left-button presses on
+    cards start a drag (RG068 reordering); right-clicks on agent cards
+    open the context menu (TSK10).
     """
 
-    def _indicator_rect(self, option, index) -> QRect:
-        """Return the centered checkbox rect of the cell's card.
+    def __init__(self, workspace):
+        super().__init__(workspace)
+        self._workspace = workspace
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setStyleSheet(theme.WORKSPACE_STYLESHEET)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setDragMode(QGraphicsView.DragMode.NoDrag)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
 
-        Single source of truth shared by paint() (visual) and
-        editorEvent() (hit testing).
-        """
-        opt = QStyleOptionViewItem(option)
-        self.initStyleOption(opt, index)
-        style = (opt.widget.style() if opt.widget
-                 else QApplication.style())
-        indicator_size = style.subElementRect(
-            QStyle.SE_ItemViewItemCheckIndicator, opt, opt.widget)
-        spacing = AgentsWorkspace._CARD_SPACING
-        card = option.rect.adjusted(spacing, spacing, -spacing, -spacing)
-        center = card.center()
-        return QRect(center.x() - indicator_size.width() // 2,
-                     center.y() - indicator_size.height() // 2,
-                     indicator_size.width(), indicator_size.height())
+    def viewportEvent(self, event):
+        """Swallow Qt's delayed automatic tooltip event (see
+        JourneyWorkspace.viewportEvent)."""
+        if event.type() == QEvent.ToolTip:
+            return True
+        return super().viewportEvent(event)
 
-    def paint(self, painter, option, index):
-        opt = QStyleOptionViewItem(option)
-        self.initStyleOption(opt, index)
-        painter.save()
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    def _card_at(self, pos):
+        """Return the MatrixCardItem at the viewport position, walking
+        up the parent chain (the label is a child of the card)."""
+        item = self.itemAt(pos)
+        while item is not None:
+            if isinstance(item, MatrixCardItem):
+                return item
+            item = item.parentItem()
+        return None
 
-        # Workspace background fills the whole cell: visible gap
-        # between the cards (point 08)
-        painter.fillRect(option.rect, QColor(theme.BG_PRIMARY))
+    def mousePressEvent(self, event):
+        """Left press on a card starts a drag (RG068); a press in the
+        empty area releases the cross-view focus (RG067)."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            card = self._card_at(event.pos())
+            if card is not None:
+                self._workspace._dragged_card = card
+                self._workspace._drag_press_pos = self.mapToScene(event.pos())
+                event.accept()
+                return
+            if self._workspace.has_focus():
+                self._workspace.clear_focus()
+        super().mousePressEvent(event)
 
-        # Card: inset rectangle with rounded corners; the focus tint
-        # (TSK10) uses the item's background brush when set
-        spacing = AgentsWorkspace._CARD_SPACING
-        card = option.rect.adjusted(spacing, spacing, -spacing, -spacing)
-        brush = index.data(Qt.ItemDataRole.BackgroundRole)
-        if brush is None or brush.style() == Qt.BrushStyle.NoBrush:
-            brush = QBrush(QColor(theme.BG_SURFACE))
-        painter.setPen(QPen(QColor(theme.BORDER_COLOR), 1))
-        painter.setBrush(brush)
-        painter.drawRoundedRect(card, AgentsWorkspace._CARD_RADIUS,
-                                AgentsWorkspace._CARD_RADIUS)
+    def mouseMoveEvent(self, event):
+        card = self._workspace._dragged_card
+        if card is not None and event.buttons() & Qt.MouseButton.LeftButton:
+            self._workspace._on_card_dragged(
+                card, self.mapToScene(event.pos()))
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
 
-        # Checkbox centered in the card (point 09). CE_ItemViewItem is
-        # the control that renders the check indicator for view items;
-        # CE_CheckBox with a QStyleOptionViewItem draws nothing.
-        opt.rect = self._indicator_rect(option, index)
-        style = (opt.widget.style() if opt.widget
-                 else QApplication.style())
-        style.drawControl(QStyle.CE_ItemViewItem, opt, painter, opt.widget)
-        painter.restore()
+    def mouseReleaseEvent(self, event):
+        card = self._workspace._dragged_card
+        if card is not None:
+            self._workspace._on_card_released(
+                card, self.mapToScene(event.pos()))
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
-    def editorEvent(self, event, model, option, index) -> bool:
-        """Toggle the check state on a click inside the centered
-        indicator rect (point 09).
-
-        The QStyledItemDelegate implementation only toggles when the
-        click falls inside the style's default (left-aligned)
-        indicator rect: with the indicator drawn in the center of the
-        card, a center click would never toggle the state and
-        _toggle_cell would misread the user intent.
-        """
-        if (event.type() == QEvent.MouseButtonPress
-                and event.button() == Qt.MouseButton.LeftButton
-                and index.flags() & Qt.ItemIsUserCheckable):
-            hit = self._indicator_rect(option, index).contains(event.pos())
-            # Remember whether this press hit the indicator: cellClicked
-            # fires for any cell click, but only an indicator hit toggles
-            # the check state — _toggle_cell must not act otherwise.
-            workspace = self.parent()
-            if isinstance(workspace, AgentsWorkspace):
-                workspace._last_press_on_indicator = hit
-            if hit:
-                current = index.data(Qt.ItemDataRole.CheckStateRole)
-                new_state = (Qt.CheckState.Unchecked
-                             if current in (Qt.CheckState.Checked,
-                                            Qt.CheckState.Checked.value)
-                             else Qt.CheckState.Checked)
-                return model.setData(index, new_state,
-                                    Qt.ItemDataRole.CheckStateRole)
-        return super().editorEvent(event, model, option, index)
-
-    def sizeHint(self, option, index):
-        return QSize(AgentsWorkspace._ROW_HEADER_WIDTH,
-                     AgentsWorkspace._COLUMN_HEADER_HEIGHT)
+    def contextMenuEvent(self, event):
+        """Right-click on an agent card opens its context menu
+        (TSK10)."""
+        card = self._card_at(event.pos())
+        if card is not None and card.kind == 'agent':
+            self._workspace._on_agent_card_menu(card, event.globalPos())
+        event.accept()

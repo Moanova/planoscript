@@ -108,7 +108,7 @@ mw.project_service.set_modified(False)
 mw.menu_actions['save'].setEnabled(False)  # simulate the post-save state
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
-rows_before = mw.agents_page.matrix.rowCount()
+rows_before = mw.agents_page.agent_count()
 
 import ui.main_window as main_window_module
 orig_mgmt = main_window_module.AgentManagementDialog
@@ -126,7 +126,7 @@ assert mw.project_service.is_modified
 assert mw.menu_actions['save'].isEnabled(), "anomaly 1: Save still disabled"
 
 # Anomaly 4: the new agent appears in the agents view matrix
-assert mw.agents_page.matrix.rowCount() == rows_before + 1, \
+assert mw.agents_page.agent_count() == rows_before + 1, \
     "anomaly 4: new agent row missing in the agents view"
 hero = next(a for a in project.agent if a.lb == "Hero")
 
@@ -138,31 +138,36 @@ app.processEvents()
 
 from PySide6.QtTest import QTest
 
-matrix = mw.agents_page.matrix
-# TSK12 point 09: the check indicator is centered in the card;
-# clicking elsewhere in the card is a no-op
-rect = matrix.visualItemRect(matrix.item(0, 0))
-cell = rect.center()
+# TSK12 point 09 behavior preserved in TSK15: only a click on the
+# checkbox toggles the association
+agents_ws = mw.agents_page
+hero_row = next(
+    r for r in range(agents_ws.agent_count())
+    if agents_ws.agent_label(r) == "Hero")
+check = agents_ws._check_items[(hero.id, initial_state.id)]
+cell = agents_ws.view.mapFromScene(check.sceneBoundingRect().center())
 
 # Anomaly 3: checking the cell associates the agent with the state
-QTest.mouseClick(matrix.viewport(), Qt.MouseButton.LeftButton, pos=cell)
+QTest.mouseClick(agents_ws.view.viewport(), Qt.MouseButton.LeftButton,
+                 pos=cell)
 app.processEvents()
 assert AssociateAgentStateUseCase.find_association(
     narrative_map, hero.id, initial_state.id) is not None, \
     "anomaly 3: association not created by the matrix click"
-assert matrix.item(0, 0).checkState() == Qt.CheckState.Checked
+assert agents_ws.is_associated(hero_row, 0) is True
 
 # The association is visible from the journey view (data level)
 assert any(rel.agent_id == hero.id and rel.state_id == initial_state.id
            for rel in narrative_map.state_agent_rel)
 
 # Anomaly 2: unchecking the cell dissociates the agent from the state
-QTest.mouseClick(matrix.viewport(), Qt.MouseButton.LeftButton, pos=cell)
+QTest.mouseClick(agents_ws.view.viewport(), Qt.MouseButton.LeftButton,
+                 pos=cell)
 app.processEvents()
 assert AssociateAgentStateUseCase.find_association(
     narrative_map, hero.id, initial_state.id) is None, \
     "anomaly 2: dissociation not done by the matrix click"
-assert matrix.item(0, 0).checkState() == Qt.CheckState.Unchecked
+assert agents_ws.is_associated(hero_row, 0) is False
 
 # ---------------------------------------------------------------------
 # Anomaly 5: delete a state linked to an incoming event, an outgoing

@@ -711,12 +711,15 @@ class MainWindow(QMainWindow):
                 if isinstance(self.workspace, JourneyWorkspace):
                     workspace_layout = self.workspace.collect_workspace_layout()
                     # RG068: persist the agents view matrix order
-                    # (column and row order is layout data)
-                    if getattr(self, '_current_workspace_layout', None):
+                    # (column and row order is layout data). The agents
+                    # view keeps its layout data up to date on every
+                    # reorder; _current_workspace_layout was never
+                    # assigned, so the order was silently lost on save
+                    if self.agents_page.layout_data is not None:
                         workspace_layout.agents_view_column_order = (
-                            self._current_workspace_layout.agents_view_column_order)
+                            self.agents_page.layout_data.agents_view_column_order)
                         workspace_layout.agents_view_row_order = (
-                            self._current_workspace_layout.agents_view_row_order)
+                            self.agents_page.layout_data.agents_view_row_order)
                     LayoutService.save_workspace_layout(
                         file_path,
                         workspace_layout.narrative_map_id,
