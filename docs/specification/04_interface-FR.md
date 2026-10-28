@@ -246,6 +246,7 @@
       - **Description** : *Non affichée* — à implémenter.
     - **Badge sur les nœuds État** (TSK05) :
       - **Badge d'agents** (bas à droite de la carte) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
+      - *Pas de badge d'évènement en vue parcours* (revue TSC 28-10-2026, retour n°1 : les connexions y sont visibles, les badges surchargeraient les nœuds) — les badges d'évènement sont affichés sur les cartes d'état de la **vue agents** (voir section 6.bis).
     - **Points d'accroche** :
       - 4 points (haut, bas, gauche, droite) — *Pas encore visuellement implémentés*.
       - Devraient être visibles au survol (carrés de 8 px, couleur `#4CAF50`).
@@ -273,6 +274,7 @@
   - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
 - **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue parcours, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
+- **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux pastilles avec compteur, même style que le badge d'agents de la vue parcours mais en cuivre `#D19A66` (teinte du type Événement), aux **coins bas gauche et bas droit** de la carte : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue parcours, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
 - **Contrat de focus (navigation croisée, TSK10/RG067, étendu par TSK13)** :
   - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue parcours avec atténuation du reste du graphe ; état cible depuis la vue agents → bascule vers la vue parcours et focus du node de l'état, TSK13).
   - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
@@ -369,6 +371,7 @@
 - [x] Gestion des agents du projet (créer, éditer, supprimer avec cascade RG064 — FN031, TSK01/TSK02 ; sous-menu « Agent » Nouveau.../Éditer/Supprimer avec dialogue de sélection — TSK13)
 - [x] Associations agent-état depuis la vue parcours (dialogue « Associer des agents... » — FN030, TSK04)
 - [x] Badges d'agents sur les nœuds d'état dans la vue parcours (TSK05)
+- [x] Badges d'évènement (source/cible) sur les cartes d'état dans la vue agents (TSK13 ; absents de la vue parcours — revue TSC 28-10-2026)
 - [x] Vue « Agents » : matrice agents × états en vue graphique, édition des cellules, ordre RG068, grille 120×80 (TSK07–TSK15, SU008/SU009)
 - [x] Navigation croisée entre vues avec focus (RG067 — TSK10, étendu état→parcours par TSK13)
 - [x] Menus contextuels des vues parcours et agents (création/édition/suppression agent, édition/suppression état, bascule après création d'événement — TSK13)

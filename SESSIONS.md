@@ -562,3 +562,28 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   rendu comme `CustomDashLine` par Qt ; un `refresh()` de la matrice recrée
   les items → la sélection est perdue (re-sélectionner après édition).
 - **Kanban** : TSK13 Doing (retours traités, en attente de validation TSC).
+
+## 28-10-2026 — TSK13 : correction retour n°1 (badges d'évènement déplacés en vue Agents)
+
+- **Incompréhension corrigée** : le retour n°1 ne demandait pas de supprimer les
+  badges d'évènement mais de les **retirer de la vue Journey** (connexions
+  visibles, surcharge) tout en les **conservant sur les cartes d'état de la vue
+  Agents** (gauche = entrants `Event_to_state`, droite = sortants
+  `State_to_event`).
+- **Implémentation** : `EventBadgeService` + config `event_badge_bg_color`
+  restaurés ; badges sur `MatrixCardItem` (cartes état uniquement, coins bas
+  gauche/droite, pastille + compteur cuivre #D19A66, infobulle « Events
+  (in/out): ... ») ; `AgentsWorkspace.refresh_event_badges` /
+  `refresh_all_event_badges` (calcul depuis les arcs, appelé au refresh de la
+  matrice) ; `mw._refresh_agents_view_event_badges()` appelé à la
+  création/suppression d'arc (`_create_state_event_relation`,
+  `_delete_selected_relation`). Vue Journey : nœuds State = badge d'agents
+  uniquement (TSK05).
+- **Tests** : 106 passed (pytest, +11 `test_event_badge_service.py` restaurés)
+  + 10 offscreen PASSED ; nouvelle section du test TSK13 couvrant positions,
+  compteurs, tooltip, masquage à 0, absence sur les cartes agent et en vue
+  Journey, refresh dynamique (création/suppression d'arc).
+- **Leçon** : après un `refresh()` de la matrice, les items Qt sont recréés —
+  ne jamais conserver de référence sur un item supprimé (RuntimeError
+  libshiboken) ; re-fetch via `_state_cards[...]`.
+- **Kanban** : TSK13 En revue (correction retour n°1, attente validation TSC).

@@ -23,12 +23,16 @@ no-op (TSK12 point 09 behavior, preserved).
 """
 
 from PySide6.QtCore import QEvent, QPointF, Qt, QRectF
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPen
+from PySide6.QtGui import (
+    QBrush, QColor, QFont, QPainter, QPainterPath, QPen
+)
 from PySide6.QtWidgets import (
-    QGraphicsItem, QGraphicsRectItem, QGraphicsTextItem, QToolTip
+    QGraphicsEllipseItem, QGraphicsItem, QGraphicsRectItem,
+    QGraphicsTextItem, QToolTip
 )
 
 from config.config_loader import get as _get_config
+from core.services.event_badge_service import EventBadgeService
 from ui.utils import theme
 
 
@@ -44,6 +48,13 @@ class MatrixCardItem(QGraphicsRectItem):
     selected; the selection is shown by a dashed outline in the type
     color (charter 98: selection > hover > type). A click selects the
     card, a drag still reorders it (RG068).
+
+    Event badges (TSK13, agents view only): a state card carries two
+    badges at the bottom, same pill + counter style as the agent badge
+    of the journey view — left badge = source events (Event_to_state
+    arcs pointing to the state), right badge = target events
+    (State_to_event arcs leaving the state), copper fill (event tint).
+    Agent cards carry no event badge.
     """
 
     WIDTH = _get_config("node_default_width", 80.0)
@@ -53,12 +64,32 @@ class MatrixCardItem(QGraphicsRectItem):
 
     LABEL_MAX_DISPLAY_LENGTH = 8  # same truncation rule as BaseNode
 
+    # Event badge constants (state cards, bottom-left and bottom-right
+    # corners): same style as the journey agent badge (charter 98),
+    # copper fill (event tint) per the TSK13 decision.
+    EVENT_BADGE_DIAMETER = 16.0
+    EVENT_BADGE_MARGIN = 3.0
+    EVENT_BADGE_BG_COLOR = theme.color(
+        "event_badge_bg_color", theme.EVENT_COLOR)
+    EVENT_BADGE_BORDER_COLOR = theme.color(
+        "badge_border_color", theme.BADGE_BORDER_COLOR)
+    EVENT_BADGE_TEXT_COLOR = theme.color(
+        "badge_text_color", theme.BADGE_TEXT_COLOR)
+
     def __init__(self, entity, kind, border_color, parent=None):
         super().__init__(0, 0, self.WIDTH, self.HEIGHT, parent)
         self.entity = entity
         # 'state' or 'agent': resolved by the workspace from this item
         self.kind = kind
         self._border_color = QColor(border_color)
+        self.event_badge_in = None
+        self.event_badge_in_text = None
+        self.event_badge_out = None
+        self.event_badge_out_text = None
+        self._source_event_labels = []
+        self._target_event_labels = []
+        if kind == 'state':
+            self._init_event_badges()
         self._hovered = False
 
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
@@ -75,6 +106,7 @@ class MatrixCardItem(QGraphicsRectItem):
         self.label.setDefaultTextColor(
             theme.color("text_primary", theme.TEXT_PRIMARY))
         self.label.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        self.label.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self._position_label()
 
         self.setToolTip(self._tooltip_text())
@@ -95,6 +127,15 @@ class MatrixCardItem(QGraphicsRectItem):
         note = getattr(self.entity, 'note', None)
         if note:
             tooltip += f"\n{note}"
+        # Event badge lines (state cards only, TSK13)
+        events_in_line = EventBadgeService.tooltip_events_line(
+            "in", self._source_event_labels)
+        if events_in_line:
+            tooltip += f"\n{events_in_line}"
+        events_out_line = EventBadgeService.tooltip_events_line(
+            "out", self._target_event_labels)
+        if events_out_line:
+            tooltip += f"\n{events_out_line}"
         return tooltip
 
     def _position_label(self) -> None:
@@ -102,6 +143,94 @@ class MatrixCardItem(QGraphicsRectItem):
         self.label.setPos(
             (self.rect().width() - text_rect.width()) / 2,
             (self.rect().height() - text_rect.height()) / 2)
+
+    def _init_event_badges(self) -> None:
+        """Create the event badge items of a state card (left: source
+        events, right: target events), hidden by default (TSK13)."""
+        diameter = self.EVENT_BADGE_DIAMETER
+        font = QFont(theme.FONT_FAMILY, 7)
+        font.setBold(True)
+
+        self.event_badge_in = QGraphicsEllipseItem(
+            0, 0, diameter, diameter, self)
+        self.event_badge_in.setBrush(QBrush(self.EVENT_BADGE_BG_COLOR))
+        self.event_badge_in.setPen(QPen(self.EVENT_BADGE_BORDER_COLOR))
+        self.event_badge_in.setFlag(
+            QGraphicsItem.ItemIsSelectable, False)
+        self.event_badge_in.setFlag(
+            QGraphicsItem.ItemIsMovable, False)
+        self.event_badge_in.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton)
+        self.event_badge_in_text = QGraphicsTextItem(self.event_badge_in)
+        self.event_badge_in_text.setFont(font)
+        self.event_badge_in_text.setDefaultTextColor(
+            self.EVENT_BADGE_TEXT_COLOR)
+
+        self.event_badge_out = QGraphicsEllipseItem(
+            0, 0, diameter, diameter, self)
+        self.event_badge_out.setBrush(QBrush(self.EVENT_BADGE_BG_COLOR))
+        self.event_badge_out.setPen(QPen(self.EVENT_BADGE_BORDER_COLOR))
+        self.event_badge_out.setFlag(
+            QGraphicsItem.ItemIsSelectable, False)
+        self.event_badge_out.setFlag(
+            QGraphicsItem.ItemIsMovable, False)
+        self.event_badge_out.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton)
+        self.event_badge_out_text = QGraphicsTextItem(self.event_badge_out)
+        self.event_badge_out_text.setFont(font)
+        self.event_badge_out_text.setDefaultTextColor(
+            self.EVENT_BADGE_TEXT_COLOR)
+
+        self.event_badge_in.hide()
+        self.event_badge_out.hide()
+        self._position_event_badges()
+
+    def _position_event_badges(self) -> None:
+        """Place the event badges in the bottom-left (source events) and
+        bottom-right (target events) corners of the state card."""
+        if self.event_badge_in is None:
+            return
+        diameter = self.EVENT_BADGE_DIAMETER
+        rect = self.rect()
+        y = rect.height() - diameter - self.EVENT_BADGE_MARGIN
+        self.event_badge_in.setPos(self.EVENT_BADGE_MARGIN, y)
+        text_rect = self.event_badge_in_text.boundingRect()
+        self.event_badge_in_text.setPos(
+            (diameter - text_rect.width()) / 2,
+            (diameter - text_rect.height()) / 2
+        )
+        x = rect.width() - diameter - self.EVENT_BADGE_MARGIN
+        self.event_badge_out.setPos(x, y)
+        text_rect = self.event_badge_out_text.boundingRect()
+        self.event_badge_out_text.setPos(
+            (diameter - text_rect.width()) / 2,
+            (diameter - text_rect.height()) / 2
+        )
+
+    def refresh_event_badges(self, in_count: int, out_count: int,
+                             in_labels=None, out_labels=None) -> None:
+        """Refresh the event badges of a state card (TSK13, agents view).
+
+        The left badge counts the source events (Event_to_state arcs
+        pointing to the state), the right badge the target events
+        (State_to_event arcs leaving the state). Badges are hidden at 0;
+        they show the count ('9+' beyond 9). The tooltip event lines are
+        updated from the event labels when provided.
+        """
+        self._source_event_labels = list(in_labels or [])
+        self._target_event_labels = list(out_labels or [])
+        for badge, text_item, count in (
+                (self.event_badge_in, self.event_badge_in_text, in_count),
+                (self.event_badge_out, self.event_badge_out_text,
+                 out_count)):
+            if EventBadgeService.badge_visible(count):
+                text_item.setPlainText(EventBadgeService.badge_text(count))
+                badge.show()
+            else:
+                badge.hide()
+        self._position_event_badges()
+        # Refresh the tooltip so the events lines stay in sync
+        self.setToolTip(self._tooltip_text())
 
     def set_highlighted(self, highlighted: bool) -> None:
         """Focus highlight (TSK10): raised surface instead of the type

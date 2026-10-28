@@ -246,6 +246,7 @@
       - **Description**: *Not displayed* - to be implemented.
     - **Badge on State nodes** (TSK05):
       - **Agent badge** (bottom right of the card): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
+      - *No event badge in the journey view* (TSC review 28-10-2026, feedback n°1: the connections are visible there, the badges would overload the nodes) — the event badges are displayed on the state cards of the **agents view** (see section 6.bis).
     - **Anchor Points**:
       - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
       - Should be visible on hover (8px squares, color `#4CAF50`).
@@ -273,6 +274,7 @@
   - The column order follows business rule RG068 (creation order by default, manual reordering persisted by drag and drop, initial state pinned to the first column with a rejection message in the info bar).
   - A checked cell materializes an agent-state association (SU008). Editing is done by clicking the checkbox (TSK09).
 - **Card selection (TSC review 28-10-2026)**: like in the journey view, a click on a card selects it (a single card selected at a time, across agents and states); the selection is shown by a **dashed outline in the type color** (charter 98: selection > hover > type). A click on empty space clears the selection. Drag-and-drop reordering (RG068) is preserved: the click selects, the drag reorders. A right-click on a card selects it before opening the context menu. The selection drives the activation of the "Edit"/"Delete" entries of the Agent submenu in the "Agents" view.
+- **Event badges on state cards (TSK13, agents view only)**: two pills with counters, same style as the journey agent badge but in copper `#D19A66` (Event type tint), at the **bottom-left and bottom-right corners** of the card: **left** badge = number of **source** events (arcs `Event_to_state` pointing to this state), **right** badge = number of **target** events (arcs `State_to_event` leaving this state). Tooltip "Events (in): ..." / "Events (out): ...". Hidden at 0; refreshed dynamically on relation creation/deletion and on matrix refresh. Agent cards carry no event badge. In the journey view, state nodes carry only the agent badge (TSC review 28-10-2026, feedback n°1).
 - **Focus contract (cross-view navigation, TSK10/RG067, extended by TSK13)** :
   - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the journey view with the rest of the graph dimmed; target state from the agents view → switch to the journey view and focus on the state node, TSK13).
   - The focus is a temporary visual state (RG067): no modified marking, no persistence. A click on empty space or the Escape key releases it.
@@ -369,6 +371,7 @@
 - [x] Project agent management (create, edit, delete with RG064 cascade — FN031, TSK01/TSK02; "Agent" submenu New.../Edit/Delete with selection dialog — TSK13)
 - [x] Agent-state associations from the journey view ("Associate agents..." dialog — FN030, TSK04)
 - [x] Agent badges on state nodes in the journey view (TSK05)
+- [x] Event badges (source/target) on state cards in the agents view (TSK13; absent from the journey view — TSC review 28-10-2026)
 - [x] "Agents" view: agents × states matrix in graphical view, cell editing, RG068 order, 120×80 grid (TSK07–TSK15, SU008/SU009)
 - [x] Cross-view navigation with focus (RG067 — TSK10, extended state→journey by TSK13)
 - [x] Context menus of the journey and agents views (agent create/edit/delete, state edit/delete, switch to journey after event creation — TSK13)

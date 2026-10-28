@@ -648,4 +648,155 @@ assert mw.menu_actions['agent_delete'].isEnabled(), \
 
 print("TSK13 review agents-view selection + view-dependent menu OK")
 
+# ---------------------------------------------------------------------
+# TSK13 (revue TSC 28-10-2026, correction retour n°1): the event badges
+# live on the state cards of the AGENTS view (left = source events,
+# right = target events); the journey view keeps only the agent badge
+# ---------------------------------------------------------------------
+from ui.nodes.connection import Connection
+
+mw.tab_bar.setCurrentTab("Agents")
+app.processEvents()
+agents_ws = mw.agents_page
+agents_ws.refresh()
+app.processEvents()
+
+# Rebuild a connected state: one incoming event, one outgoing event,
+# one associated agent (mirrors the TSC example)
+state_result = mw.create_node_usecase.execute(
+    component_type="State", x=300, y=900, narrative_map=narrative_map)
+badge_state = state_result['entity']
+mw.workspace.create_node_from_data(state_result)
+ev_in_result = mw.create_node_usecase.execute(
+    component_type="Event", x=600, y=700, narrative_map=narrative_map)
+ev_in = ev_in_result['entity']
+mw.workspace.create_node_from_data(ev_in_result)
+ev_out_result = mw.create_node_usecase.execute(
+    component_type="Event", x=600, y=1100, narrative_map=narrative_map)
+ev_out = ev_out_result['entity']
+mw.workspace.create_node_from_data(ev_out_result)
+ArcService.create_arc(narrative_map, ev_in, badge_state)    # incoming
+ArcService.create_arc(narrative_map, badge_state, ev_out)   # outgoing
+agent_result = mw.create_agent_usecase.execute(
+    lb="Watcher", typ="Subject", note="")
+watcher = agent_result['entity']
+from usecases.agent_association.associate_agent_state_usecase import (
+    AssociateAgentStateUseCase
+)
+AssociateAgentStateUseCase(mw.project_service).execute(
+    agent=watcher, state=badge_state)
+
+# Refresh the matrix: the event badges are computed at refresh time
+agents_ws.refresh()
+app.processEvents()
+card = agents_ws._state_cards[badge_state.id]
+assert card.event_badge_in.isVisible(), "badges: left badge should show (1 source)"
+assert card.event_badge_out.isVisible(), "badges: right badge should show (1 target)"
+assert card.event_badge_in_text.toPlainText() == "1", "badges: left count"
+assert card.event_badge_out_text.toPlainText() == "1", "badges: right count"
+tooltip = card.toolTip()
+assert f"Events (in): {ev_in.lb}" in tooltip, f"badges: tooltip in: {tooltip}"
+assert f"Events (out): {ev_out.lb}" in tooltip, f"badges: tooltip out: {tooltip}"
+
+# Badge positions: bottom corners of the card (same vertical position)
+y = card.rect().height() - card.EVENT_BADGE_DIAMETER - card.EVENT_BADGE_MARGIN
+assert card.event_badge_in.pos().y() == y, "badges: left badge vertical position"
+assert card.event_badge_out.pos().y() == y, "badges: right badge vertical position"
+assert card.event_badge_in.pos().x() == card.EVENT_BADGE_MARGIN, "badges: left at left corner"
+assert card.event_badge_out.pos().x() == \
+    card.rect().width() - card.EVENT_BADGE_DIAMETER - card.EVENT_BADGE_MARGIN, \
+    "badges: right at right corner"
+
+# Agent cards carry no event badges
+agent_card = agents_ws._agent_cards[watcher.id]
+assert agent_card.event_badge_in is None, "badges: agent card has no event badge"
+assert agent_card.event_badge_out is None, "badges: agent card has no event badge"
+
+# The journey view state node carries only the agent badge (counter 1),
+# no event badge. The badge is refreshed on association changes through
+# the main window callback; trigger it explicitly here.
+mw.tab_bar.setCurrentTab("Journey")
+app.processEvents()
+mw._refresh_all_state_badges()
+app.processEvents()
+journey_node = ws._find_node_by_entity_id_and_type(badge_state.id, State)
+assert journey_node.agent_badge.isVisible(), "badges: journey agent badge visible"
+assert journey_node.agent_badge_text.toPlainText() == "1", \
+    "badges: journey agent badge count"
+assert not hasattr(journey_node, 'event_badge_in'), \
+    "badges: journey node has no event badge"
+assert not hasattr(journey_node, 'event_badge_out'), \
+    "badges: journey node has no event badge"
+
+# A state without events: badges hidden in the agents view. Create a
+# dedicated isolated state (other pre-existing states may carry arcs
+# from the earlier sections of this test).
+iso_result = mw.create_node_usecase.execute(
+    component_type="State", x=300, y=1200, narrative_map=narrative_map)
+mw.workspace.create_node_from_data(iso_result)
+agents_ws.refresh()
+app.processEvents()
+iso_state = iso_result['entity']
+other_card = agents_ws._state_cards[iso_state.id]
+other_state = iso_state
+assert not other_card.event_badge_in.isVisible(), "badges: left hidden at 0"
+assert not other_card.event_badge_out.isVisible(), "badges: right hidden at 0"
+
+# Dynamic refresh through the main window callback: delete the outgoing
+# arc via the relation deletion path, the right badge must disappear.
+# The visual connection must exist: create it through the app path
+# (the arcs above were created directly on the data model).
+mw.tab_bar.setCurrentTab("Journey")
+app.processEvents()
+ev_out_node = ws._find_node_by_entity_id_and_type(ev_out.id, EventEntity)
+badge_node = ws._find_node_by_entity_id_and_type(badge_state.id, State)
+conn = next(
+    (it for it in ws.scene.items()
+     if isinstance(it, Connection)
+     and {getattr(it, 'source_node', None), getattr(it, 'target_node', None)}
+     == {badge_node, ev_out_node}),
+    None)
+if conn is None:
+    mw._create_state_event_relation(badge_node, ev_out_node)
+    app.processEvents()
+    conn = next(
+        (it for it in ws.scene.items()
+         if isinstance(it, Connection)
+         and {getattr(it, 'source_node', None), getattr(it, 'target_node', None)}
+         == {badge_node, ev_out_node}),
+        None)
+assert conn is not None, "badges: outgoing connection not found"
+ws._select_item_only(conn)
+main_window_module.QMessageBox.question = staticmethod(
+    lambda *a, **k: main_window_module.QMessageBox.Yes)
+try:
+    mw._delete_selected_relation()
+finally:
+    main_window_module.QMessageBox.question = staticmethod(orig_question)
+assert not any(arc.state_id == badge_state.id and arc.event_id == ev_out.id
+               for arc in narrative_map.state_to_event), \
+    "badges: outgoing arc not deleted"
+# Re-fetch the card: the badge refresh above may have rebuilt the
+# matrix items (deleted C++ objects must not be accessed)
+card = agents_ws._state_cards[badge_state.id]
+assert not card.event_badge_out.isVisible(), \
+    "badges: right badge not refreshed after arc deletion"
+assert card.event_badge_in.isVisible(), \
+    "badges: left badge should stay visible"
+
+# And on arc creation: connect the isolated state -> the badge appears
+ev_in_node = ws._find_node_by_entity_id_and_type(ev_in.id, EventEntity)
+other_node = ws._find_node_by_entity_id_and_type(other_state.id, State)
+mw._create_state_event_relation(other_node, ev_in_node)
+assert any(arc.state_id == other_state.id and arc.event_id == ev_in.id
+           for arc in narrative_map.state_to_event), \
+    "badges: outgoing arc not created"
+other_card = agents_ws._state_cards[other_state.id]
+assert other_card.event_badge_out.isVisible(), \
+    "badges: right badge not refreshed after arc creation"
+assert other_card.event_badge_out_text.toPlainText() == "1", \
+    "badges: right badge count after arc creation"
+
+print("TSK13 event badges on agents-view state cards OK")
+
 print("ALL TSK13 OFFSCREEN CHECKS PASSED")

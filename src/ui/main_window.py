@@ -1048,8 +1048,10 @@ class MainWindow(QMainWindow):
                     'relation_type': relation_type
                 })
             self.info_bar.show_message("State-Event relation created")
-            # TSK13: the event badges of the connected state may have changed
+            # TSK13: the agent badge of the journey state node and the
+            # event badges of the agents-view state card may have changed
             self._refresh_all_state_badges()
+            self._refresh_agents_view_event_badges()
             self._update_menu_state()
         else:
             self.info_bar.show_message("Error: Cannot create State-Event relation")
@@ -1236,6 +1238,12 @@ class MainWindow(QMainWindow):
         """Refresh the agent badges of all state nodes (TSK05)."""
         if isinstance(self.workspace, JourneyWorkspace):
             self.workspace.refresh_all_state_badges()
+
+    def _refresh_agents_view_event_badges(self):
+        """Refresh the event badges of all state cards of the agents
+        view matrix (TSK13, agents view)."""
+        if hasattr(self, 'agents_page') and self.agents_page is not None:
+            self.agents_page.refresh_all_event_badges()
 
     def _count_agent_associations(self, agent) -> int:
         """Count the agent-state associations referencing an agent (RG064)."""
@@ -1526,8 +1534,10 @@ class MainWindow(QMainWindow):
         # Mark project as modified and update menu state
         self.project_service.set_modified(True)
         self.info_bar.show_message("Relation deleted")
-        # TSK13: the event badges of the connected state may have changed
+        # TSK13: the agent badge of the journey state node and the
+        # event badges of the agents-view state card may have changed
         self._refresh_all_state_badges()
+        self._refresh_agents_view_event_badges()
         self._update_menu_state()
 
 

@@ -1,7 +1,7 @@
 # TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents
 
 - **Épic** : EPC01/EPC02 (gestion des agents, associations)
-- **Statut** : En revue (implémentation + 3 retours de test TSC traités le 28-10-2026, attente validation TSC)
+- **Statut** : En revue (implémentation + 3 retours de test TSC traités + correction retour n°1 le 28-10-2026, attente validation TSC)
 - **Date de création** : 24-10-2026
 - **Dépendances** : TSK15 (Done)
 
@@ -52,15 +52,23 @@ Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
    Agent » (création, reste dans la vue Agents), « New State » (création,
    reste dans la vue Agents), « New Event » (création puis bascule Journey,
    point 3).
-7. **Badges d'événements sur les nœuds State (vue Journey)** — **point
-   abandonné en revue TSC (28-10-2026, retour n°1)** : les badges
-   d'évènement sont retirés de la vue Journey (les connexions y sont
-   visibles, les badges surchargeaient les objets). Implémentation
-   initiale complète (deux badges pastille + compteur, cuivre
-   `event_badge_bg_color` #D19A66, `EventBadgeService`, refresh
-   dynamique), puis **suppression complète** du code, des tests et de
-   la configuration (`event_badge_bg_color` retiré de config.json) ;
-   seuls les badges d'agents (TSK05) restent sur les nœuds State.
+7. **Badges d'événements sur les états** — **corrigé en revue TSC
+   (28-10-2026, retour n°1)** : les badges d'évènement ne sont pas
+   supprimés, ils sont **déplacés de la vue Journey vers les cartes
+   d'état de la vue Agents** (les connexions sont visibles en vue
+   Journey, les badges y surchargeaient les nœuds). Deux badges par
+   carte d'état, même style que le badge agents (pastille + compteur) :
+   - badge **gauche** (coin bas gauche) = nombre d'événements
+     **sources** (arcs `Event_to_state` pointant vers l'état) ;
+   - badge **droite** (coin bas droit) = nombre d'événements
+     **cibles** (arcs `State_to_event` partant de l'état) ;
+   - cuivre `event_badge_bg_color` #D19A66 (`EventBadgeService`,
+     `MatrixCardItem.event_badge_in/out`, refresh via
+     `AgentsWorkspace.refresh_all_event_badges` appelé au refresh de la
+     matrice et à la création/suppression d'une relation) ;
+   - infobulle : lignes « Events (in): ... » / « Events (out): ... » ;
+   - les cartes agent ne portent pas de badge d'évènement ; en vue
+   Journey, les nœuds State ne portent que le badge d'agents (TSK05).
 
 ## Contexte (existant mobilisable)
 
@@ -107,3 +115,12 @@ Cadrage TSC reçu le 28-10-2026 (7 points, validés et complétés en revue) :
   factorisée dans `_confirm_component_deletion` partagée avec la vue Agents.
   Tests : 95 passed (pytest) + 10 offscreen PASSED. Kanban : Doing (retours
   en cours de traitement).
+- 28-10-2026 (revue TSC, correction retour n°1) : incompréhension corrigée —
+  les badges d'évènement ne sont pas supprimés mais **déplacés sur les cartes
+  d'état de la vue Agents** (gauche = entrants, droite = sortants ; cuivre
+  `event_badge_bg_color` #D19A66 restauré). Implémentation : badges sur
+  `MatrixCardItem` (cartes état uniquement), `AgentsWorkspace.refresh_event_badges`
+  / `refresh_all_event_badges` (appelé au refresh de la matrice), refresh via
+  `mw._refresh_agents_view_event_badges()` à la création/suppression d'arc.
+  `EventBadgeService` + tests unitaires restaurés. La vue Journey ne porte que
+  le badge d'agents (TSK05). Tests : 106 passed (pytest) + 10 offscreen PASSED.

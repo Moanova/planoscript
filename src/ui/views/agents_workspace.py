@@ -296,8 +296,40 @@ class AgentsWorkspace(QWidget):
                 self.scene.addItem(check)
                 self._check_items[(agent.id, state.id)] = check
 
+        # TSK13 (agents view): event badges on the state cards, computed
+        # from the arcs of the current narrative map
+        self.refresh_all_event_badges()
+
         self._update_scene_rect()
         self._draw_grid()
+
+    def refresh_event_badges(self, state_card):
+        """Refresh the event badges of one state card (TSK13, agents
+        view): left badge = source events (Event_to_state arcs pointing
+        to the state), right badge = target events (State_to_event arcs
+        leaving the state)."""
+        if not self.project_service or not self.project_service.current_project:
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        state_id = state_card.entity.id
+        events_by_id = {e.id: e for e in narrative_map.event}
+        source_labels = []
+        target_labels = []
+        for arc in narrative_map.event_to_state:
+            if arc.state_id == state_id and arc.event_id in events_by_id:
+                source_labels.append(events_by_id[arc.event_id].lb)
+        for arc in narrative_map.state_to_event:
+            if arc.state_id == state_id and arc.event_id in events_by_id:
+                target_labels.append(events_by_id[arc.event_id].lb)
+        state_card.refresh_event_badges(
+            len(source_labels), len(target_labels),
+            source_labels, target_labels)
+
+    def refresh_all_event_badges(self):
+        """Refresh the event badges of every state card (TSK13, agents
+        view)."""
+        for card in self._state_cards.values():
+            self.refresh_event_badges(card)
 
     def _update_scene_rect(self):
         """Grow the scene rightwards/downwards so the whole matrix is
