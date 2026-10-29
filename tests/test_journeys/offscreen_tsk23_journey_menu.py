@@ -78,4 +78,12 @@ assert nm.active_journey_id == j2.id
 assert not hasattr(mw, 'events_menu')
 assert 'list_events' not in mw.menu_actions
 
+# Selection dialog (TSK23 review): New.../Delete/Ok/Cancel buttons
+from ui.dialogs.journey_selection_dialog import JourneySelectionDialog
+dlg = JourneySelectionDialog(nm.journey, parent=mw)
+assert dlg.new_button.isEnabled()
+assert dlg.ok_button.isEnabled() is False  # no selection yet
+dlg.list_widget.setCurrentRow(0)
+assert dlg.ok_button.isEnabled() and dlg.delete_button.isEnabled()
+
 print("OFFSCREEN TSK23 JOURNEY MENU CHECKS PASSED")

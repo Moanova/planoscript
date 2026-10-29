@@ -389,11 +389,12 @@ class MainWindow(QMainWindow):
         self.menu_actions['relation_edit'] = self.relations_menu.addAction("Edit", lambda: self._edit_selected_relation())
         self.menu_actions['relation_delete'] = self.relations_menu.addAction("Delete", lambda: self._delete_selected_relation())
 
-        # Journeys submenu (TSK23, FN023/FN024; Delete stubbed until TSK25)
+        # Journeys submenu (TSK23, FN023/FN024; TSK23 review: no Delete
+        # entry here - deletion is handled from the selection dialog
+        # opened by Edit, stubbed until TSK25)
         self.journeys_menu = self.project_menu.addMenu("Journeys...")
         self.menu_actions['journey_new'] = self.journeys_menu.addAction("New...", lambda: self._new_journey())
         self.menu_actions['journey_edit'] = self.journeys_menu.addAction("Edit", lambda: self._edit_journey())
-        self.menu_actions['journey_delete'] = self.journeys_menu.addAction("Delete", lambda: None)  # TSK25
 
         # About menu (always enabled)
         self.about_menu = self.menu_bar.addMenu("About")
@@ -445,7 +446,6 @@ class MainWindow(QMainWindow):
             and self.project_service.current_project.narrative_map[0].journey)
         self.menu_actions['journey_new'].setEnabled(has_project)
         self.menu_actions['journey_edit'].setEnabled(has_journey)
-        self.menu_actions['journey_delete'].setEnabled(has_journey)
 
         for action_key in actions:
             if action_key in self.menu_actions:
@@ -1247,6 +1247,52 @@ class MainWindow(QMainWindow):
     def _new_journey(self):
         """Create a journey from "Project > Journeys... > New..." (TSK23,
         FN023). The new journey is automatically activated (RG023)."""
+        self._new_journey_dialog()
+        self._update_menu_state()
+
+    def _edit_journey(self):
+        """Journey management from "Project > Journeys... > Edit" (TSK23
+        review, FN024): a selection dialog with Ok (edit the selected
+        journey), New... (create a journey, then back to the selection)
+        and Delete (stub until TSK25)."""
+        narrative_map = self._current_narrative_map()
+        if narrative_map is None or not narrative_map.journey:
+            self.info_bar.show_message("No journey in the map")
+            return
+        dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
+        while dialog.exec() == JourneySelectionDialog.Accepted:
+            action = dialog.get_action()
+            if action == "ok":
+                journey = dialog.get_selected_journey()
+                if journey is None:
+                    continue
+                edit_dialog = JourneyDialog(entity=journey, parent=self)
+                if edit_dialog.exec() != JourneyDialog.Accepted:
+                    continue
+                values = edit_dialog.get_values()
+                result = self.update_journey_usecase.execute(
+                    journey, lb=values['lb'], note=values['note'])
+                if result and result.get('success'):
+                    self.info_bar.show_message("Journey updated")
+                else:
+                    self.info_bar.show_message("Cannot update journey: invalid data")
+                break
+            elif action == "new":
+                # TSK23 review: creation from the selection dialog, then
+                # back to the selection instead of the workspace
+                self._new_journey_dialog()
+                dialog.refresh(narrative_map.journey)
+                continue
+            elif action == "delete":
+                # TSK25: journey deletion not implemented yet
+                self.info_bar.show_message("Journey deletion is not yet implemented")
+                continue
+            break
+        self._update_menu_state()
+
+    def _new_journey_dialog(self):
+        """Open the journey creation dialog and create the journey
+        (shared by the menu entry and the selection dialog, TSK23)."""
         narrative_map = self._current_narrative_map()
         if narrative_map is None:
             return
@@ -1258,27 +1304,8 @@ class MainWindow(QMainWindow):
         result = self.create_journey_usecase.execute(lb=values['lb'], note=values['note'])
         if result and result.get('success'):
             self.info_bar.show_message(f"Journey created: {result['entity'].lb}")
-            self._update_menu_state()
         else:
             self.info_bar.show_message("Cannot create journey")
-
-    def _edit_journey(self):
-        """Edit a journey from "Project > Journeys... > Edit" (TSK23, FN024):
-        selection dialog, then the edition dialog."""
-        journey = self._select_journey()
-        if journey is None:
-            return
-        dialog = JourneyDialog(entity=journey, parent=self)
-        if dialog.exec() != JourneyDialog.Accepted:
-            return
-        values = dialog.get_values()
-        result = self.update_journey_usecase.execute(
-            journey, lb=values['lb'], note=values['note'])
-        if result and result.get('success'):
-            self.info_bar.show_message("Journey updated")
-            self._update_menu_state()
-        else:
-            self.info_bar.show_message("Cannot update journey: invalid data")
 
     def _select_journey(self):
         """Open the journey selection dialog (TSK23) and return the

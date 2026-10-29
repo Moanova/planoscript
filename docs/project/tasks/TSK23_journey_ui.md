@@ -29,3 +29,16 @@ Suppression d'un parcours (TSK25), duplication (TSK24), filtre d'affichage FN029
 - Specs : `05_menu-EN.yaml` (JourneyList + Journeys..., note remplacement Events) ; `03_features` FR/EN FN023/FN024/FN026 → Implémenté (TSK23).
 - Tests : py_compile OK ; 127 passed (inchangé, use cases déjà couverts TSK22) ; script offscreen `tests/test_journeys/offscreen_tsk23_journey_menu.py` écrit mais non exécutable dans le sandbox (libGL.so.1) — à valider en séance GUI.
 - Hors périmètre respecté : Delete stub, pas de filtre FN029, pas de barre latérale.
+
+## Retours de revue TSC (29-10-2026) — traités
+
+- Entrée `Project > Journeys... > Delete` **supprimée** du menu (un parcours
+  n'est pas un objet sélectionnable dans l'espace de travail).
+- La fenêtre de sélection ouverte par `Edit` gagne les boutons **New...**
+  (crée un parcours puis revient sur la sélection au lieu de revenir à
+  l'espace de travail) et **Delete** (stub jusqu'à TSK25, message
+  info_bar).
+- `_edit_journey` réécrit en boucle sur la sélection (actions ok/new/delete) ;
+  `_new_journey_dialog()` mutualisé entre le menu New... et le bouton New...
+  de la sélection. Specs `05_menu-EN.yaml` et script offscreen mis à jour.
+- Tests : py_compile OK ; 127 passed.

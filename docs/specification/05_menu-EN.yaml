@@ -126,9 +126,7 @@ menu:
             - name: New...
               note: "Implemented (TSK23) - Opens the 'New Journey' dialog (default label 'Journey {id}', editable); the new journey is automatically activated (FN023, RG023). Enabled as soon as a project is open"
             - name: Edit
-              note: "Implemented (TSK23) - Opens a journey selection dialog, then the edition dialog (label + note, FN024). Enabled as soon as at least one journey exists"
-            - name: Delete
-              note: "Not implemented - Stub until TSK25 (FN027)"
+              note: "Implemented (TSK23, review 29-10-2026) - Opens a journey selection dialog with Ok (edit the selected journey: label + note, FN024), New... (create a journey, then back to the selection dialog) and Delete (stub until TSK25/FN027). Enabled as soon as at least one journey exists. No Delete entry in this submenu: deletion is handled from the selection dialog"
         - name: Relations...
           items:
             - name: Connect State and Event

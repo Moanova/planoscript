@@ -821,3 +821,16 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   exécutable dans le sandbox (libGL.so.1) — à valider en séance GUI.
 - **Kanban** : TSK23 Doing → En revue (TSK22 reste En revue).
 - **Fin de séance** : non committé (pas d'instruction de commit).
+
+
+## 29-10-2026 — TSK23 : retours de revue TSC traités
+
+- `Project > Journeys... > Delete` supprimé du menu ; la sélection ouverte par
+  Edit gagne **New...** (crée puis revient à la sélection) et **Delete**
+  (stub TSK25). `_edit_journey` en boucle, `_new_journey_dialog()` mutualisé.
+- Confirmé en revue : édition des connexions/arcs non implémentée
+  (`_edit_selected_relation` = message « not yet implemented ») → TSK21
+  (SU004/FN021) est la dépendance du rattachement aux parcours sur la
+  connexion (RG027 révisée).
+- Tests : py_compile OK ; 127 passed ; script offscreen TSK23 mis à jour
+  (toujours à valider en GUI, libGL absent du sandbox).
