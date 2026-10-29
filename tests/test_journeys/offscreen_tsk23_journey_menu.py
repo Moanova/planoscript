@@ -86,9 +86,15 @@ assert dlg.ok_button.isEnabled() is False  # no selection yet
 dlg.list_widget.setCurrentRow(0)
 assert dlg.ok_button.isEnabled() and dlg.delete_button.isEnabled()
 
-# TSK23 review: after a refresh with select_id, that journey is selected
-dlg.refresh(nm.journey + [type(nm.journey[0])(id=99, lb="Temp")], select_id=99)
-assert dlg.list_widget.currentRow() == 1
-assert dlg.ok_button.isEnabled() and dlg.delete_button.isEnabled()
+# TSK23 review/fix: select_id selects the given journey at construction
+from core.models.data_model import Journey
+dlg2 = JourneySelectionDialog(nm.journey + [Journey(id=99, lb="Temp")],
+                              parent=mw, select_id=99)
+assert dlg2.list_widget.currentRow() == 1
+assert dlg2.ok_button.isEnabled() and dlg2.delete_button.isEnabled()
+# fresh instance: action starts empty, no stale state
+dlg3 = JourneySelectionDialog(nm.journey, parent=mw)
+assert dlg3.get_action() is None
+assert dlg3.list_widget.currentRow() == 0
 
 print("OFFSCREEN TSK23 JOURNEY MENU CHECKS PASSED")

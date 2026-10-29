@@ -63,3 +63,14 @@ Suppression d'un parcours (TSK25), duplication (TSK24), filtre d'affichage FN029
   `continue` dans la boucle, chaque action retombe sur `result = dialog.exec()` ;
   seul Ok termine la session (break).
 - Tests : py_compile OK ; 127 passed.
+
+## Retour de test TSC (29-10-2026, 4e salve) — corrigé
+
+- Bug : après New... depuis Edit puis Ok sur la sélection, une fenêtre de
+  création se rouvrait (double création). Cause : la même instance de
+  `JourneySelectionDialog` était ré-ouverte en boucle et conservait un
+  `_action` périmé entre deux `exec()`. Corrigé : **nouvelle instance du
+  dialogue à chaque itération**, `select_id` passé au constructeur (plus de
+  `refresh()` ni d'état réutilisé) ; `_action` repart donc vide à chaque fois.
+- Tests : py_compile OK ; 127 passed ; offscreen mis à jour (select_id au
+  constructeur, action vide sur instance fraîche).

@@ -852,3 +852,12 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   restructuration de la boucle sans `continue`, ré-`exec()` systématique,
   seul Ok ferme la session.
 - Tests : py_compile OK ; 127 passed.
+
+
+## 29-10-2026 — TSK23 : correction double création depuis Edit (test TSC)
+
+- Cause : une seule instance de JourneySelectionDialog réutilisée en boucle
+  conservait un _action périmé entre exec() (Ok relu comme "new" → fenêtre de
+  création qui se rouvre). Corrigé : nouvelle instance par itération,
+  select_id au constructeur, plus de refresh()/état partagé.
+- Tests : py_compile OK ; 127 passed.

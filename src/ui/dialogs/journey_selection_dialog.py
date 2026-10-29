@@ -27,12 +27,21 @@ class JourneySelectionDialog(QDialog):
     "ok", "new", "delete", or None (cancel).
     """
 
-    def __init__(self, journeys, parent=None):
+    def __init__(self, journeys, parent=None, select_id=None):
         super().__init__(parent)
         self._journeys = list(journeys)
         self._action = None
         self._setup_ui()
         self._refresh_list()
+        # A journey is always selected (TSK23 review): select_id when
+        # given (typically the newly created journey), otherwise row 0
+        row = 0
+        if select_id is not None:
+            for i, j in enumerate(self._journeys):
+                if j.id == select_id:
+                    row = i
+                    break
+        self.list_widget.setCurrentRow(row)  # fires _selection_changed
 
     def _setup_ui(self):
         self.setWindowTitle("Select Journey")
@@ -94,23 +103,6 @@ class JourneySelectionDialog(QDialog):
         """Return the action chosen by the user: "ok", "new", "delete",
         or None when the dialog was cancelled."""
         return self._action
-
-    def refresh(self, journeys, select_id=None):
-        """Replace the journey list (after a creation) and keep the dialog open.
-
-        A journey is always selected afterwards (TSK23 review): the row
-        of select_id when given (typically the newly created journey),
-        otherwise the first row.
-        """
-        self._journeys = list(journeys)
-        self._refresh_list()
-        row = 0
-        if select_id is not None:
-            for i, j in enumerate(self._journeys):
-                if j.id == select_id:
-                    row = i
-                    break
-        self.list_widget.setCurrentRow(row)  # fires _selection_changed
 
     def get_selected_journey(self):
         """Return the selected Journey, or None if there is no selection."""

@@ -1267,9 +1267,12 @@ class MainWindow(QMainWindow):
         # Snapshot for the transactional rollback (TSK23 review)
         journeys_before = list(narrative_map.journey)
         active_before = narrative_map.active_journey_id
-        dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
-        # A journey is always selected (TSK23 review)
-        dialog.list_widget.setCurrentRow(0)
+        # A fresh dialog instance per iteration (TSK23 fix): reusing one
+        # instance kept a stale _action between exec() calls, so Ok after
+        # New... could be read as "new" and reopen the creation dialog
+        select_id = None
+        dialog = JourneySelectionDialog(narrative_map.journey, parent=self,
+                                        select_id=select_id)
         result = dialog.exec()
         while result == JourneySelectionDialog.Accepted:
             action = dialog.get_action()
@@ -1287,15 +1290,16 @@ class MainWindow(QMainWindow):
                             self.info_bar.show_message("Cannot update journey: invalid data")
                         break  # Ok ends the session
             elif action == "new":
-                # Creation from the selection dialog, then back to the
-                # selection with the new journey selected (TSK23 review)
+                # Creation from the selection dialog, then a fresh selection
+                # dialog with the new journey selected (TSK23 review/fix)
                 created = self._new_journey_dialog()
-                dialog.refresh(narrative_map.journey,
-                               select_id=created.id if created is not None else None)
+                select_id = created.id if created is not None else None
             elif action == "delete":
                 # TSK25: journey deletion not implemented yet
                 self.info_bar.show_message("Journey deletion is not yet implemented")
-            # Re-show the selection dialog (never skipped: no continue above)
+            # Fresh instance each iteration: no stale action can leak
+            dialog = JourneySelectionDialog(narrative_map.journey, parent=self,
+                                            select_id=select_id)
             result = dialog.exec()
         if result != JourneySelectionDialog.Accepted:
             # Cancel: roll back the journeys created during this session
