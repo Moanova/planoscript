@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 8
+- **Version** : 10
 - **Date** : 29-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -19,6 +19,7 @@ TSK01 → TSK02 → TSK03 → TSK04 → TSK05
                     TSK06 → TSK07 → TSK08 → TSK09 → TSK10
 EPC03 layout : TSK11 → TSK12
 EPC04 : TSK15 → TSK13
+EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 ```
 
 ---
@@ -27,12 +28,17 @@ EPC04 : TSK15 → TSK13
 
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 - [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
-- [ ] TSK21 — Édition des annotations (`note`) des 3 types de relations (FN021/SU004) : arcs Event_to_state/State_to_event via menu contextuel de la connexion (vue Events), State_agent_rel via clic droit sur case cochée (vue Agents) — solution validée TSC 29-10-2026 — implémentation en séance ultérieure → #TSK20 — détail dans `tasks/TSK21_relation_annotation_edition.md`
+- [ ] TSK21 — Scénario SU004 (FN021) : édition des annotations (`note`) des 3 types de relations — arcs Event_to_state/State_to_event via menu contextuel de la connexion (vue Events), State_agent_rel via clic droit sur case cochée (vue Agents) — solution validée TSC 29-10-2026 — implémentation en séance ultérieure → #TSK20 — détail dans `tasks/TSK21_relation_annotation_edition.md`
 
 - [ ] SU003 — Duplication d'un composant (FN016)
-- [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
-- [ ] SU004 — Éditer une relation : annotation via panneau de propriétés (FN021)
-- [ ] SU005 — Gérer un parcours narratif (FN023 à FN027 — à découper avant passage en Doing)
+- [ ] SU003 — Rattachement des composants aux parcours (FN019) → #TSK25
+
+- [ ] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027 — découpé en TSK22–TSK26 ; conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md`)
+  - [ ] TSK22 — Fondations parcours : parcours actif dans le modèle (`NarrativeMap.active_journey_id`, RG022/RG023) + use cases créer/renommer/activer un parcours (FN023/FN024/FN026, RG055) + persistance JSON + tests + réécriture des règles RG026/RG027/RG031/RG052 (FR/EN) selon la conception `docs/conception/journey_attachment.md` — détail dans `tasks/TSK22_journey_foundations.md`
+  - [ ] TSK23 — UI de gestion des parcours : sous-menu `Display › Journey › JourneyList` (liste cochable, parcours actif) + entrées Project Nouveau/Éditer/Supprimer (FN023/FN024) → #TSK22
+  - [ ] TSK24 — Duplication d'un parcours (FN025 : nouvel id, nom distinctif, composants du parcours source rattachés à la copie) → #TSK22
+  - [ ] TSK25 — Suppression d'un parcours (FN027, RG029/RG055/RG066 révisée : dernier parcours non supprimable, réattribution obligatoire des composants exclusifs, bascule vers le parcours par défaut des noeuds orphelins incl. `state_agent_rel_id`) → #TSK22, #TSK24
+- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : ex. inverser l'ordre des clés `event_to_state_id` / `state_to_event_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; audit des autres points potentiellement ambigus au fil de la réalisation
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
@@ -44,12 +50,13 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- [ ] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié
-- [ ] TSK20 — Modèle de données : clé `content` après `note` dans Agent/State/Event, clé `note` ajoutée à Event_to_state/State_to_event (State_agent_rel inchangé) + impacts code (dialogues Note/Content, use cases, tests) + doc — détail dans `tasks/TSK20_data_model_content_note.md` — tests 110 passed + 10 offscreen PASSED + round-trip JSON vérifié
-- [ ] TSK19 — Renommage de la vue « Journey » en vue « Events » (cohérence avec la vue « Agents » : les états sont centraux dans les deux vues) — renommage couche UI uniquement (`EventsWorkspace`, onglet « Events », menus, signaux, tests) ; la couche métier `Journey`/`Journey_node` (parcours narratif, clés JSON) est conservée — détail dans `tasks/TSK19_rename_journey_view.md` — tests 106 passed + 10 offscreen PASSED
+(aucune tâche en cours de revue)
 
 ## Done
 
+- [x] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié — validée TSC le 29-10-2026
+- [x] TSK20 — Modèle de données : clé `content` après `note` dans Agent/State/Event, clé `note` ajoutée à Event_to_state/State_to_event (State_agent_rel inchangé) + impacts code (dialogues Note/Content, use cases, tests) + doc — détail dans `tasks/TSK20_data_model_content_note.md` — tests 110 passed + 10 offscreen PASSED + round-trip JSON vérifié — validée TSC le 29-10-2026
+- [x] TSK19 — Renommage de la vue « Journey » en vue « Events » (cohérence avec la vue « Agents » : les états sont centraux dans les deux vues) — renommage couche UI uniquement (`EventsWorkspace`, onglet « Events », menus, signaux, tests) ; la couche métier `Journey`/`Journey_node` (parcours narratif, clés JSON) est conservée — détail dans `tasks/TSK19_rename_journey_view.md` — tests 106 passed + 10 offscreen PASSED — validée TSC le 29-10-2026
 - [x] TSK17 — Ajustement esthétique : badge d'agents des nœuds d'état (vue Journey) centré sur le coin bas-droit, à cheval sur les bords X et Y du contour (comme les badges d'évènement de la vue Agents, TSK13) — détail dans `tasks/TSK17_agent_badge_position.md` — validée TSC le 28-10-2026 (2 revues : centrage à cheval sur le coin, puis ratio 2/3 dedans / 1/3 dehors)
 - [x] TSK13 — Révision de la mécanique de création et d'édition des agents, et de l'association états-agents (EPC04 → #TSK15, TSK15 Done) — 7 points TSC implémentés ; retours de test TSC du 28-10-2026 traités ; **repositionnement des badges d'évènement traité** (centrés verticalement, à cheval sur les bords G/D des cartes d'état — mêmes coordonnées que les ports de connexion de la vue Journey, validé TSC) — détail dans `tasks/TSK13_agent_mechanics_review.md` — validée TSC le 28-10-2026 (3 retours de test + correction retour n°01 + repositionnement des badges d'évènement)
 
