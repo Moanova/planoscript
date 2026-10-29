@@ -95,11 +95,22 @@ class JourneySelectionDialog(QDialog):
         or None when the dialog was cancelled."""
         return self._action
 
-    def refresh(self, journeys):
-        """Replace the journey list (after a creation) and keep the dialog open."""
+    def refresh(self, journeys, select_id=None):
+        """Replace the journey list (after a creation) and keep the dialog open.
+
+        A journey is always selected afterwards (TSK23 review): the row
+        of select_id when given (typically the newly created journey),
+        otherwise the first row.
+        """
         self._journeys = list(journeys)
         self._refresh_list()
-        self._selection_changed(self.list_widget.currentRow())
+        row = 0
+        if select_id is not None:
+            for i, j in enumerate(self._journeys):
+                if j.id == select_id:
+                    row = i
+                    break
+        self.list_widget.setCurrentRow(row)  # fires _selection_changed
 
     def get_selected_journey(self):
         """Return the selected Journey, or None if there is no selection."""

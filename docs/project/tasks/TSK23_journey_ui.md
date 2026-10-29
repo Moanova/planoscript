@@ -42,3 +42,16 @@ Suppression d'un parcours (TSK25), duplication (TSK24), filtre d'affichage FN029
   `_new_journey_dialog()` mutualisé entre le menu New... et le bouton New...
   de la sélection. Specs `05_menu-EN.yaml` et script offscreen mis à jour.
 - Tests : py_compile OK ; 127 passed.
+
+## Retours de revue TSC (29-10-2026, 2e salve) — traités
+
+- **Sélection permanente** : la fenêtre de sélection sélectionne toujours un
+  parcours (ligne 0 à l'ouverture ; `refresh(..., select_id=...)` sélectionne
+  le parcours nouvellement créé après un New...). Ok/Delete ne sont donc
+  plus jamais grisés.
+- **Logique transactionnelle** : la session Edit est un snapshot
+  (journeys + active_journey_id) ; si elle se termine par **Cancel**, les
+  parcours créés via New... pendant la session sont retirés du modèle et le
+  parcours actif précédent est restauré (la création via le menu New... reste,
+  elle, définitive et revient à l'espace de travail).
+- Tests : py_compile OK ; 127 passed ; script offscreen mis à jour.

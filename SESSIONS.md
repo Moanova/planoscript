@@ -834,3 +834,12 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   connexion (RG027 révisée).
 - Tests : py_compile OK ; 127 passed ; script offscreen TSK23 mis à jour
   (toujours à valider en GUI, libGL absent du sandbox).
+
+
+## 29-10-2026 — TSK23 : 2e salve de retours de revue TSC
+
+- Sélection permanente dans la fenêtre de sélection (refresh avec select_id =
+  parcours créé) ; session Edit transactionnelle : Cancel annule les parcours
+  créés via New... dans la session (rollback modèle + active_journey_id),
+  New... du menu reste définitif.
+- Tests : py_compile OK ; 127 passed ; offscreen TSK23 mis à jour.
