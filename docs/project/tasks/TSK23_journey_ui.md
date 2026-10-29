@@ -55,3 +55,11 @@ Suppression d'un parcours (TSK25), duplication (TSK24), filtre d'affichage FN029
   parcours actif précédent est restauré (la création via le menu New... reste,
   elle, définitive et revient à l'espace de travail).
 - Tests : py_compile OK ; 127 passed ; script offscreen mis à jour.
+
+## Retour de test TSC (29-10-2026, 3e salve) — corrigé
+
+- Bug : boucle infinie de fenêtres de création depuis Edit (les `continue`
+  de la boucle sautaient le ré-`exec()` de la sélection). Corrigé : plus aucun
+  `continue` dans la boucle, chaque action retombe sur `result = dialog.exec()` ;
+  seul Ok termine la session (break).
+- Tests : py_compile OK ; 127 passed.

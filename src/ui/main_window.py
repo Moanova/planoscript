@@ -1275,31 +1275,27 @@ class MainWindow(QMainWindow):
             action = dialog.get_action()
             if action == "ok":
                 journey = dialog.get_selected_journey()
-                if journey is None:
-                    continue
-                edit_dialog = JourneyDialog(entity=journey, parent=self)
-                if edit_dialog.exec() != JourneyDialog.Accepted:
-                    continue
-                values = edit_dialog.get_values()
-                result = self.update_journey_usecase.execute(
-                    journey, lb=values['lb'], note=values['note'])
-                if result and result.get('success'):
-                    self.info_bar.show_message("Journey updated")
-                else:
-                    self.info_bar.show_message("Cannot update journey: invalid data")
-                break
+                if journey is not None:
+                    edit_dialog = JourneyDialog(entity=journey, parent=self)
+                    if edit_dialog.exec() == JourneyDialog.Accepted:
+                        values = edit_dialog.get_values()
+                        update = self.update_journey_usecase.execute(
+                            journey, lb=values['lb'], note=values['note'])
+                        if update and update.get('success'):
+                            self.info_bar.show_message("Journey updated")
+                        else:
+                            self.info_bar.show_message("Cannot update journey: invalid data")
+                        break  # Ok ends the session
             elif action == "new":
                 # Creation from the selection dialog, then back to the
                 # selection with the new journey selected (TSK23 review)
                 created = self._new_journey_dialog()
-                if created is not None:
-                    dialog.refresh(narrative_map.journey, select_id=created.id)
-                else:
-                    dialog.refresh(narrative_map.journey)
-                continue
+                dialog.refresh(narrative_map.journey,
+                               select_id=created.id if created is not None else None)
             elif action == "delete":
                 # TSK25: journey deletion not implemented yet
                 self.info_bar.show_message("Journey deletion is not yet implemented")
+            # Re-show the selection dialog (never skipped: no continue above)
             result = dialog.exec()
         if result != JourneySelectionDialog.Accepted:
             # Cancel: roll back the journeys created during this session

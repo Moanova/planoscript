@@ -843,3 +843,12 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   créés via New... dans la session (rollback modèle + active_journey_id),
   New... du menu reste définitif.
 - Tests : py_compile OK ; 127 passed ; offscreen TSK23 mis à jour.
+
+
+## 29-10-2026 — TSK23 : correction boucle infinie (test TSC)
+
+- Depuis Edit > New... > Ok, la fenêtre de création se rouvrait en boucle
+  (les `continue` sautaient le ré-affichage de la sélection). Corrigé :
+  restructuration de la boucle sans `continue`, ré-`exec()` systématique,
+  seul Ok ferme la session.
+- Tests : py_compile OK ; 127 passed.
