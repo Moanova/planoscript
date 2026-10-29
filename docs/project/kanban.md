@@ -34,7 +34,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #TSK25
 
 - [ ] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027 — découpé en TSK22–TSK26 ; conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md`)
-  - [ ] TSK23 — UI de gestion des parcours : `Display › Journey › JourneyList` remplace `Display › Events` (liste cochable dynamique, parcours actif) + entrées `Project › Journeys...` New.../Edit (FN023/FN024, Delete stub → TSK25) → #TSK22 — détail dans `tasks/TSK23_journey_ui.md`
+
   - [ ] TSK24 — Duplication d'un parcours (FN025 : nouvel id, nom distinctif, composants du parcours source rattachés à la copie) → #TSK22
   - [ ] TSK25 — Suppression d'un parcours (FN027, RG029/RG055/RG066 révisée : dernier parcours non supprimable, réattribution obligatoire des composants exclusifs, bascule vers le parcours par défaut des noeuds orphelins incl. `state_agent_rel_id`) → #TSK22, #TSK24
 - [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : distinction actée le 29-10-2026 (`arc` = donnée métier directionnelle, `connection` = objet visuel UI, `association` = State_agent_rel, `relation` = terme chapeau specs/menus uniquement — voir `docs/conception/journey_attachment.md` §1) ; à appliquer : audit arc/connection/relation dans tout le code + ex. inverser l'ordre des clés `state_to_event_id` / `event_to_state_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; autres points ambigus au fil de la réalisation
@@ -45,7 +45,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## Doing
 
-- [ ] TSK22 — Fondations parcours (EPC05) — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md`
+- (aucune tâche en cours)
 
 ## En revue
 
@@ -53,6 +53,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## Done
 
+- [x] TSK23 — UI de gestion des parcours : `Display › Journey › JourneyList` remplace `Display › Events` (liste cochable dynamique, parcours actif) + entrées `Project › Journeys...` New.../Edit (FN023/FN024, Delete stub → TSK25) → #TSK22 — détail dans `tasks/TSK23_journey_ui.md` — validée TSC le 29-10-2026 (5 revues traitées)
 - [x] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié — validée TSC le 29-10-2026
 - [x] TSK20 — Modèle de données : clé `content` après `note` dans Agent/State/Event, clé `note` ajoutée à Event_to_state/State_to_event (State_agent_rel inchangé) + impacts code (dialogues Note/Content, use cases, tests) + doc — détail dans `tasks/TSK20_data_model_content_note.md` — tests 110 passed + 10 offscreen PASSED + round-trip JSON vérifié — validée TSC le 29-10-2026
 - [x] TSK19 — Renommage de la vue « Journey » en vue « Events » (cohérence avec la vue « Agents » : les états sont centraux dans les deux vues) — renommage couche UI uniquement (`EventsWorkspace`, onglet « Events », menus, signaux, tests) ; la couche métier `Journey`/`Journey_node` (parcours narratif, clés JSON) est conservée — détail dans `tasks/TSK19_rename_journey_view.md` — tests 106 passed + 10 offscreen PASSED — validée TSC le 29-10-2026
