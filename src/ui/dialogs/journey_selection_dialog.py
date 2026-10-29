@@ -19,29 +19,24 @@ class JourneySelectionDialog(QDialog):
     Lists the journeys of the narrative map and lets the user:
     - "Ok": edit the selected journey (Ok disabled until a journey is
       selected);
-    - "New...": create a new journey, then come back to this dialog;
     - "Delete": delete the selected journey (stub until TSK25);
     - "Cancel": close.
 
+    TSK23 review: no "New..." button here — creation is done from the
+    "Project > Journeys... > New..." menu entry.
+
     Use get_action() after exec() to know which button was used:
-    "ok", "new", "delete", or None (cancel).
+    "ok", "delete", or None (cancel).
     """
 
-    def __init__(self, journeys, parent=None, select_id=None):
+    def __init__(self, journeys, parent=None):
         super().__init__(parent)
         self._journeys = list(journeys)
         self._action = None
         self._setup_ui()
         self._refresh_list()
-        # A journey is always selected (TSK23 review): select_id when
-        # given (typically the newly created journey), otherwise row 0
-        row = 0
-        if select_id is not None:
-            for i, j in enumerate(self._journeys):
-                if j.id == select_id:
-                    row = i
-                    break
-        self.list_widget.setCurrentRow(row)  # fires _selection_changed
+        # A journey is always selected (TSK23 review)
+        self.list_widget.setCurrentRow(0)  # fires _selection_changed
 
     def _setup_ui(self):
         self.setWindowTitle("Select Journey")
@@ -56,14 +51,10 @@ class JourneySelectionDialog(QDialog):
         self.layout.addWidget(self.list_widget, stretch=1)
 
         button_layout = QHBoxLayout()
-        self.new_button = QPushButton("New...")
-        self.new_button.clicked.connect(self._on_new)
-        self.new_button.setFixedWidth(100)
         self.delete_button = QPushButton("Delete")
         self.delete_button.clicked.connect(self._on_delete)
         self.delete_button.setFixedWidth(100)
         self.delete_button.setEnabled(False)
-        button_layout.addWidget(self.new_button)
         button_layout.addWidget(self.delete_button)
         button_layout.addStretch()
         self.ok_button = QPushButton("Ok")
@@ -91,16 +82,12 @@ class JourneySelectionDialog(QDialog):
         self._action = "ok"
         self.accept()
 
-    def _on_new(self):
-        self._action = "new"
-        self.accept()
-
     def _on_delete(self):
         self._action = "delete"
         self.accept()
 
     def get_action(self):
-        """Return the action chosen by the user: "ok", "new", "delete",
+        """Return the action chosen by the user: "ok", "delete",
         or None when the dialog was cancelled."""
         return self._action
 

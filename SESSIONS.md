@@ -861,3 +861,13 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   création qui se rouvre). Corrigé : nouvelle instance par itération,
   select_id au constructeur, plus de refresh()/état partagé.
 - Tests : py_compile OK ; 127 passed.
+
+
+## 29-10-2026 — TSK23 : 5e salve (test TSC) — New... retiré de la fenêtre de sélection
+
+- Le bouton New... de la sélection (Edit) est supprimé ; création uniquement
+  via Project > Journeys... > New... . Le rollback transactionnel de la session
+  Edit est retiré (plus de création possible dans la session) ; boucle
+  simplifiée (Ok/Delete, instance fraîche par itération). Note TSK25 : Delete
+  ouvrira une confirmation puis reviendra à la sélection.
+- Tests : py_compile OK ; 127 passed ; offscreen + 05_menu mis à jour.

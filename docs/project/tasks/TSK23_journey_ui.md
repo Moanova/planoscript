@@ -74,3 +74,14 @@ Suppression d'un parcours (TSK25), duplication (TSK24), filtre d'affichage FN029
   `refresh()` ni d'état réutilisé) ; `_action` repart donc vide à chaque fois.
 - Tests : py_compile OK ; 127 passed ; offscreen mis à jour (select_id au
   constructeur, action vide sur instance fraîche).
+
+## Retour de test TSC (29-10-2026, 5e salve) — traité
+
+- Bouton **New... supprimé** de la fenêtre de sélection (Edit) : la création se
+  fait uniquement par `Project > Journeys... > New...`. Conséquence : plus de
+  création possible dans la session Edit, donc le rollback transactionnel
+  (snapshot/annulation) est retiré de `_edit_journey`, simplifié en boucle
+  Ok/Delete. `select_id`/`refresh()` retirés du dialogue.
+- Note pour TSK25 : le bouton Delete de la sélection ouvrira une confirmation
+  puis reviendra à la sélection (jamais la fenêtre d'édition, réservée à Ok).
+- Tests : py_compile OK ; 127 passed ; offscreen + spec menu mis à jour.

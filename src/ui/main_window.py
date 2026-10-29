@@ -1251,28 +1251,18 @@ class MainWindow(QMainWindow):
         self._update_menu_state()
 
     def _edit_journey(self):
-        """Journey management from "Project > Journeys... > Edit" (TSK23
-        review, FN024): a selection dialog with Ok (edit the selected
-        journey), New... (create a journey, then back to the selection)
-        and Delete (stub until TSK25).
-
-        TSK23 review: the dialog is transactional — journeys created with
-        New... during this session are rolled back if the session ends
-        with Cancel, and the newly created journey is selected on return;
-        a journey is always selected in the dialog."""
+        """Journey management from "Project > Journeys... > Edit" (TSK23,
+        FN024): a selection dialog with Ok (edit the selected journey)
+        and Delete (stub until TSK25). A journey is always selected, so
+        Ok/Delete are never disabled. Creation is done from the separate
+        "Project > Journeys... > New..." entry."""
         narrative_map = self._current_narrative_map()
         if narrative_map is None or not narrative_map.journey:
             self.info_bar.show_message("No journey in the map")
             return
-        # Snapshot for the transactional rollback (TSK23 review)
-        journeys_before = list(narrative_map.journey)
-        active_before = narrative_map.active_journey_id
         # A fresh dialog instance per iteration (TSK23 fix): reusing one
-        # instance kept a stale _action between exec() calls, so Ok after
-        # New... could be read as "new" and reopen the creation dialog
-        select_id = None
-        dialog = JourneySelectionDialog(narrative_map.journey, parent=self,
-                                        select_id=select_id)
+        # instance kept a stale _action between exec() calls
+        dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
         result = dialog.exec()
         while result == JourneySelectionDialog.Accepted:
             action = dialog.get_action()
@@ -1289,28 +1279,12 @@ class MainWindow(QMainWindow):
                         else:
                             self.info_bar.show_message("Cannot update journey: invalid data")
                         break  # Ok ends the session
-            elif action == "new":
-                # Creation from the selection dialog, then a fresh selection
-                # dialog with the new journey selected (TSK23 review/fix)
-                created = self._new_journey_dialog()
-                select_id = created.id if created is not None else None
             elif action == "delete":
                 # TSK25: journey deletion not implemented yet
                 self.info_bar.show_message("Journey deletion is not yet implemented")
             # Fresh instance each iteration: no stale action can leak
-            dialog = JourneySelectionDialog(narrative_map.journey, parent=self,
-                                            select_id=select_id)
+            dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
             result = dialog.exec()
-        if result != JourneySelectionDialog.Accepted:
-            # Cancel: roll back the journeys created during this session
-            # (TSK23 review) and restore the previous active journey
-            created_ids = {j.id for j in narrative_map.journey} - {j.id for j in journeys_before}
-            if created_ids:
-                narrative_map.journey = [
-                    j for j in narrative_map.journey if j.id not in created_ids]
-                narrative_map.active_journey_id = active_before
-                self.project_service.set_modified(True)
-                self.info_bar.show_message("Journey creation cancelled")
         self._update_menu_state()
 
     def _new_journey_dialog(self):

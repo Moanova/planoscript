@@ -78,23 +78,13 @@ assert nm.active_journey_id == j2.id
 assert not hasattr(mw, 'events_menu')
 assert 'list_events' not in mw.menu_actions
 
-# Selection dialog (TSK23 review): New.../Delete/Ok/Cancel buttons
+# Selection dialog (TSK23 review): Delete/Ok/Cancel, no New... button
 from ui.dialogs.journey_selection_dialog import JourneySelectionDialog
 dlg = JourneySelectionDialog(nm.journey, parent=mw)
-assert dlg.new_button.isEnabled()
-assert dlg.ok_button.isEnabled() is False  # no selection yet
-dlg.list_widget.setCurrentRow(0)
+assert not hasattr(dlg, 'new_button')
+assert dlg.get_action() is None
+# a journey is always selected: row 0 at construction
+assert dlg.list_widget.currentRow() == 0
 assert dlg.ok_button.isEnabled() and dlg.delete_button.isEnabled()
-
-# TSK23 review/fix: select_id selects the given journey at construction
-from core.models.data_model import Journey
-dlg2 = JourneySelectionDialog(nm.journey + [Journey(id=99, lb="Temp")],
-                              parent=mw, select_id=99)
-assert dlg2.list_widget.currentRow() == 1
-assert dlg2.ok_button.isEnabled() and dlg2.delete_button.isEnabled()
-# fresh instance: action starts empty, no stale state
-dlg3 = JourneySelectionDialog(nm.journey, parent=mw)
-assert dlg3.get_action() is None
-assert dlg3.list_widget.currentRow() == 0
 
 print("OFFSCREEN TSK23 JOURNEY MENU CHECKS PASSED")
