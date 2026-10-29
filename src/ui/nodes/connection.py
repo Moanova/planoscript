@@ -25,7 +25,7 @@ and maintains synchronization with the business model relation entities
 from datetime import datetime
 import math
 
-from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem
+from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem, QToolTip
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QPen, QColor, QPainterPath, QPainterPathStroker
 from typing import Optional, Any
@@ -586,10 +586,17 @@ class Connection(QGraphicsPathItem):
     def hoverEnterEvent(self, event) -> None:
         """
         Handle hover enter events: draw a solid line in the type tint
-        of the connected nodes while not selected (TSK12 point 05).
+        of the connected nodes while not selected (TSK12 point 05) and
+        show the relation note in an immediate tooltip (TSK21, FN021).
         """
         if not self.isSelected():
             self.setPen(self._hover_pen())
+        # Immediate tooltip (AGENTS.md pattern): the workspace swallows
+        # Qt's delayed automatic tooltip event
+        note = getattr(self.relation_entity, 'note', None) if self.relation_entity else None
+        if note:
+            self.setToolTip(str(note))
+            QToolTip.showText(event.screenPos(), str(note))
         super().hoverEnterEvent(event)
 
 
@@ -603,6 +610,7 @@ class Connection(QGraphicsPathItem):
             self.set_selected_appearance(True)
         else:
             self._restore_layout_pen()
+        QToolTip.hideText()
         super().hoverLeaveEvent(event)
 
 

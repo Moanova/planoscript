@@ -222,7 +222,7 @@
     - On the grid (outside nodes and relations): "New State", "New Event", "New Agent" (TSK13: opens the "New Agent" dialog directly, without switching views), "Connect State and Event".
     - On a State node: "Edit State", "Associate agents..." (FN030), "Show in agents view" (TSK10/RG067, disabled when the state has no agent association), "Delete State" (disabled for the initial state, RG031; **SU003 confirmation when the state is connected to at least one event and/or associated with at least one agent** — TSC review 28-10-2026, arcs + RG065 cascade).
     - On an Event node: "Edit Event", "Delete Event" (**SU003 confirmation when the event is connected to at least one state** — TSC review 28-10-2026, arcs cascade).
-    - On a relation: "Edit Relation", "Delete Relation".
+    - On a relation: "Edit Relation" (TSK21/FN021: opens the relation edition dialog — note + checkable journey list, RG027 revised), "Delete Relation".
     - The click selects the item under the cursor before the menu opens, so the actions apply to the clicked item.
 
 - **Visual Elements**:
@@ -259,7 +259,7 @@
       - **Non-directional**: Simple line, color `#999`.
       - **Thickness**: 2px.
     - **Annotation**:
-      - *Not implemented* - text in the middle of the relation.
+      - Implemented (TSK21/FN021) as a note shown in a **tooltip on hover** over the connection (editable via "Edit Relation"), no text in the middle of the relation.
       - Should have a semi-transparent white background for readability.
 
 
@@ -282,6 +282,7 @@
   - Agent card: "Edit Agent" and "Delete Agent" behave like the global menu in the "Agents" view (direct edition/deletion of the selected card — the right-click selects the clicked card; "Delete Agent" with the RG064 confirmation), "Show in events view" (TSK10).
   - State card: "Edit State" (pre-filled dialog), "Delete State" (disabled for the initial state, RG031; confirmation when arcs or associations exist, RG065 cascades), "Show in events view" (switches to the events view + focuses the node, extension of the TSK10/RG067 contract).
   - Grid (outside the matrix): "New Agent" (direct creation in the matrix row, stays in the agents view), "New State" (stays in the agents view; the new column appears in the matrix), "New Event" (creates the node in the events view, switches to the events view and selects the node — same behavior as point 03).
+  - Checkbox (TSK21/SU004): "Annotate association..." opens the edition dialog of the `State_agent_rel` association (note + journeys); entry **disabled when the cell is unchecked** (no association to annotate).
 - **Event creation from the agents view (TSK13)**: whether the creation starts from the global menu "Project > Components... > Event > New..." or from the grid context menu, the view switches to "Events" once the event is created, and the created node is selected. Creating an agent or a state from the agents view does not switch the view.
 - **Roles** :
   - Display the agent-state associations of the current map.
@@ -387,7 +388,7 @@
 ### Not Implemented
 - [ ] Grid snap
 - [ ] Visible anchor points on nodes
-- [ ] Annotation on relations
+- [x] Annotation (note) on relations — edition via "Edit Relation" (connection, Events view), "Annotate association..." (checked cell, Agents view) and "Project › Relations... › Edit"; tooltip on hover over the connection (TSK21, SU004/FN021, RG027 revised)
 - [ ] Functional zoom (shortcuts and controls)
 - [ ] Complete infinite scrolling (limited to 4000x4000)
 - [ ] Multiple selection

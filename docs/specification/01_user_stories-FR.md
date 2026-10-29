@@ -110,7 +110,8 @@
     - L'application empêche la création d'une relation dont le composant source et le composant cible sont identiques.
     - L'application empêche la création d'une relation dont le composant source et le composant cible sont du même type.
     - L'application empêche la création d'une relation dupliquée entre deux composants déjà reliés.
-    - L'utilisateur peut annoter une relation par du texte libre via un panneau de propriétés.
+    - L'utilisateur peut annoter une relation par du texte libre via un dialogue d'édition (TSK21 : champ « Note » + liste des parcours de la carte, cochable — RG027 révisée).
+    - Points d'entrée de l'édition (TSK21) : menu contextuel de la connexion (vue Events), menu « Project › Relations... › Edit », clic droit sur une case cochée de la matrice (vue Agents, associations agent-état).
     - Une relation ne peut pas être déplacée en tant que telle mais suit le déplacement du composant auquel elle est rattachée.
     - Si la modification d'une relation entraîne un changement de composant source ou cible, l'application émet une alerte, supprime implicitement la relation existante et en crée une nouvelle avec la nouvelle connection source/cible.
     - L'utilisateur peut supprimer une relation avec confirmation préalable.

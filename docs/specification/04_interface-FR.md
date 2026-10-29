@@ -222,7 +222,7 @@
     - Sur la grille (hors nœuds et relations) : « New State », « New Event », « New Agent » (TSK13 : ouvre directement le dialogue « New Agent », sans bascule de vue), « Connect State and Event ».
     - Sur un nœud État : « Edit State », « Associate agents... » (FN030), « Show in agents view » (TSK10/RG067, désactivé si l'état n'a aucune association agent), « Delete State » (désactivé pour l'état initial, RG031 ; **confirmation SU003 si l'état est connecté à au moins un évènement et/ou associé à au moins un agent** — revue TSC 28-10-2026, cascade arcs + RG065).
     - Sur un nœud Événement : « Edit Event », « Delete Event » (**confirmation SU003 si l'évènement est connecté à au moins un état** — revue TSC 28-10-2026, cascade des arcs).
-    - Sur une relation : « Edit Relation », « Delete Relation ».
+    - Sur une relation : « Edit Relation » (TSK21/FN021 : ouvre le dialogue d'édition de la relation — note + liste cochable des parcours, RG027 révisée), « Delete Relation ».
     - Le clic sélectionne l'élément sous le curseur avant d'ouvrir le menu, de sorte que les actions s'appliquent à l'élément cliqué.
 
 - **Éléments visuels** :
@@ -259,7 +259,7 @@
       - **Non directionnelle** : Ligne simple, couleur `#999`.
       - **Épaisseur** : 2 px.
     - **Annotation** :
-      - *Non implémentée* — texte au milieu de la relation.
+      - Implémentée (TSK21/FN021) sous forme de note affichée en **infobulle au survol** de la connexion (et éditable via « Edit Relation »), pas de texte au milieu de la relation.
       - Devrait avoir un arrière-plan blanc semi-transparent pour la lisibilité.
 
 
@@ -282,6 +282,7 @@
   - Carte agent : « Edit Agent » et « Delete Agent » ont le même comportement que le menu général en vue « Agents » (édition/suppression directe de la carte sélectionnée — le clic droit sélectionne la carte cliquée ; « Delete Agent » avec confirmation RG064), « Show in events view » (TSK10).
   - Carte état : « Edit State » (dialogue pré-rempli), « Delete State » (désactivé pour l'état initial, RG031 ; confirmation si des arcs ou associations existent, cascade RG065), « Show in events view » (bascule vers la vue Events + focus du node, extension du contrat TSK10/RG067).
   - Grille (hors matrice) : « New Agent » (création directe dans la ligne de la matrice, reste dans la vue agents), « New State » (reste dans la vue agents ; la nouvelle colonne apparaît dans la matrice), « New Event » (crée le node dans la vue Events, bascule vers la vue Events et sélectionne le node — même comportement que le point 03).
+  - Case à cocher (TSK21/SU004) : « Annotate association... » ouvre le dialogue d'édition de l'association `State_agent_rel` (note + parcours) ; entrée **désactivée quand la case est dépochée** (pas d'association à annoter).
 - **Création d'un événement depuis la vue agents (TSK13)** : que la création parte du menu global « Project > Components... > Event > New... » ou du menu contextuel de la grille, la vue bascule sur « Events » une fois l'événement créé, et le node créé est sélectionné. La création d'un agent ou d'un état depuis la vue agents ne bascule pas la vue.
 - **Rôles** :
   - Afficher les associations agent-état de la carte courante.
@@ -387,7 +388,7 @@
 ### Non implémentées
 - [ ] Aimantation sur la grille
 - [ ] Points d'accroche visibles sur les nœuds
-- [ ] Annotation sur les relations
+- [x] Annotation (note) sur les relations — édition via « Edit Relation » (connexion, vue Events), « Annotate association... » (case cochée, vue Agents) et « Project › Relations... › Edit » ; infobulle au survol de la connexion (TSK21, SU004/FN021, RG027 révisée)
 - [ ] Zoom fonctionnel (raccourcis et contrôles)
 - [ ] Défilement infini complet (limité à 4000×4000)
 - [ ] Sélection multiple

@@ -871,3 +871,20 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   simplifiée (Ok/Delete, instance fraîche par itération). Note TSK25 : Delete
   ouvrira une confirmation puis reviendra à la sélection.
 - Tests : py_compile OK ; 127 passed ; offscreen + 05_menu mis à jour.
+
+
+## 29-10-2026 — TSK21 : édition des relations (note + rattachement parcours)
+
+- Use cases : `UpdateRelationUseCase` (arcs State_to_event/Event_to_state) et
+  `UpdateAgentStateAssociationUseCase` (State_agent_rel) — note, modification_date_time,
+  set_modified ; diff parcours via Attach/DetachRelationToJourneyUseCase (TSK22).
+- UI : `RelationDialog` (note + liste cochable des parcours, validation ≥1 parcours,
+  RG027 révisée) ; `_edit_selected_relation` (connexion sélectionnée, vue Events +
+  Project › Relations... › Edit) et `_edit_association` (clic droit case cochée vue
+  Agents → « Annotate association... », désactivé si dépochée) → `_edit_relation` commun.
+- Infobulle : note de l'arc au survol de la `Connection` (pattern AGENTS.md).
+- Specs : FN021 Implémenté (FR/EN), SU004 (FR/EN), 04_interface (FR/EN), 05_menu-EN.yaml.
+- Tests : +14 (`tests/test_relations/test_relation_edition.py`) → 141 passed ;
+  py_compile OK ; yaml OK ; script offscreen `offscreen_tsk21_relation_menus.py`
+  à valider en GUI (libGL indisponible dans le sandbox).
+- Kanban v11 : TSK21 → En revue. Fiche TSK21 journalisée.

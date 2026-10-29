@@ -134,9 +134,9 @@ menu:
             - name: Associate agents with State
               note: "Implemented (FN030, SU008, TSK04) - Opens the agent association dialog for the selected State"
             - name: Edit
-              note: "Not implemented - Enabled only when a relation is selected"
+              note: "Implemented (TSK21, FN021/SU004) - Opens the relation edition dialog (note + checkable journey list, RG027 revised) for the selected connection. Enabled only when a relation is selected"
             - name: Delete
-              note: "Not implemented - Enabled only when a relation is selected"
+              note: "Implemented - Deletes the selected connection's arc. Enabled only when a relation is selected"
 
     - name: About
       items:

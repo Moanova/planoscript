@@ -31,7 +31,9 @@ from ui.widgets.info_bar import InfoBar
 from ui.utils import theme
 from ui.dialogs.about_dialog import AboutDialog
 from ui.dialogs.change_log_dialog import ChangeLogDialog
-from core.models.data_model import State, Event
+from core.models.data_model import (
+    State, Event, State_to_event, Event_to_state, State_agent_rel
+)
 from core.models.view_model import NodeType, RelationType
 from core.services.project_service import ProjectService
 from core.services.about_service import AboutService
@@ -51,8 +53,13 @@ from usecases.agent_association.remove_state_associations_usecase import RemoveS
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
+from usecases.view_management.update_relation_usecase import UpdateRelationUseCase
+from usecases.agent_association.update_agent_state_association_usecase import (
+    UpdateAgentStateAssociationUseCase
+)
 from usecases.journey_management import (
-    CreateJourneyUseCase, UpdateJourneyUseCase, ActivateJourneyUseCase
+    CreateJourneyUseCase, UpdateJourneyUseCase, ActivateJourneyUseCase,
+    AttachRelationToJourneyUseCase, DetachRelationFromJourneyUseCase
 )
 from ui.dialogs.component_dialog import ComponentDialog
 from ui.dialogs.agent_dialog import AgentDialog
@@ -60,6 +67,7 @@ from ui.dialogs.agent_selection_dialog import AgentSelectionDialog
 from ui.dialogs.agent_association_dialog import AgentAssociationDialog
 from ui.dialogs.journey_dialog import JourneyDialog
 from ui.dialogs.journey_selection_dialog import JourneySelectionDialog
+from ui.dialogs.relation_dialog import RelationDialog
 from config.config_loader import get as _get_config
 from config.user_state_loader import get as _get_user_state, set as _set_user_state
 
@@ -99,6 +107,11 @@ class MainWindow(QMainWindow):
         self.create_journey_usecase = CreateJourneyUseCase(self.project_service)
         self.update_journey_usecase = UpdateJourneyUseCase(self.project_service)
         self.activate_journey_usecase = ActivateJourneyUseCase(self.project_service)
+        self.attach_relation_to_journey_usecase = AttachRelationToJourneyUseCase(self.project_service)
+        self.detach_relation_from_journey_usecase = DetachRelationFromJourneyUseCase(self.project_service)
+        # TSK21: relation edition (note + journey attachment, SU004/FN021)
+        self.update_relation_usecase = UpdateRelationUseCase(self.project_service)
+        self.update_agent_state_association_usecase = UpdateAgentStateAssociationUseCase(self.project_service)
         self.about_service = AboutService()
         self.change_log_service = ChangeLogService()
 
@@ -1641,8 +1654,89 @@ class MainWindow(QMainWindow):
 
 
     def _edit_selected_relation(self):
-        """Edit the currently selected relation (not yet implemented)."""
-        self.info_bar.show_message("Editing relation is not yet implemented")
+        """Edit the currently selected connection's arc (TSK21, SU004/FN021).
+
+        Opens the relation dialog on the business arc carried by the
+        selected Connection (vue Events context menu "Edit Relation" and
+        menu Project > Relations... > Edit).
+        """
+        item = self._get_selected_item()
+        if item is None or not isinstance(item, Connection):
+            self.info_bar.show_message("No relation selected")
+            return
+        relation = getattr(item, 'relation_entity', None)
+        if relation is None:
+            self.info_bar.show_message("Cannot edit relation: no business entity associated")
+            return
+        self._edit_relation(relation)
+
+    def _edit_association(self, agent, state):
+        """Edit the agent-state association of a checked matrix cell (TSK21).
+
+        Args:
+            agent: The Agent entity of the cell
+            state: The State entity of the cell
+        """
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        relation = AssociateAgentStateUseCase.find_association(
+            narrative_map, agent.id, state.id)
+        if relation is None:
+            self.info_bar.show_message("No association to edit on this cell")
+            return
+        self._edit_relation(relation)
+
+    def _edit_relation(self, relation):
+        """Open the relation edition dialog and apply the changes (TSK21).
+
+        Applies to the three relation types (State_to_event,
+        Event_to_state, State_agent_rel): note via the dedicated update
+        use case, journey attachment via the attach/detach use cases
+        (RG027 revised: the journey list lives on the relation).
+        """
+        if not self.project_service or not self.project_service.current_project:
+            self.info_bar.show_message("No project open")
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        journeys = list(narrative_map.journey)
+        attached_ids = [
+            node.journey_id for node in narrative_map.journey_node
+            if (isinstance(relation, State_to_event)
+                and node.state_to_event_id == relation.id)
+            or (isinstance(relation, Event_to_state)
+                and node.event_to_state_id == relation.id)
+            or (isinstance(relation, State_agent_rel)
+                and node.state_agent_rel_id == relation.id)
+        ]
+        dialog = RelationDialog(relation, journeys, attached_ids, parent=self)
+        if dialog.exec() != RelationDialog.Accepted:
+            return
+        values = dialog.get_values()
+
+        # Note update (FN021)
+        if isinstance(relation, State_agent_rel):
+            self.update_agent_state_association_usecase.execute(
+                relation, note=values['note'], narrative_map=narrative_map)
+        else:
+            self.update_relation_usecase.execute(
+                relation, note=values['note'], narrative_map=narrative_map)
+
+        # Journey attachment diff (RG027 revised)
+        target_ids = set(values['journey_ids'])
+        current_ids = set(attached_ids)
+        journeys_by_id = {j.id: j for j in journeys}
+        for journey_id in target_ids - current_ids:
+            self.attach_relation_to_journey_usecase.execute(
+                relation, journeys_by_id[journey_id], narrative_map=narrative_map)
+        for journey_id in current_ids - target_ids:
+            self.detach_relation_from_journey_usecase.execute(
+                relation, journeys_by_id[journey_id], narrative_map=narrative_map)
+
+        self.project_service.set_modified(True)
+        self.info_bar.show_message("Relation updated")
+        self._update_menu_state()
 
 
     def _delete_selected_relation(self):

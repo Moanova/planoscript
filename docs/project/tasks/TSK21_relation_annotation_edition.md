@@ -1,9 +1,9 @@
 # TSK21 — Édition des annotations (`note`) des 3 types de relations (FN021, SU004)
 
 - **Épic** : Évolution du modèle de données / édition des relations
-- **Statut** : To do (implémentation prévue lors d'une séance ultérieure ;
-  la solution ci-dessous a été proposée et **validée par TSC le
-  29-10-2026**)
+- **Statut** : En revue (implémentée le 29-10-2026 ; point C — rattachement
+  aux parcours dans le dialogue d'édition — inclus avec l'accord TSC ;
+  tests 141 passed)
 - **Date de création** : 29-10-2026
 - **Dépendances** : #TSK20 (clé `note` doit exister sur Event_to_state /
   State_to_event dans le modèle de données)
@@ -96,8 +96,34 @@ de relation ; les identifiants de relation viennent de
    cochée (vue Agents), saisie d'une note, persistance JSON
    (clé `note` sur les 3 types), rechargement.
 
+## Implémentation (29-10-2026, point C inclus — validé TSC)
+
+Le dialogue d'édition (`src/ui/dialogs/relation_dialog.py`) édite **à la
+fois** la note et la liste cochable des parcours (RG027 révisée : la liste
+est sur la relation, pas sur les composants) ; la validation exige au moins
+un parcours coché.
+
+- **Use cases** : `UpdateRelationUseCase` (arcs, `view_management`) et
+  `UpdateAgentStateAssociationUseCase` (`agent_association`) pour la note ;
+  `Attach/DetachRelationToJourneyUseCase` (TSK22) pour le diff des parcours.
+- **MainWindow** (`_edit_relation`, appelé par `_edit_selected_relation`
+  et `_edit_association`) : ouvre `RelationDialog`, applique note + diff
+  attach/detach, marque le projet modifié.
+- **Vue Events** : le menu contextuel existant « Edit Relation » appelle
+  désormais `_edit_selected_relation()` (la connexion porte
+  `relation_entity`) ; « Project › Relations... › Edit » idem.
+- **Vue Agents** : clic droit sur une `MatrixCheckItem` → menu
+  « Annotate association... » (désactivé si la case est dépochée) →
+  `_edit_association(agent, state)` sur le `State_agent_rel` trouvé par
+  `AssociateAgentStateUseCase.find_association`.
+- **Infobulle** : `Connection.hoverEnterEvent` affiche la note de l'arc
+  au survol (pattern AGENTS.md, `QToolTip.showText` immédiat).
+- **Tests** : `tests/test_relations/test_relation_edition.py` (+14 :
+  note sur les 3 types, rejets, diff attach/detach, persistance JSON).
+
 ## Journal
 
 - 29-10-2026 : création de la tâche ; solution d'UI pour State_agent_rel
-  (clic droit sur case cochée) proposée et validée TSC. Implémentation
-  prévue en séance ultérieure.
+  (clic droit sur case cochée) proposée et validée TSC.
+- 29-10-2026 : implémentation complète (points A, B, C) ; TSK21 passée en
+  En revue. Tests : 141 passed. Script offscreen à valider en GUI.

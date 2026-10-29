@@ -110,7 +110,8 @@
     - The application prevents the creation of a relationship whose source and target components are identical.
     - The application prevents the creation of a relationship whose source and target components are of the same type.
     - The application prevents the creation of a duplicate relationship between two already connected components.
-    - The user can annotate a relationship with free text via a properties panel.
+    - The user can annotate a relationship with free text via an edition dialog (TSK21: "Note" field + checkable list of the map journeys — RG027 revised).
+    - Edition entry points (TSK21): connection context menu (Events view), menu "Project › Relations... › Edit", right-click on a checked matrix cell (Agents view, agent-state associations).
     - A relationship cannot be moved as such but follows the movement of the component to which it is attached.
     - If modifying a relationship results in a change of source or target component, the application issues an alert, implicitly deletes the existing relationship, and creates a new one with the new source/target connection.
     - The user can delete a relationship with prior confirmation.

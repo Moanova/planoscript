@@ -237,11 +237,13 @@
 - **Description** : Annotate a relation with free text and modify its editable attributes.
 - **References** : SU004 ; menu "Project › Relations... › Edit".
 - **Expected behavior** :
-  - Annotation is performed via the relation properties panel.
-  - The relation label is displayed in a tooltip on hover over the representing line.
+  - Annotation is performed via the relation edition dialog ("Note" field + checkable list of the journeys — RG027 revised: the journey attachment lives on the relation itself).
+  - Entry points (TSK21): "Edit Relation" context menu of the connection (Events view), menu "Project › Relations... › Edit", and right-click "Annotate association..." on a checked matrix cell (Agents view, for `State_agent_rel` associations).
+  - The relation note is displayed in a tooltip on hover over the representing line (Events view).
+  - A relation must belong to at least one journey at all times (the checkable list cannot be emptied).
   - If a modification results in a change of the source or target component, the application issues a warning, implicitly deletes the existing relation, and creates a new relation with the new endpoints.
   - Any modification marks the map, and therefore the project, as modified.
-- **Status** : Not implemented. The menu option is specified but not implemented; it is enabled only when a relation is selected in the workspace.
+- **Status** : Implemented (TSK21) for the 3 relation types (`State_to_event`, `Event_to_state`, `State_agent_rel`).
 
 ## FN022 : Delete a relation
 - **Description** : Delete a relation between two components.

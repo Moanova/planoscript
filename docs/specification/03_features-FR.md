@@ -237,11 +237,13 @@
 - **Description** : Annoter une relation d'un texte libre et modifier ses attributs éditables.
 - **Références** : SU004 ; menu "Project › Relations... › Edit".
 - **Comportement attendu** :
-    - L'annotation s'effectue via le panneau de propriétés de la relation.
-    - Le libellé de la relation est affiché dans une infobulle au survol de la ligne représentative.
+    - L'annotation s'effectue via le dialogue d'édition de la relation (champ « Note » + liste cochable des parcours — RG027 révisée : le rattachement aux parcours se fait sur la relation elle-même).
+    - Points d'entrée (TSK21) : menu contextuel « Edit Relation » de la connexion (vue Events), menu "Project › Relations... › Edit", et clic droit « Annotate association... » sur une case cochée de la matrice (vue Agents, pour les associations `State_agent_rel`).
+    - La note de la relation est affichée dans une infobulle au survol de la ligne représentative (vue Events).
+    - Une relation doit appartenir à au moins un parcours à tout moment (la liste cochable ne peut pas être vidée).
     - Si une modification entraîne un changement de composant source ou cible, l'application émet une alerte, supprime implicitement la relation existante et crée une nouvelle relation avec les nouvelles extrémités.
     - Toute modification marque la carte, et donc le projet, comme modifié.
-- **État** : Non implémenté. L'option de menu est spécifiée mais non implémentée ; elle n'est active que si une relation est sélectionnée dans l'espace de travail.
+- **État** : Implémenté (TSK21) pour les 3 types de relations (`State_to_event`, `Event_to_state`, `State_agent_rel`).
 
 ## FN022 : Supprimer une relation
 - **Description** : Supprimer une relation entre deux composants.

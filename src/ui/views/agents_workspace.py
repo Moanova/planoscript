@@ -674,6 +674,27 @@ class AgentsWorkspace(QWidget):
         if handler:
             handler()
 
+    def _on_check_menu(self, check, global_pos):
+        """Context menu of a matrix checkbox (TSK21, SU004): annotate
+        the agent-state association of the cell. The entry is disabled
+        when the cell is unchecked (no association to annotate)."""
+        main_window = getattr(self, 'main_window', None)
+        if main_window is None:
+            return
+        menu = QMenu(self)
+        # Dark theme for the context menu (charter 98)
+        menu.setStyleSheet(theme.CONTEXT_MENU_STYLESHEET)
+        handlers = {}
+        annotate_action = menu.addAction("Annotate association...")
+        # No association exists while the cell is unchecked
+        annotate_action.setEnabled(check.is_checked())
+        handlers[annotate_action] = (
+            lambda: main_window._edit_association(check.agent, check.state))
+        chosen = menu.exec(global_pos)
+        handler = handlers.get(chosen)
+        if handler:
+            handler()
+
     def _on_grid_menu(self, global_pos):
         """Context menu of the grid, outside the matrix (TSK13):
         creation entries for agents, states and events."""
@@ -787,6 +808,16 @@ class _MatrixGraphicsView(QGraphicsView):
             item = item.parentItem()
         return None
 
+    def _check_at(self, pos):
+        """Return the MatrixCheckItem at the viewport position, or None
+        (TSK21: right-click on a checkbox)."""
+        item = self.itemAt(pos)
+        while item is not None:
+            if isinstance(item, MatrixCheckItem):
+                return item
+            item = item.parentItem()
+        return None
+
     def mousePressEvent(self, event):
         """Left press on a card selects it and starts a drag (RG068);
         a press in the empty area clears the card selection and
@@ -830,9 +861,15 @@ class _MatrixGraphicsView(QGraphicsView):
     def _on_context_menu(self, pos):
         """Right-click dispatch (TSK13): card menus for agent/state
         cards, creation menu on the grid. Like the events view, the
-        clicked card is selected before the menu opens (TSK13 review)."""
-        card = self._card_at(pos)
+        clicked card is selected before the menu opens (TSK13 review).
+        TSK21: right-click on a checkbox opens the association
+        annotation menu (entry disabled when the cell is unchecked)."""
         global_pos = self.mapToGlobal(pos)
+        check = self._check_at(pos)
+        if check is not None:
+            self._workspace._on_check_menu(check, global_pos)
+            return
+        card = self._card_at(pos)
         if card is not None:
             if not card.isSelected():
                 self._workspace.scene.clearSelection()

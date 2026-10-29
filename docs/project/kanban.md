@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 10
+- **Version** : 11
 - **Date** : 29-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -28,7 +28,6 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 - [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
-- [ ] TSK21 — Scénario SU004 (FN021) : édition des annotations (`note`) des 3 types de relations — arcs Event_to_state/State_to_event via menu contextuel de la connexion (vue Events), State_agent_rel via clic droit sur case cochée (vue Agents) — solution validée TSC 29-10-2026 — implémentation en séance ultérieure → #TSK20 — détail dans `tasks/TSK21_relation_annotation_edition.md`
 
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #TSK25
@@ -48,6 +47,8 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - (aucune tâche en cours)
 
 ## En revue
+
+- [ ] TSK21 — Scénario SU004 (FN021) : édition des relations (note + rattachement aux parcours via la liste des parcours sur la connexion/association) — arcs via menu contextuel « Edit Relation » de la connexion (vue Events) et menu Project › Relations... › Edit, State_agent_rel via clic droit « Annotate association... » sur case cochée (vue Agents), infobulle note au survol de la connexion — détail dans `tasks/TSK21_relation_annotation_edition.md` — tests 141 passed (+14)
 
 - [ ] TSK22 — Fondations parcours (EPC05) : `active_journey_id` + `Journey_node.state_agent_rel_id` dans le modèle, use cases `journey_management` (create/update/activate, attach/detach), rattachement auto au parcours actif, cascades étendues, règles RG026/RG027/RG031/RG052 réécrites FR/EN — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md` — tests 127 passed (+17)
 
