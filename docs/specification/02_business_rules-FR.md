@@ -284,7 +284,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG066
-- **Description** : Les associations agent-état sont indépendantes des parcours : elles ne dépendent que des composants (agent, état) qu'elles relient. Le filtrage de l'affichage par parcours n'affecte pas les associations agent-état, uniquement leur visibilité dans la vue Events.
+- **Description** : Toute association agent-état appartient à au moins un parcours à tout moment. À sa création, elle est rattachée au parcours actuellement activé (ou au parcours par défaut si aucun parcours n'est activé), via un noeud de parcours référençant l'association (Journey_node.state_agent_rel_id). Si la suppression d'un parcours la rend orpheline de tout parcours, elle est automatiquement basculée vers le parcours par défaut. Le fait qu'un même couple d'agents se rencontre dans plusieurs parcours est modélisé par des états distincts, chacun rattaché au parcours concerné. Le filtrage de l'affichage par parcours s'applique aux associations agent-état comme aux autres relations.
 - **Classification** : Structure des cartes narratives.
 
 ## RG068

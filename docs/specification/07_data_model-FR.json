@@ -348,6 +348,10 @@
                "type": "integer",
                "description": "Identifiant unique de l'arc sortant (reference a State_to_event.id) ; null pour l'etat final"
             },
+            "state_agent_rel_id": {
+               "type": "integer",
+               "description": "Identifiant unique de l'association agent-etat rattachée au noeud (reference a State_agent_rel.id) ; null si le noeud ne porte aucune association agent-etat"
+            },
             "creation_date_time": {
                "type": "string",
                "format": "date-time",

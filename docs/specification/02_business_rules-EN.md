@@ -283,7 +283,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG066
-- **Description**: Agent-state associations are independent of journeys: they depend only on the components (agent, state) they connect. Filtering the display by journey does not affect agent-state associations, only their visibility in the events view.
+- **Description**: Every agent-state association belongs to at least one journey at all times. When created, it is attached to the currently active journey (or to the default journey if no journey is active), via a journey node referencing the association (Journey_node.state_agent_rel_id). If deleting a journey leaves it orphaned from every journey, it is automatically moved to the default journey. The same pair of agents meeting in several journeys is modeled by distinct states, each attached to the relevant journey. Filtering the display by journey applies to agent-state associations as to other relationships.
 - **Classification**: Narrative Map Structure.
 
 ## RG068

@@ -348,6 +348,10 @@
                "type": "integer",
                "description": "Unique identifier of the outgoing arc (reference to State_to_event.id); null for the final state"
             },
+            "state_agent_rel_id": {
+               "type": "integer",
+               "description": "Unique identifier of the agent-state association attached to the node (reference to State_agent_rel.id); null if the node carries no agent-state association"
+            },
             "creation_date_time": {
                "type": "string",
                "format": "date-time",
