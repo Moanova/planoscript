@@ -49,7 +49,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
-(aucune tâche en cours de revue)
+- [ ] TSK22 — Fondations parcours (EPC05) : `active_journey_id` + `Journey_node.state_agent_rel_id` dans le modèle, use cases `journey_management` (create/update/activate, attach/detach), rattachement auto au parcours actif, cascades étendues, règles RG026/RG027/RG031/RG052 réécrites FR/EN — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md` — tests 127 passed (+17)
 
 ## Done
 
