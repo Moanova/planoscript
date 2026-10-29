@@ -12,8 +12,8 @@ Structure your stories **without code**, manage branching paths and export your 
 ## Features
 - **Visual authoring**: Create narrative maps by adding nodes (states, events) via the menus and linking them with connections (rubber-band mode).
 - **Agents**: Manage agents (create, edit, delete) and associate them with states.
-- **Two synchronized views**: a **Journey** view (graph of states and events) and an **Agents** view (agents × states association matrix), with cross-view navigation.
-- **Informative badges**: state nodes display the number of associated agents (Journey view) and of incoming/outgoing events (Agents view).
+- **Two synchronized views**: an **Events** view (graph of states and events) and an **Agents** view (agents × states association matrix), with cross-view navigation.
+- **Informative badges**: state nodes display the number of associated agents (Events view) and of incoming/outgoing events (Agents view).
 - **Branch management**: Visualise and organise the links between all elements of your narrative.
 - **Readable export**: Share your work as hypertext pages to share it with your team (developers, filmmakers, etc.).
 - **Under development**: MVP beta version in progress.
@@ -54,7 +54,7 @@ Consequently, its design and implementation are evolving in tandem as the projec
 The project is currently being redesigned; as a result, the code no longer aligns with the data model and the intended application logic.
 
 ### 28 October 2026
-The redesign has progressed: the agent MVP is under active development (State/Event/Agent components, Journey view and agents × states matrix view, cross-view navigation).
+The redesign has progressed: the agent MVP is under active development (State/Event/Agent components, Events view and agents × states matrix view, cross-view navigation).
 The project now ships a test suite: unit tests (`pytest`, 106 tests) plus offscreen UI scenario scripts (10 scripts).
 
 ---

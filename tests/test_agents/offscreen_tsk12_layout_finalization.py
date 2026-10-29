@@ -27,7 +27,7 @@ from usecases.project_management.create_project_usecase import CreateProjectUseC
 from usecases.agent_association.associate_agent_state_usecase import AssociateAgentStateUseCase
 from usecases.agent_association.dissociate_agent_state_usecase import DissociateAgentStateUseCase
 from ui.views.agents_workspace import AgentsWorkspace
-from ui.views.journey_workspace import JourneyWorkspace
+from ui.views.events_workspace import EventsWorkspace
 from ui.nodes.base_node import BaseNode
 from ui.nodes.state_node import StateNode
 from ui.nodes.connection import Connection
@@ -39,11 +39,11 @@ from ui.utils import theme
 from config.config_loader import get as _get_config
 
 # ---------------------------------------------------------------------
-# Point 01: no frame on the journey workspace
+# Point 01: no frame on the events workspace
 # ---------------------------------------------------------------------
-workspace = JourneyWorkspace()
+workspace = EventsWorkspace()
 assert workspace.frameShape() == QFrame.Shape.NoFrame, workspace.frameShape()
-print("Point 01 OK: JourneyWorkspace frame removed")
+print("Point 01 OK: EventsWorkspace frame removed")
 
 # ---------------------------------------------------------------------
 # Point 02: grid major lines lighter than minor lines
@@ -257,10 +257,10 @@ print("Case 2 OK: checkbox painted, center click toggles, "
       "outside click is a no-op")
 
 # ---------------------------------------------------------------------
-# Journey workspace regression: grid + temp connection dash pattern
+# Events workspace regression: grid + temp connection dash pattern
 # ---------------------------------------------------------------------
 pen_ok = Connection.DASH_PATTERN == [2.0, 3.0]
 assert pen_ok
-print("Journey regression OK")
+print("Events regression OK")
 
 print("ALL TSK12 OFFSCREEN CHECKS PASSED")

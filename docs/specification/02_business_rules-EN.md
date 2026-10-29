@@ -283,7 +283,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG066
-- **Description**: Agent-state associations are independent of journeys: they depend only on the components (agent, state) they connect. Filtering the display by journey does not affect agent-state associations, only their visibility in the journey view.
+- **Description**: Agent-state associations are independent of journeys: they depend only on the components (agent, state) they connect. Filtering the display by journey does not affect agent-state associations, only their visibility in the events view.
 - **Classification**: Narrative Map Structure.
 
 ## RG068
@@ -291,5 +291,5 @@
 - **Classification**: Visualization and Interaction.
 
 ## RG067
-- **Description**: The cross-view navigation focus (journey view, agents view) is a temporary visual state: it does not mark the map or the project as modified, and is not persisted in the graphical metadata or between sessions.
+- **Description**: The cross-view navigation focus (events view, agents view) is a temporary visual state: it does not mark the map or the project as modified, and is not persisted in the graphical metadata or between sessions.
 - **Classification**: Visualization and Interaction.

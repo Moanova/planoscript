@@ -14,13 +14,13 @@ Covers:
 01) Submenu Project > Components... > Agent (New.../Edit/Delete) with
     AgentSelectionDialog; activation rules (New needs a project, Edit/
     Delete need at least one agent)
-02) Journey context menu on empty area offers "New Agent"
+02) Events context menu on empty area offers "New Agent"
 03) Creating an event while the Agents view is active switches to the
-    Journey tab and selects the new event node (menu and grid menu)
+    Events tab and selects the new event node (menu and grid menu)
 04) Agents view agent card menu: Edit Agent / Delete Agent / Show in
-    journey view
+    events view
 05) Agents view state card menu: Edit State / Delete State (disabled
-    for the initial state) / Show in journey view (focus in journey view)
+    for the initial state) / Show in events view (focus in events view)
 06) Agents view grid menu: New Agent / New State / New Event
 """
 import os
@@ -88,7 +88,7 @@ assert mw._select_agent() is None, "01: no agent -> info message, None"
 project.agent.extend(mw2_project_agents)
 
 # _new_agent through a stubbed AgentDialog creates the agent and
-# refreshes the matrix (journey view: dialog with a default label,
+# refreshes the matrix (events view: dialog with a default label,
 # editable — TSK13 review)
 class StubAgentDialog:
     Accepted = 1
@@ -165,9 +165,9 @@ app.processEvents()
 print("01 agent submenu + selection dialog OK")
 
 # ---------------------------------------------------------------------
-# 02) Journey context menu on empty area offers "New Agent"
+# 02) Events context menu on empty area offers "New Agent"
 # ---------------------------------------------------------------------
-from ui.views.journey_workspace import JourneyWorkspace
+from ui.views.events_workspace import EventsWorkspace
 ws = mw.workspace
 captured = {}
 
@@ -185,8 +185,8 @@ class StubMenu:
         return None  # dismiss
 
 orig_menu = main_window_module.QMenu
-# The journey workspace builds its own QMenu; patch the class it uses
-import ui.views.journey_workspace as jw_module
+# The events workspace builds its own QMenu; patch the class it uses
+import ui.views.events_workspace as jw_module
 orig_jw_menu = jw_module.QMenu
 jw_module.QMenu = StubMenu
 try:
@@ -197,22 +197,22 @@ try:
 finally:
     jw_module.QMenu = orig_jw_menu
 assert "New Agent" in captured['entries'], \
-    f"02: 'New Agent' missing from journey grid menu: {captured['entries']}"
+    f"02: 'New Agent' missing from events grid menu: {captured['entries']}"
 assert "New State" in captured['entries'] and "New Event" in captured['entries']
 
-print("02 journey grid menu OK")
+print("02 events grid menu OK")
 
 # ---------------------------------------------------------------------
 # 03) Creating an event while the Agents view is active switches to
-#     Journey and selects the new event node
+#     Events and selects the new event node
 # ---------------------------------------------------------------------
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
 events_before = len(narrative_map.event)
 mw._create_new_node("Event")
 app.processEvents()
-assert mw.tab_bar.currentTab() == "Journey", \
-    "03: tab did not switch back to Journey"
+assert mw.tab_bar.currentTab() == "Events", \
+    "03: tab did not switch back to Events"
 assert len(narrative_map.event) == events_before + 1, "03: event not created"
 selected = ws.scene.selectedItems()
 assert len(selected) == 1, "03: created event not selected"
@@ -261,8 +261,8 @@ agents_ws.refresh()
 app.processEvents()
 assert agents_ws._agent_cards, "test setup: no agent card in the matrix"
 assert agents_ws._state_cards, "test setup: no state card in the matrix"
-# Back to Journey for the state-creation checks of point 05
-mw.tab_bar.setCurrentTab("Journey")
+# Back to Events for the state-creation checks of point 05
+mw.tab_bar.setCurrentTab("Events")
 app.processEvents()
 
 # 04) agent card menu
@@ -274,7 +274,7 @@ try:
     agents_ws._on_agent_card_menu(agent_card, mw.mapToGlobal(mw.rect().center()))
 finally:
     aw_module.QMenu = orig_aw_menu
-assert entries == ["Edit Agent", "Delete Agent", "Show in journey view"], \
+assert entries == ["Edit Agent", "Delete Agent", "Show in events view"], \
     f"04: agent card menu entries: {entries}"
 
 # 05) state card menu: initial state -> Delete State disabled
@@ -301,7 +301,7 @@ try:
     agents_ws._on_state_card_menu(state_card, mw.mapToGlobal(mw.rect().center()))
 finally:
     aw_module.QMenu = orig_aw_menu
-assert entries == ["Edit State", "Delete State", "Show in journey view"], \
+assert entries == ["Edit State", "Delete State", "Show in events view"], \
     f"05: state card menu entries: {entries}"
 assert ("Delete State", False) in disabled, \
     f"05: Delete State should be disabled for the initial state: {disabled}"
@@ -325,14 +325,14 @@ assert ("Delete State", True) in disabled or not any(
     t == "Delete State" and v is False for t, v in disabled), \
     "05: Delete State should be enabled for a non-initial state"
 
-# 05) Show in journey view on a state -> focus in the journey view
+# 05) Show in events view on a state -> focus in the events view
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
 received = []
-mw.agents_page.focusStateInJourneyViewRequested.connect(
+mw.agents_page.focusStateInEventsViewRequested.connect(
     lambda sid: received.append(sid))
 class ExecMenu:
-    """Menu stub that 'chooses' the Show in journey view action."""
+    """Menu stub that 'chooses' the Show in events view action."""
     def __init__(self, parent=None):
         self._actions = []
     def setStyleSheet(self, s):
@@ -345,7 +345,7 @@ class ExecMenu:
         self._actions.append((text, action))
         return action
     def exec(self, pos):
-        return next(a for t, a in self._actions if t == "Show in journey view")
+        return next(a for t, a in self._actions if t == "Show in events view")
 aw_module.QMenu = ExecMenu
 try:
     agents_ws._on_state_card_menu(other_card, mw.mapToGlobal(mw.rect().center()))
@@ -353,9 +353,9 @@ finally:
     aw_module.QMenu = orig_aw_menu
 app.processEvents()
 assert received == [other_state.id], f"05: focus request not emitted: {received}"
-assert mw.tab_bar.currentTab() == "Journey", "05: did not switch to Journey"
+assert mw.tab_bar.currentTab() == "Events", "05: did not switch to Events"
 assert ws._focused_state_ids == {other_state.id}, \
-    f"05: journey focus not applied: {ws._focused_state_ids}"
+    f"05: events focus not applied: {ws._focused_state_ids}"
 
 # 06) grid menu
 entries = []
@@ -370,7 +370,7 @@ assert entries == ["New Agent", "New State", "New Event"], \
 print("04/05/06 agents view context menus OK")
 
 # ---------------------------------------------------------------------
-# TSK13 review (TSC feedback): deletion confirmation in the journey
+# TSK13 review (TSC feedback): deletion confirmation in the events
 # view (SU003) — state and event with associated data
 # ---------------------------------------------------------------------
 from core.models.data_model import Event as EventEntity
@@ -402,7 +402,7 @@ alone_event = event_result['entity']
 mw.workspace.create_node_from_data(event_result)
 ArcService.create_arc(narrative_map, event_a, connected_state)   # incoming
 ArcService.create_arc(narrative_map, connected_state, event_b)  # outgoing
-mw.tab_bar.setCurrentTab("Journey")
+mw.tab_bar.setCurrentTab("Events")
 app.processEvents()
 ws = mw.workspace
 
@@ -492,7 +492,7 @@ assert questions == [], f"SU003: unexpected confirmation for isolated event"
 assert alone_event.id not in [e.id for e in narrative_map.event], \
     "SU003: isolated event not deleted"
 
-print("SU003 journey deletion confirmation OK")
+print("SU003 events deletion confirmation OK")
 
 # ---------------------------------------------------------------------
 # TSK13 review: card selection in the agents view + view-dependent
@@ -637,21 +637,21 @@ assert renamed.id not in [a.id for a in project.agent], \
 assert agents_ws.agent_count() == rows_before, \
     "review: matrix not refreshed after deletion"
 
-# Back to the journey view: Edit/Delete need an agent, not a selection
-mw.tab_bar.setCurrentTab("Journey")
+# Back to the events view: Edit/Delete need an agent, not a selection
+mw.tab_bar.setCurrentTab("Events")
 app.processEvents()
 mw._update_menu_state()
 assert mw.menu_actions['agent_edit'].isEnabled(), \
-    "review: Edit should be enabled in the journey view (agents exist)"
+    "review: Edit should be enabled in the events view (agents exist)"
 assert mw.menu_actions['agent_delete'].isEnabled(), \
-    "review: Delete should be enabled in the journey view (agents exist)"
+    "review: Delete should be enabled in the events view (agents exist)"
 
 print("TSK13 review agents-view selection + view-dependent menu OK")
 
 # ---------------------------------------------------------------------
 # TSK13 (revue TSC 28-10-2026, correction retour n°1): the event badges
 # live on the state cards of the AGENTS view (left = source events,
-# right = target events); the journey view keeps only the agent badge
+# right = target events); the events view keeps only the agent badge
 # ---------------------------------------------------------------------
 from ui.nodes.connection import Connection
 
@@ -698,26 +698,32 @@ tooltip = card.toolTip()
 assert f"Events (in): {ev_in.lb}" in tooltip, f"badges: tooltip in: {tooltip}"
 assert f"Events (out): {ev_out.lb}" in tooltip, f"badges: tooltip out: {tooltip}"
 
-# Badge positions: centered vertically, straddling the left/right edges
-# — the same coordinates as the journey connection ports (TSC 28-10-2026)
+# Badge positions (TSK18, TSC 29-10-2026): centered vertically; on the
+# horizontal axis mostly inside the card outline — 2/3 in, 1/3 out
+# (outside = round(diameter/3) = 5 px on a 16 px diameter, same
+# horizontal rule as the events agent badge, TSK17). The badges keep
+# the sides of the events connection ports (left = in, right = out).
 d = card.EVENT_BADGE_DIAMETER
+outside = round(d / 3)
 y = card.rect().height() / 2 - d / 2
 assert card.event_badge_in.pos().y() == y, "badges: left badge vertical position"
 assert card.event_badge_out.pos().y() == y, "badges: right badge vertical position"
-assert card.event_badge_in.pos().x() == -d / 2, "badges: left straddling the left edge"
+assert card.event_badge_in.pos().x() == -outside, \
+    "badges: left badge 1/3 out / 2/3 in on the left edge"
 assert card.event_badge_out.pos().x() == \
-    card.rect().width() - d / 2, \
-    "badges: right straddling the right edge"
-# Same centers as the journey ports: (0, h/2) and (w, h/2) in the
-# card's local frame (the card's sceneBoundingRect includes the 2 px pen
-# margin, so compare against the local rect edges)
+    card.rect().width() - d + outside, \
+    "badges: right badge 1/3 out / 2/3 in on the right edge"
+# Badge centers at d/2 - outside (= 3 px) inside the card edge
+# (the card's sceneBoundingRect includes the 2 px pen margin, so compare
+# against the local rect edges)
 card_rect = card.rect()
+center_offset = d / 2 - outside
 assert card.event_badge_in.sceneBoundingRect().center().x() == \
-    card.mapToScene(card_rect.left(), 0).x(), \
-    "badges: left badge center on the left edge"
+    card.mapToScene(card_rect.left() + center_offset, 0).x(), \
+    "badges: left badge center inside the left edge"
 assert card.event_badge_out.sceneBoundingRect().center().x() == \
-    card.mapToScene(card_rect.right(), 0).x(), \
-    "badges: right badge center on the right edge"
+    card.mapToScene(card_rect.right() - center_offset, 0).x(), \
+    "badges: right badge center inside the right edge"
 assert card.event_badge_in.sceneBoundingRect().center().y() == \
     card.mapToScene(0, card_rect.height() / 2).y(), \
     "badges: left badge centered vertically"
@@ -727,21 +733,21 @@ agent_card = agents_ws._agent_cards[watcher.id]
 assert agent_card.event_badge_in is None, "badges: agent card has no event badge"
 assert agent_card.event_badge_out is None, "badges: agent card has no event badge"
 
-# The journey view state node carries only the agent badge (counter 1),
+# The events view state node carries only the agent badge (counter 1),
 # no event badge. The badge is refreshed on association changes through
 # the main window callback; trigger it explicitly here.
-mw.tab_bar.setCurrentTab("Journey")
+mw.tab_bar.setCurrentTab("Events")
 app.processEvents()
 mw._refresh_all_state_badges()
 app.processEvents()
-journey_node = ws._find_node_by_entity_id_and_type(badge_state.id, State)
-assert journey_node.agent_badge.isVisible(), "badges: journey agent badge visible"
-assert journey_node.agent_badge_text.toPlainText() == "1", \
-    "badges: journey agent badge count"
-assert not hasattr(journey_node, 'event_badge_in'), \
-    "badges: journey node has no event badge"
-assert not hasattr(journey_node, 'event_badge_out'), \
-    "badges: journey node has no event badge"
+events_node = ws._find_node_by_entity_id_and_type(badge_state.id, State)
+assert events_node.agent_badge.isVisible(), "badges: events agent badge visible"
+assert events_node.agent_badge_text.toPlainText() == "1", \
+    "badges: events agent badge count"
+assert not hasattr(events_node, 'event_badge_in'), \
+    "badges: events node has no event badge"
+assert not hasattr(events_node, 'event_badge_out'), \
+    "badges: events node has no event badge"
 
 # A state without events: badges hidden in the agents view. Create a
 # dedicated isolated state (other pre-existing states may carry arcs
@@ -761,7 +767,7 @@ assert not other_card.event_badge_out.isVisible(), "badges: right hidden at 0"
 # arc via the relation deletion path, the right badge must disappear.
 # The visual connection must exist: create it through the app path
 # (the arcs above were created directly on the data model).
-mw.tab_bar.setCurrentTab("Journey")
+mw.tab_bar.setCurrentTab("Events")
 app.processEvents()
 ev_out_node = ws._find_node_by_entity_id_and_type(ev_out.id, EventEntity)
 badge_node = ws._find_node_by_entity_id_and_type(badge_state.id, State)

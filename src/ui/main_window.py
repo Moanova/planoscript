@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QCloseEvent
 
-from ui.views.journey_workspace import JourneyWorkspace
+from ui.views.events_workspace import EventsWorkspace
 from ui.views.agents_workspace import AgentsWorkspace
 from ui.widgets.tab_bar import TabBar
 from ui.nodes.connection import Connection
@@ -116,12 +116,12 @@ class MainWindow(QMainWindow):
         self.middle_layout.setSpacing(0)
         main_layout.addWidget(self.middle_section, 1)
 
-        self.tab_bar = TabBar(["Journey", "Agents"])
+        self.tab_bar = TabBar(["Events", "Agents"])
         self.tab_bar.hide()
         self.tab_bar.currentChanged.connect(self._on_tab_changed)
         self.middle_layout.addWidget(self.tab_bar)
 
-        # Stacked pages: welcome / journey workspace / agents workspace
+        # Stacked pages: welcome / events workspace / agents workspace
         self.pages = QStackedWidget()
         self.middle_layout.addWidget(self.pages, 1)
 
@@ -130,25 +130,25 @@ class MainWindow(QMainWindow):
         welcome_layout = QVBoxLayout(self.welcome_page)
         self.pages.addWidget(self.welcome_page)
 
-        # Journey workspace page: created empty, populated per project
-        self.journey_page = QWidget()
-        journey_layout = QVBoxLayout(self.journey_page)
-        journey_layout.setContentsMargins(0, 0, 0, 0)
-        self.pages.addWidget(self.journey_page)
+        # Events workspace page: created empty, populated per project
+        self.events_page = QWidget()
+        events_layout = QVBoxLayout(self.events_page)
+        events_layout.setContentsMargins(0, 0, 0, 0)
+        self.pages.addWidget(self.events_page)
 
         # Agents workspace page: placeholder until TSK08
         self.agents_page = AgentsWorkspace()
         # TSK13: the agents view context menus act on entities through
         # the main window (the workspace only emits requests)
         self.agents_page.main_window = self
-        # TSK09: matrix cell editions refresh the journey view (SU008)
+        # TSK09: matrix cell editions refresh the events view (SU008)
         self.agents_page.associationChanged.connect(self._on_matrix_association_changed)
         # TSK10: cross-view navigation request
-        self.agents_page.focusAgentInJourneyViewRequested.connect(
-            self._focus_agent_in_journey_view)
-        # TSK13: cross-view navigation request (state -> journey view)
-        self.agents_page.focusStateInJourneyViewRequested.connect(
-            self._focus_state_in_journey_view)
+        self.agents_page.focusAgentInEventsViewRequested.connect(
+            self._focus_agent_in_events_view)
+        # TSK13: cross-view navigation request (state -> events view)
+        self.agents_page.focusStateInEventsViewRequested.connect(
+            self._focus_state_in_events_view)
         # TSK13 review: card selection changes re-evaluate the Agent
         # menu activation in the agents view
         self.agents_page.cardSelectionChanged.connect(self._update_menu_state)
@@ -193,8 +193,8 @@ class MainWindow(QMainWindow):
         matrix is in sync with the data (SU008) even if a refresh hook
         was missed.
         """
-        if tab_name == "Journey":
-            self.pages.setCurrentWidget(self.journey_page)
+        if tab_name == "Events":
+            self.pages.setCurrentWidget(self.events_page)
         elif tab_name == "Agents":
             self.pages.setCurrentWidget(self.agents_page)
             self._refresh_agents_view()
@@ -202,10 +202,10 @@ class MainWindow(QMainWindow):
     def _on_matrix_association_changed(self, state_id, agent_lb, associated):
         """Handle a matrix cell edition (TSK09, SU008).
 
-        Refreshes the agent badge of the journey view state node and
+        Refreshes the agent badge of the events view state node and
         reports the action in the info bar.
         """
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             # Entity IDs are unique per type, not globally (State.id=1 and
             # Event.id=1 can coexist): only a state node may carry the
             # badge, so the lookup must filter on the State entity type
@@ -231,10 +231,10 @@ class MainWindow(QMainWindow):
         # the rebuilt columns
         self.agents_page.set_focus(state_id)
 
-    def _focus_state_in_journey_view(self, state_id):
-        """Show a state in the journey view, focused (TSK13, RG067).
+    def _focus_state_in_events_view(self, state_id):
+        """Show a state in the events view, focused (TSK13, RG067).
 
-        Switches to the Journey tab and highlights the node of the
+        Switches to the Events tab and highlights the node of the
         state. The focus is temporary: no modification flag, no
         persistence (RG067).
         """
@@ -244,16 +244,16 @@ class MainWindow(QMainWindow):
             None)
         if state is None:
             return
-        self.tab_bar.setCurrentTab("Journey")
-        if isinstance(self.workspace, JourneyWorkspace):
+        self.tab_bar.setCurrentTab("Events")
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus([state_id])
         self.info_bar.show_message(f"State '{state.lb}' highlighted")
 
-    def _focus_agent_in_journey_view(self, agent_id):
-        """Show the states of an agent in the journey view, focused
+    def _focus_agent_in_events_view(self, agent_id):
+        """Show the states of an agent in the events view, focused
         (TSK10, RG067).
 
-        Switches to the Journey tab and highlights the nodes of the
+        Switches to the Events tab and highlights the nodes of the
         states associated with the agent, dimming the rest. If the agent
         has no associated state, reports it without switching.
         """
@@ -269,8 +269,8 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message(
                 f"Agent '{agent.lb}' has no associated state")
             return
-        self.tab_bar.setCurrentTab("Journey")
-        if isinstance(self.workspace, JourneyWorkspace):
+        self.tab_bar.setCurrentTab("Events")
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus(state_ids)
         self.info_bar.show_message(
             f"Agent '{agent.lb}': {len(state_ids)} state(s) highlighted")
@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
         if not hasattr(self, 'pages'):
             return
         current = self.pages.currentWidget()
-        if current is self.journey_page and isinstance(self.workspace, JourneyWorkspace):
+        if current is self.events_page and isinstance(self.workspace, EventsWorkspace):
             self.workspace.clear_focus()
         elif current is self.agents_page:
             self.agents_page.clear_focus()
@@ -335,8 +335,8 @@ class MainWindow(QMainWindow):
 
         # Display menu
         self.display_menu = self.menu_bar.addMenu("Display")
-        self.journey_menu = self.display_menu.addMenu("Journey")
-        self.menu_actions['list_journeys'] = self.journey_menu.addAction("JourneyList", lambda: None)
+        self.events_menu = self.display_menu.addMenu("Events")
+        self.menu_actions['list_events'] = self.events_menu.addAction("EventsList", lambda: None)
         self.zoom_menu = self.display_menu.addMenu("Zoom")
         self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
         self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
@@ -345,9 +345,9 @@ class MainWindow(QMainWindow):
         # Project menu
         self.project_menu = self.menu_bar.addMenu("Project")
 
-        # MVP : journey view only + the relation view will be reworked at a leter stage of development
+        # MVP : events view only + the relation view will be reworked at a leter stage of development
         self.view_menu = self.project_menu.addMenu("View")
-        self.menu_actions['view_journeys'] = self.view_menu.addAction("Journeys", lambda: None)
+        self.menu_actions['view_events'] = self.view_menu.addAction("Events", lambda: None)
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
@@ -412,7 +412,7 @@ class MainWindow(QMainWindow):
         self.menu_actions['paste'].setEnabled(False)
         self.menu_actions['delete'].setEnabled(False)
 
-        self.journey_menu.setEnabled(False)
+        self.events_menu.setEnabled(False)
         self.zoom_menu.setEnabled(False)
 
         self.view_menu.setEnabled(False)
@@ -447,7 +447,7 @@ class MainWindow(QMainWindow):
         self.menu_actions['associate_agents'].setEnabled(has_project and has_state)
 
         # TSK13 + TSK13 review: the agent submenu depends on the active
-        # view. Journey view: "New..." needs an open project, "Edit"/
+        # view. Events view: "New..." needs an open project, "Edit"/
         # "Delete" need at least one agent (picked in a selection
         # dialog). Agents view: "Edit"/"Delete" act directly on the
         # selected agent card and need a selected agent card.
@@ -586,7 +586,7 @@ class MainWindow(QMainWindow):
 
 
     def _init_workspace(self):
-        """Initialize workspace with a single JourneyWorkspace."""
+        """Initialize workspace with a single EventsWorkspace."""
         # Disconnect signals from old workspace if it exists
         if hasattr(self, 'workspace') and self.workspace is not None:
             try:
@@ -603,29 +603,29 @@ class MainWindow(QMainWindow):
             except (TypeError, AttributeError):
                 pass
 
-        # Clear the journey page before rebuilding the workspace
-        while self.journey_page.layout().count():
-            item = self.journey_page.layout().takeAt(0)
+        # Clear the events page before rebuilding the workspace
+        while self.events_page.layout().count():
+            item = self.events_page.layout().takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        # Single workspace per project: journey view (agents view is the
+        # Single workspace per project: events view (agents view is the
         # second workspace, TSK07; it does not depend on the map instance)
-        self.workspace = JourneyWorkspace(
+        self.workspace = EventsWorkspace(
             narrative_map=self.project_service.current_project.narrative_map[0],
             info_bar=self.info_bar,
             main_window=self
         )
-        self.journey_page.layout().addWidget(self.workspace)
+        self.events_page.layout().addWidget(self.workspace)
 
-        # Show the workspace pages: tab bar visible, Journey active by
+        # Show the workspace pages: tab bar visible, Events active by
         # default on project opening (TSK07: display state, not persisted)
         self.tab_bar.show()
-        self.tab_bar.forceCurrentTab("Journey")
-        self.pages.setCurrentWidget(self.journey_page)
+        self.tab_bar.forceCurrentTab("Events")
+        self.pages.setCurrentWidget(self.events_page)
         
         # Connect workspace signal for relation creation
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.relation_created.connect(self._on_relation_created)
             # TSK10: cross-view navigation requests
             self.workspace.focusStateInAgentsViewRequested.connect(
@@ -718,11 +718,11 @@ class MainWindow(QMainWindow):
             file_path, narrative_map.id
         )
 
-        if workspace_layout and isinstance(self.workspace, JourneyWorkspace):
+        if workspace_layout and isinstance(self.workspace, EventsWorkspace):
             self.node_count = self.workspace.populate_from_layout(
                 workspace_layout, narrative_map
             )
-        elif isinstance(self.workspace, JourneyWorkspace):
+        elif isinstance(self.workspace, EventsWorkspace):
             self.node_count = self.workspace.populate_default(narrative_map)
 
         # Initialize the agents view (TSK08) with its edition use
@@ -770,7 +770,7 @@ class MainWindow(QMainWindow):
             success = self.save_project_usecase.execute(file_path)
             if success:
                 # Save visual layout alongside the business data
-                if isinstance(self.workspace, JourneyWorkspace):
+                if isinstance(self.workspace, EventsWorkspace):
                     workspace_layout = self.workspace.collect_workspace_layout()
                     # RG068: persist the agents view matrix order
                     # (column and row order is layout data). The agents
@@ -839,9 +839,9 @@ class MainWindow(QMainWindow):
 
     def _clear_project(self):
         """Clear project from memory and reset workspace"""
-        # Detach and delete only the journey workspace: the middle section
+        # Detach and delete only the events workspace: the middle section
         # structure (tab bar, stacked pages) is permanent since TSK07 and
-        # must survive project closing (the welcome/journey/agents pages
+        # must survive project closing (the welcome/events/agents pages
         # are reused by the next project)
         if self.workspace is not None:
             self.workspace.setParent(None)
@@ -928,12 +928,12 @@ class MainWindow(QMainWindow):
                          result.get('component_type'),
                          entity.to_dict() if entity and hasattr(entity, 'to_dict') else entity)
             # TSK13: creating an event from the agents view (menu or
-            # context menu) switches back to the journey view, where the
+            # context menu) switches back to the events view, where the
             # event node lives, and selects it. Creating a state stays in
             # the agents view (the new column appears in the matrix).
             if (component_type == "Event"
                     and self.tab_bar.currentTab() == "Agents"):
-                self.tab_bar.setCurrentTab("Journey")
+                self.tab_bar.setCurrentTab("Events")
                 node = self.workspace._find_node_by_entity_id_and_type(
                     entity.id, Event)
                 if node is not None:
@@ -950,7 +950,7 @@ class MainWindow(QMainWindow):
             return
 
         # Check if workspace is ready
-        if not isinstance(self.workspace, JourneyWorkspace):
+        if not isinstance(self.workspace, EventsWorkspace):
             self.info_bar.show_message("Error: Workspace not ready for relation creation")
             return
 
@@ -1013,7 +1013,7 @@ class MainWindow(QMainWindow):
             return
 
         # RG054: refuse duplicate visual connection
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             if self.workspace.has_connection_between(source_node, target_node):
                 self.info_bar.show_message(
                     "Cannot connect: a relation already exists between these components"
@@ -1040,7 +1040,7 @@ class MainWindow(QMainWindow):
                 relation_type = RelationType.EVENT_TO_STATE
 
             # Create visual connection in workspace
-            if isinstance(self.workspace, JourneyWorkspace):
+            if isinstance(self.workspace, EventsWorkspace):
                 self.workspace.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
@@ -1048,7 +1048,7 @@ class MainWindow(QMainWindow):
                     'relation_type': relation_type
                 })
             self.info_bar.show_message("State-Event relation created")
-            # TSK13: the agent badge of the journey state node and the
+            # TSK13: the agent badge of the events state node and the
             # event badges of the agents-view state card may have changed
             self._refresh_all_state_badges()
             self._refresh_agents_view_event_badges()
@@ -1095,7 +1095,7 @@ class MainWindow(QMainWindow):
             self.create_agent_usecase, parent=self)
         dialog.exec()
         # TSK05: refresh the agent badge of the state node
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             for item in self.workspace.scene.items():
                 if getattr(item, 'entity', None) is entity:
                     self.workspace.refresh_state_badge(item)
@@ -1122,7 +1122,7 @@ class MainWindow(QMainWindow):
     def _new_agent(self):
         """Create an agent from the "Project > Components... > Agent >
         New..." menu entry (TSK13, FN031). TSK13 review: the behavior
-        depends on the active view — journey view: the "New Agent"
+        depends on the active view — events view: the "New Agent"
         dialog opens, prefilled with a default label (editable);
         agents view: the agent is created directly in the matrix row,
         with the default label."""
@@ -1142,7 +1142,7 @@ class MainWindow(QMainWindow):
 
     def _edit_agent(self):
         """Edit an agent from the "Project > Components... > Agent >
-        Edit" menu entry (TSK13, FN031). TSK13 review: journey view ->
+        Edit" menu entry (TSK13, FN031). TSK13 review: events view ->
         selection dialog, then the edition dialog; agents view -> the
         edition dialog opens directly on the selected agent card (the
         entry is disabled when no agent card is selected)."""
@@ -1174,7 +1174,7 @@ class MainWindow(QMainWindow):
 
     def _delete_agent(self):
         """Delete an agent from the "Project > Components... > Agent >
-        Delete" menu entry (TSK13, FN031). TSK13 review: journey view ->
+        Delete" menu entry (TSK13, FN031). TSK13 review: events view ->
         selection dialog, then confirmation (RG064); agents view -> the
         selected agent card is deleted directly, with the same
         confirmation (the entry is disabled when no agent card is
@@ -1236,7 +1236,7 @@ class MainWindow(QMainWindow):
 
     def _refresh_all_state_badges(self):
         """Refresh the agent badges of all state nodes (TSK05)."""
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.refresh_all_state_badges()
 
     def _refresh_agents_view_event_badges(self):
@@ -1330,7 +1330,7 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message("State updated")
             # The label may have changed: refresh the matrix column
             self._refresh_agents_view()
-            if isinstance(self.workspace, JourneyWorkspace):
+            if isinstance(self.workspace, EventsWorkspace):
                 node = self.workspace._find_node_by_entity_id_and_type(
                     state.id, State)
                 if node is not None:
@@ -1397,7 +1397,7 @@ class MainWindow(QMainWindow):
         entity_list[:] = [e for e in entity_list if e.id != entity.id]
 
         # Remove the visual node and its attached connections from the workspace
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.remove_node(item)
 
         self.node_count -= 1
@@ -1418,7 +1418,7 @@ class MainWindow(QMainWindow):
     def _confirm_component_deletion(self, entity, entity_type,
                                     narrative_map) -> bool:
         """SU003: ask for confirmation before deleting a component with
-        associated data (TSK13 review: same rule in the journey and
+        associated data (TSK13 review: same rule in the events and
         agents views). Arcs count for both types; agent-state
         associations count for states. Returns True when the deletion
         may proceed (no associated data, or the user confirmed)."""
@@ -1478,7 +1478,7 @@ class MainWindow(QMainWindow):
             s for s in narrative_map.state if s.id != state.id]
 
         # Remove the visual node and its attached connections
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             item = self.workspace._find_node_by_entity_id_and_type(
                 state.id, State)
             if item is not None:
@@ -1528,13 +1528,13 @@ class MainWindow(QMainWindow):
             return
 
         # Remove the visual connection from the workspace
-        if isinstance(self.workspace, JourneyWorkspace):
+        if isinstance(self.workspace, EventsWorkspace):
             self.workspace.remove_connection(item)
 
         # Mark project as modified and update menu state
         self.project_service.set_modified(True)
         self.info_bar.show_message("Relation deleted")
-        # TSK13: the agent badge of the journey state node and the
+        # TSK13: the agent badge of the events state node and the
         # event badges of the agents-view state card may have changed
         self._refresh_all_state_badges()
         self._refresh_agents_view_event_badges()

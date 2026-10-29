@@ -9,16 +9,16 @@
 """Agents workspace: agents x states matrix (TSK15, SU009).
 
 Second workspace dedicated to the agent-state associations. The matrix
-is a QGraphicsView (like the journey workspace): one card per state
+is a QGraphicsView (like the events workspace): one card per state
 along the top (columns), one card per agent down the left side (rows),
 and a checkbox at each intersection materializing the association.
-Cards are drawn like the journey nodes (surface background, type-colored
+Cards are drawn like the events nodes (surface background, type-colored
 outline, rounded corners); agents use the event tint (copper).
 
 Each card and each checkbox is centered in a 120x80 cell of the
 background grid (TSC review 28-10-2026): the card margins are 20 px on
 every side, the checkbox margins are 50 px horizontally and 30 px
-vertically. The grid is drawn for the visible viewport only (journey
+vertically. The grid is drawn for the visible viewport only (events
 workspace pattern) over a scene that grows rightwards and downwards
 only: the matrix stays anchored to the top-left corner.
 
@@ -56,7 +56,7 @@ _FOCUS_COLOR = theme.color("focus_color", theme.FOCUS_COLOR)
 
 # Matrix background grid (TSC review 28-10-2026): one 120x80 cell per
 # matrix slot, the cards and checkboxes are centered in their cell.
-# The grid is drawn for the visible viewport only (journey workspace
+# The grid is drawn for the visible viewport only (events workspace
 # pattern) and its lines are non-interactive (they must not block
 # clicks on the cards and checkboxes).
 _CELL_WIDTH = _get_config("agents_view_cell_width", 120)
@@ -74,7 +74,7 @@ class _GridLineItem(QGraphicsLineItem):
     rect and Qt's scene indexing skips the item entirely when the scene
     rect is larger than the items bounding rect (the grid then
     disappears as soon as the view scrolls past the matrix content,
-    unlike the journey workspace where the grid follows the viewport).
+    unlike the events workspace where the grid follows the viewport).
     """
 
     def shape(self):
@@ -119,20 +119,20 @@ class AgentsWorkspace(QWidget):
 
     Public contract (unchanged since TSK08/TSK09/TSK10):
     set_project(), refresh(), set_focus(), clear_focus(), has_focus()
-    and the signals associationChanged / focusAgentInJourneyViewRequested.
+    and the signals associationChanged / focusAgentInEventsViewRequested.
     """
 
-    # Emitted after a cell edition changed the data (SU008): the journey
+    # Emitted after a cell edition changed the data (SU008): the events
     # view refreshes the state badge and the info bar shows a message.
     associationChanged = Signal(int, str, bool)  # state_id, agent_lb, associated
 
     # Emitted when the user requests to show the states of an agent in
-    # the journey view (TSK10, cross-view navigation)
-    focusAgentInJourneyViewRequested = Signal(int)  # agent_id
+    # the events view (TSK10, cross-view navigation)
+    focusAgentInEventsViewRequested = Signal(int)  # agent_id
 
-    # Emitted when the user requests to show a state in the journey
+    # Emitted when the user requests to show a state in the events
     # view (TSK13, extension of the TSK10 focus contract)
-    focusStateInJourneyViewRequested = Signal(int)  # state_id
+    focusStateInEventsViewRequested = Signal(int)  # state_id
 
     # Emitted when a reorder attempt is rejected (initial state pinned,
     # RG068/RG031): the main window reports it in the info bar
@@ -177,12 +177,12 @@ class AgentsWorkspace(QWidget):
 
         # Minimal scene size; grows rightwards/downwards only (TSC
         # review 28-10-2026: the matrix stays anchored to the top-left
-        # corner, the workspace extends like the journey workspace)
+        # corner, the workspace extends like the events workspace)
         self.scene.setSceneRect(0, 0, _SCENE_MIN_SIZE, _SCENE_MIN_SIZE)
         self._draw_grid()
 
         # Redraw the grid for the visible viewport on scroll/resize
-        # (journey workspace pattern)
+        # (events workspace pattern)
         self.view.horizontalScrollBar().valueChanged.connect(
             self._draw_grid)
         self.view.verticalScrollBar().valueChanged.connect(
@@ -229,7 +229,7 @@ class AgentsWorkspace(QWidget):
 
     def selected_agent(self):
         """Return the entity of the selected agent card, or None
-        (TSK13 review: single card selection, aligned on the journey
+        (TSK13 review: single card selection, aligned on the events
         view)."""
         for item in self.scene.selectedItems():
             if isinstance(item, MatrixCardItem) and item.kind == 'agent':
@@ -238,7 +238,7 @@ class AgentsWorkspace(QWidget):
 
     def selected_state(self):
         """Return the entity of the selected state card, or None
-        (TSK13 review: single card selection, aligned on the journey
+        (TSK13 review: single card selection, aligned on the events
         view)."""
         for item in self.scene.selectedItems():
             if isinstance(item, MatrixCardItem) and item.kind == 'state':
@@ -352,7 +352,7 @@ class AgentsWorkspace(QWidget):
 
     def _draw_grid(self, *args):
         """Draw the background grid for the visible viewport only
-        (journey workspace pattern, TSC review 28-10-2026): one line
+        (events workspace pattern, TSC review 28-10-2026): one line
         every 120 px horizontally and 80 px vertically, from the scene
         origin (the cells frame the matrix slots exactly).
 
@@ -619,7 +619,7 @@ class AgentsWorkspace(QWidget):
 
     def _on_agent_card_menu(self, card, global_pos):
         """Context menu of an agent card (TSK10/TSK13): edit, delete
-        (RG064 confirmation) and show in journey view. TSK13 review:
+        (RG064 confirmation) and show in events view. TSK13 review:
         the entries are aligned on the global Agent menu — they act on
         the card selection (the clicked card is selected by the view
         before the menu opens), through the same main-window handlers
@@ -635,9 +635,9 @@ class AgentsWorkspace(QWidget):
             lambda: main_window._edit_agent())
         handlers[menu.addAction("Delete Agent")] = (
             lambda: main_window._delete_agent())
-        show_action = menu.addAction("Show in journey view")
+        show_action = menu.addAction("Show in events view")
         handlers[show_action] = (
-            lambda: self.focusAgentInJourneyViewRequested.emit(card.entity.id))
+            lambda: self.focusAgentInEventsViewRequested.emit(card.entity.id))
         chosen = menu.exec(global_pos)
         handler = handlers.get(chosen)
         if handler:
@@ -646,7 +646,7 @@ class AgentsWorkspace(QWidget):
     def _on_state_card_menu(self, card, global_pos):
         """Context menu of a state card (TSK13): edit, delete (RG031:
         disabled for the initial state, RG065 cascades) and show in
-        journey view (focus, TSK10 contract extended)."""
+        events view (focus, TSK10 contract extended)."""
         if not self.project_service or not self.project_service.current_project:
             return
         narrative_map = self.project_service.current_project.narrative_map[0]
@@ -667,8 +667,8 @@ class AgentsWorkspace(QWidget):
             delete_action.setEnabled(False)
         handlers[delete_action] = (
             lambda: main_window._delete_state_entity(state))
-        handlers[menu.addAction("Show in journey view")] = (
-            lambda: self.focusStateInJourneyViewRequested.emit(state.id))
+        handlers[menu.addAction("Show in events view")] = (
+            lambda: self.focusStateInEventsViewRequested.emit(state.id))
         chosen = menu.exec(global_pos)
         handler = handlers.get(chosen)
         if handler:
@@ -766,13 +766,13 @@ class _MatrixGraphicsView(QGraphicsView):
 
     def viewportEvent(self, event):
         """Swallow Qt's delayed automatic tooltip event (see
-        JourneyWorkspace.viewportEvent)."""
+        EventsWorkspace.viewportEvent)."""
         if event.type() == QEvent.ToolTip:
             return True
         return super().viewportEvent(event)
 
     def resizeEvent(self, event):
-        """Redraw the grid for the new visible area (journey workspace
+        """Redraw the grid for the new visible area (events workspace
         pattern)."""
         super().resizeEvent(event)
         self._workspace._draw_grid()
@@ -791,11 +791,11 @@ class _MatrixGraphicsView(QGraphicsView):
         """Left press on a card selects it and starts a drag (RG068);
         a press in the empty area clears the card selection and
         releases the cross-view focus (RG067) (TSK13 review: card
-        selection aligned on the journey view)."""
+        selection aligned on the events view)."""
         if event.button() == Qt.MouseButton.LeftButton:
             card = self._card_at(event.pos())
             if card is not None:
-                # Single card selection, like the journey nodes; the
+                # Single card selection, like the events nodes; the
                 # drag for reordering still works on top of it
                 if not card.isSelected():
                     self._workspace.scene.clearSelection()
@@ -829,7 +829,7 @@ class _MatrixGraphicsView(QGraphicsView):
 
     def _on_context_menu(self, pos):
         """Right-click dispatch (TSK13): card menus for agent/state
-        cards, creation menu on the grid. Like the journey view, the
+        cards, creation menu on the grid. Like the events view, the
         clicked card is selected before the menu opens (TSK13 review)."""
         card = self._card_at(pos)
         global_pos = self.mapToGlobal(pos)

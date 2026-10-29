@@ -682,3 +682,58 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   `04_interface` décrit encore les anciennes couleurs du thème clair
   (charte 98 autorité). Prochaines tâches : TSK14 (barre latérale
   gauche), TSK16 (dimensions vue Journey dans config.json).
+
+
+## 29-10-2026 — TSK18 : badges d'événement de la vue Agents, 2/3 dedans / 1/3 dehors (axe X)
+
+- **Demande TSC** : sur la matrice agents × états, décaler légèrement les
+  badges d'événement vers l'intérieur sur l'axe horizontal — badge de gauche
+  vers la droite, badge de droite vers la gauche — ratio 2/3 dedans / 1/3
+  dehors (au lieu de 1/2–1/2), avec arrondi entier ; même principe que l'axe
+  horizontal du badge d'agents de la vue Journey (TSK17).
+- **Implémentation** : `MatrixCardItem._position_event_badges`
+  (`src/ui/nodes/matrix_card.py`) — `outside = round(16/3)` = 5 px, badge
+  gauche `x = -outside`, badge droit `x = w - d + outside` (11 px dedans) ;
+  axe vertical inchangé (centré). Test offscreen TSK13 mis à jour (nouvelles
+  assertions de position). Doc : `04_interface` FR/EN (section 6.bis) et
+  charte `98_layout_revision-FR.md`. Fiche `tasks/TSK18_event_badge_position.md`.
+- **Tests** : py_compile OK ; 106 passed (pytest, hors test_application
+  pywinauto non disponible sous Linux) ; 10 offscreen PASSED ; test jetable
+  de rendu QImage : géométrie -5 / 69 sur une carte 80 px et mesure pixel
+  ~5 px dehors / ~11 px dedans, confirmé visuellement sur le rendu.
+- **Kanban** : TSK18 Doing → En revue (attente validation TSC).
+- **Fin de séance** : travaux du jour — TSK18 (repositionnement horizontal
+  des badges d'événement de la vue Agents). Aucun problème bloquant.
+  Choix acté : ratio 1/3–2/3 avec `round(diameter/3)` = 5 px, identique à
+  TSK17. Environnement : venv `.venv` créé avec uv (PySide6/pytest) et libs
+  Qt système extraites localement sous `/tmp/libs` (pas de root dans le
+  sandbox) pour les tests offscreen.
+
+
+## 29-10-2026 — TSK19 : renommage de la vue « Journey » en vue « Events »
+
+- **Demande TSC** : renommer la vue « Journey » en « Events » pour cohérence
+  avec la vue « Agents » (les états sont centraux dans les deux vues) ;
+  renommage de la couche UI uniquement — la couche métier `Journey` /
+  `Journey_node` (parcours narratif, clés JSON des sauvegardes) est
+  conservée telle quelle, ce qui sépare enfin les deux vocabulaires.
+- **Implémentation** : `git mv journey_workspace.py → events_workspace.py`,
+  `JourneyWorkspace` → `EventsWorkspace` ; `main_window.py` (events_page,
+  events_menu, onglet `TabBar(["Events", "Agents"])`, stubs de menu
+  `list_events`/`EventsList` et `view_events`/`Events` conservés,
+  `_focus_state_in_events_view` / `_focus_agent_in_events_view`, 20
+  isinstance) ; signaux `focusAgentInEventsViewRequested` /
+  `focusStateInEventsViewRequested` dans `agents_workspace.py` ; commentaires
+  des autres fichiers ; 5 scripts offscreen de test mis à jour ; doc
+  (AGENTS.md, README, specs 01/02/03/04/98/99 FR+EN, kanban).
+- **Tests** : py_compile OK ; 106 passed (pytest) ; 10 offscreen PASSED ;
+  grep final : « journey » ne reste que dans la couche métier et les fiches
+  historiques. Aucune donnée modifiée (clés JSON `journey` intactes).
+- **Kanban** : TSK19 Doing → En revue ; TSK18 reste En revue ; EPC04 passée
+  en Terminé (TSK13/TSK15/TSK17 déjà validées).
+- **Fin de séance** : TSK18 (badges d'événement 2/3-1/3, non commité
+  encore) + TSK19 (renommage vue Events, commité et poussé sur dev).
+  Aucun problème bloquant. Choix acté : pluriel « Events » pour la vue,
+  singulier `EventsWorkspace` ; libellés de menus stubs renommés en
+  « EventsList »/« Events » ; `tests/test_journeys/` conservé (features
+  du parcours narratif FN023-FN027, hors périmètre).

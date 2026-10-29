@@ -284,7 +284,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG066
-- **Description** : Les associations agent-état sont indépendantes des parcours : elles ne dépendent que des composants (agent, état) qu'elles relient. Le filtrage de l'affichage par parcours n'affecte pas les associations agent-état, uniquement leur visibilité dans la vue parcours.
+- **Description** : Les associations agent-état sont indépendantes des parcours : elles ne dépendent que des composants (agent, état) qu'elles relient. Le filtrage de l'affichage par parcours n'affecte pas les associations agent-état, uniquement leur visibilité dans la vue Events.
 - **Classification** : Structure des cartes narratives.
 
 ## RG068
@@ -292,5 +292,5 @@
 - **Classification** : Visualisation et interaction.
 
 ## RG067
-- **Description** : Le focus de navigation croisée entre les vues (vue parcours, vue agents) est un état visuel temporaire : il ne marque ni la carte ni le projet comme modifiés, et n'est pas conservé dans les métadonnées graphiques ni entre les sessions.
+- **Description** : Le focus de navigation croisée entre les vues (vue Events, vue agents) est un état visuel temporaire : il ne marque ni la carte ni le projet comme modifiés, et n'est pas conservé dans les métadonnées graphiques ni entre les sessions.
 - **Classification** : Visualisation et interaction.

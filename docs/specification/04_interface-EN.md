@@ -13,7 +13,7 @@
 - **Type**: Main vertical layout (QVBoxLayout) with distinct sections.
 - **Structure**:
   - **Top**: Integrated menu bar (QMenuBar).
-  - **Center**: Main workspace (JourneyWorkspace).
+  - **Center**: Main workspace (EventsWorkspace).
   - **Bottom**: Information bar (75%) + Zoom bar (25%) - *Zoom bar currently disabled*.
 
 > **Note**: The sidebars (components on the left, journeys on the right) are implemented but **not integrated** into the main window.
@@ -53,8 +53,8 @@
     - Delete (Del) - Not implemented
 
   - **Display**:
-    - **Journey**:
-      - JourneyList - Not implemented
+    - **Events**:
+      - EventsList - Not implemented
     - **Zoom**:
       - Zoom in (Ctrl+=) - Not implemented
       - Zoom out (Ctrl+-) - Not implemented
@@ -62,21 +62,21 @@
 
   - **Project**:
     - **View**:
-      - Journey - Not implemented (the view is activated via the tab bar, not via this menu)
+      - Events - Not implemented (the view is activated via the tab bar, not via this menu)
       - Agents - Not implemented (the view is activated via the tab bar; SU009; the Relations and Chapters entries are leftovers removed from the MVP)
     - **Components...**:
       - **Agent**:
         - New... - Functional, behavior depends on the active view (FN031, TSK13 + TSC review 28-10-2026):
-          - "Journey" view: opens the "New Agent" dialog directly, pre-filled with a default label "Agent {id}" (like states/events), editable in the dialog.
+          - "Events" view: opens the "New Agent" dialog directly, pre-filled with a default label "Agent {id}" (like states/events), editable in the dialog.
           - "Agents" view: creates the agent directly in the matrix row, with the default label (no dialog).
           - Enabled as soon as a project is open, in both views.
         - Edit - Functional, behavior depends on the active view (TSK13 + TSC review 28-10-2026):
-          - "Journey" view: opens an agent selection dialog, then the pre-filled "New Agent" dialog; enabled as soon as at least one agent exists (the selection is made in the dialog).
+          - "Events" view: opens an agent selection dialog, then the pre-filled "New Agent" dialog; enabled as soon as at least one agent exists (the selection is made in the dialog).
           - "Agents" view: opens the edition dialog directly on the selected agent card; disabled when no agent card is selected.
         - Delete - Functional, behavior depends on the active view (TSK13 + TSC review 28-10-2026):
-          - "Journey" view: agent selection dialog, then a confirmation showing the number of cascaded associations (RG064); enabled as soon as at least one agent exists.
+          - "Events" view: agent selection dialog, then a confirmation showing the number of cascaded associations (RG064); enabled as soon as at least one agent exists.
           - "Agents" view: deletes the agent whose card is selected directly, with the same RG064 confirmation; disabled when no agent card is selected.
-      - Global menu (menu bar): accessible from both the "Journey" and "Agents" views; the agent card context menu ("Agents" view) offers the same "Edit Agent"/"Delete Agent" actions, aligned on the global menu.
+      - Global menu (menu bar): accessible from both the "Events" and "Agents" views; the agent card context menu ("Agents" view) offers the same "Edit Agent"/"Delete Agent" actions, aligned on the global menu.
       - **State**:
         - New... - Functional
         - Edit - Not implemented (enabled when a State node is selected)
@@ -167,7 +167,7 @@
   - Font: Arial, 9pt.
 
 - **Elements**:
-  - "Journeys" tab - **Active by default**
+  - "Events" tab - **Active by default**
   - "Agents" tab - **Functional** (second workspace, agents × states matrix - SU009, TSK07–TSK15)
   - The "Relations" and "Chapters" tabs are leftovers from an earlier version: they are not part of the MVP and are removed from the specification.
 
@@ -179,9 +179,9 @@
 
 
 ### 6. Workspace (Center)
-- **File**: `./src/ui/views/journey_workspace.py`
+- **File**: `./src/ui/views/events_workspace.py`
 - **Description**: Main workspace for viewing and editing the narrative map.
-- **Class**: `JourneyWorkspace` (inheriting from `QGraphicsView`).
+- **Class**: `EventsWorkspace` (inheriting from `QGraphicsView`).
 
 - **Style**:
   - Background: `#ffffff`.
@@ -246,7 +246,7 @@
       - **Description**: *Not displayed* - to be implemented.
     - **Badge on State nodes** (TSK05):
       - **Agent badge** (bottom-right corner of the card, two thirds inside and one third outside the outline — TSK17, TSC 28-10-2026): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
-      - *No event badge in the journey view* (TSC review 28-10-2026, feedback n°1: the connections are visible there, the badges would overload the nodes) — the event badges are displayed on the state cards of the **agents view** (see section 6.bis).
+      - *No event badge in the events view* (TSC review 28-10-2026, feedback n°1: the connections are visible there, the badges would overload the nodes) — the event badges are displayed on the state cards of the **agents view** (see section 6.bis).
     - **Anchor Points**:
       - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
       - Should be visible on hover (8px squares, color `#4CAF50`).
@@ -266,23 +266,23 @@
 ### 6.bis. Agents View (Secondary Workspace) - *Implemented (TSK07–TSK15)*
 
 - **File** : `./src/ui/views/agents_workspace.py`
-- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar. `QGraphicsView` (like the journey view, TSK15). Agent and state creation/edition are possible from this view via the global menu and the context menus (TSK13).
+- **Description** : Second dedicated workspace for the associations between the project agents and the states of the current narrative map. Accessible via the "Agents" tab of the tab bar. `QGraphicsView` (like the events view, TSK15). Agent and state creation/edition are possible from this view via the global menu and the context menus (TSK13).
 - **Representation** : Agents × states matrix in graphical view.
   - One card per project agent (left column, rows); one card per state of the current narrative map (top row, columns); one 20×20 checkbox at each intersection.
-  - 80×40 cards rendered like the journey view nodes (surface `#2D2D2D`, outline tinted by type: gold `#E5C07B` for states, copper `#D19A66` for agents); label truncated to 8 characters, immediate tooltip on hover.
-  - Background grid 120×80 (config `agents_view_cell_width`/`_height`): each card and each checkbox is centered in its cell (20 px margins for cards, 50/30 px for checkboxes). The grid is redrawn over the visible area (journey view pattern) and the scene extends right/down only: the matrix stays anchored at the top-left corner.
+  - 80×40 cards rendered like the events view nodes (surface `#2D2D2D`, outline tinted by type: gold `#E5C07B` for states, copper `#D19A66` for agents); label truncated to 8 characters, immediate tooltip on hover.
+  - Background grid 120×80 (config `agents_view_cell_width`/`_height`): each card and each checkbox is centered in its cell (20 px margins for cards, 50/30 px for checkboxes). The grid is redrawn over the visible area (events view pattern) and the scene extends right/down only: the matrix stays anchored at the top-left corner.
   - The column order follows business rule RG068 (creation order by default, manual reordering persisted by drag and drop, initial state pinned to the first column with a rejection message in the info bar).
   - A checked cell materializes an agent-state association (SU008). Editing is done by clicking the checkbox (TSK09).
-- **Card selection (TSC review 28-10-2026)**: like in the journey view, a click on a card selects it (a single card selected at a time, across agents and states); the selection is shown by a **dashed outline in the type color** (charter 98: selection > hover > type). A click on empty space clears the selection. Drag-and-drop reordering (RG068) is preserved: the click selects, the drag reorders. A right-click on a card selects it before opening the context menu. The selection drives the activation of the "Edit"/"Delete" entries of the Agent submenu in the "Agents" view.
-- **Event badges on state cards (TSK13, agents view only)**: two pills with counters, same style as the journey agent badge but in copper `#D19A66` (Event type tint), **vertically centered and straddling the left and right edges** of the card — same coordinates as the connection ports (incoming/outgoing) of states in the journey view (TSC repositioning 28-10-2026): **left** badge = number of **source** events (arcs `Event_to_state` pointing to this state), **right** badge = number of **target** events (arcs `State_to_event` leaving this state). Tooltip "Events (in): ..." / "Events (out): ...". Hidden at 0; refreshed dynamically on relation creation/deletion and on matrix refresh. Agent cards carry no event badge. In the journey view, state nodes carry only the agent badge (TSC review 28-10-2026, feedback n°1).
+- **Card selection (TSC review 28-10-2026)**: like in the events view, a click on a card selects it (a single card selected at a time, across agents and states); the selection is shown by a **dashed outline in the type color** (charter 98: selection > hover > type). A click on empty space clears the selection. Drag-and-drop reordering (RG068) is preserved: the click selects, the drag reorders. A right-click on a card selects it before opening the context menu. The selection drives the activation of the "Edit"/"Delete" entries of the Agent submenu in the "Agents" view.
+- **Event badges on state cards (TSK13, agents view only)**: two pills with counters, same style as the events agent badge but in copper `#D19A66` (Event type tint), **vertically centered, and on the horizontal axis 2/3 inside / 1/3 outside the outline** of the card (5 px out on a 16 px diameter — TSK18, TSC 29-10-2026, same horizontal rule as the events agent badge, TSK17) — still on the same side as the connection ports (incoming/outgoing) of states in the events view (sides set 28-10-2026): **left** badge = number of **source** events (arcs `Event_to_state` pointing to this state), **right** badge = number of **target** events (arcs `State_to_event` leaving this state). Tooltip "Events (in): ..." / "Events (out): ...". Hidden at 0; refreshed dynamically on relation creation/deletion and on matrix refresh. Agent cards carry no event badge. In the events view, state nodes carry only the agent badge (TSC review 28-10-2026, feedback n°1).
 - **Focus contract (cross-view navigation, TSK10/RG067, extended by TSK13)** :
-  - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the journey view with the rest of the graph dimmed; target state from the agents view → switch to the journey view and focus on the state node, TSK13).
+  - Method common to both views: "focus on an entity" (target state → highlight + scroll of the column, translucent band on the cell; target agent → highlight of the associated state nodes in the events view with the rest of the graph dimmed; target state from the agents view → switch to the events view and focus on the state node, TSK13).
   - The focus is a temporary visual state (RG067): no modified marking, no persistence. A click on empty space or the Escape key releases it.
 - **Context Menus (TSK13, aligned on the global menu by the TSC review 28-10-2026)** :
-  - Agent card: "Edit Agent" and "Delete Agent" behave like the global menu in the "Agents" view (direct edition/deletion of the selected card — the right-click selects the clicked card; "Delete Agent" with the RG064 confirmation), "Show in journey view" (TSK10).
-  - State card: "Edit State" (pre-filled dialog), "Delete State" (disabled for the initial state, RG031; confirmation when arcs or associations exist, RG065 cascades), "Show in journey view" (switches to the journey view + focuses the node, extension of the TSK10/RG067 contract).
-  - Grid (outside the matrix): "New Agent" (direct creation in the matrix row, stays in the agents view), "New State" (stays in the agents view; the new column appears in the matrix), "New Event" (creates the node in the journey view, switches to the journey view and selects the node — same behavior as point 03).
-- **Event creation from the agents view (TSK13)**: whether the creation starts from the global menu "Project > Components... > Event > New..." or from the grid context menu, the view switches to "Journey" once the event is created, and the created node is selected. Creating an agent or a state from the agents view does not switch the view.
+  - Agent card: "Edit Agent" and "Delete Agent" behave like the global menu in the "Agents" view (direct edition/deletion of the selected card — the right-click selects the clicked card; "Delete Agent" with the RG064 confirmation), "Show in events view" (TSK10).
+  - State card: "Edit State" (pre-filled dialog), "Delete State" (disabled for the initial state, RG031; confirmation when arcs or associations exist, RG065 cascades), "Show in events view" (switches to the events view + focuses the node, extension of the TSK10/RG067 contract).
+  - Grid (outside the matrix): "New Agent" (direct creation in the matrix row, stays in the agents view), "New State" (stays in the agents view; the new column appears in the matrix), "New Event" (creates the node in the events view, switches to the events view and selects the node — same behavior as point 03).
+- **Event creation from the agents view (TSK13)**: whether the creation starts from the global menu "Project > Components... > Event > New..." or from the grid context menu, the view switches to "Events" once the event is created, and the created node is selected. Creating an agent or a state from the agents view does not switch the view.
 - **Roles** :
   - Display the agent-state associations of the current map.
   - Edit associations (check/uncheck).
@@ -369,9 +369,9 @@
 - [x] Management of project modified state
 - [x] "About" and "Change Log" dialogs
 - [x] Project agent management (create, edit, delete with RG064 cascade — FN031, TSK01/TSK02; "Agent" submenu New.../Edit/Delete with selection dialog — TSK13)
-- [x] Agent-state associations from the journey view ("Associate agents..." dialog — FN030, TSK04)
-- [x] Agent badges on state nodes in the journey view (TSK05)
-- [x] Event badges (source/target) on state cards in the agents view (TSK13; absent from the journey view — TSC review 28-10-2026)
+- [x] Agent-state associations from the events view ("Associate agents..." dialog — FN030, TSK04)
+- [x] Agent badges on state nodes in the events view (TSK05)
+- [x] Event badges (source/target) on state cards in the agents view (TSK13; absent from the events view — TSC review 28-10-2026)
 - [x] "Agents" view: agents × states matrix in graphical view, cell editing, RG068 order, 120×80 grid (TSK07–TSK15, SU008/SU009)
 - [x] Cross-view navigation with focus (RG067 — TSK10, extended state→journey by TSK13)
 - [x] Context menus of the journey and agents views (agent create/edit/delete, state edit/delete, switch to journey after event creation — TSK13)
@@ -407,7 +407,7 @@
 ./src/ui/
 ├── main_window.py          # Main window
 ├── views/
-│   └── journey_workspace.py # Workspace
+│   └── events_workspace.py # Workspace
 ├── widgets/
 │   ├── components_toolbar.py # Components bar (not integrated)
 │   ├── journeys_toolbar.py   # Journeys bar (not integrated)
@@ -445,7 +445,7 @@
 ## Recommended Next Steps
 
 1. **Integrate the sidebars** into `main_window.py`
-2. **Connect the zoom** between `ZoomBar` and `JourneyWorkspace`
+2. **Connect the zoom** between `ZoomBar` and `EventsWorkspace`
 3. **Implement grid snap**
 4. **Add anchor points** on nodes
 5. **Connect the tab bar** to switch views

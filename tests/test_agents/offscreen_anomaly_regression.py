@@ -71,7 +71,7 @@ initial_state = narrative_map.state[0]
 
 # ---------------------------------------------------------------------
 # Anomalies 1 + 4: create an agent from the Projects menu while the
-# project is in a saved state and the journey view is displayed
+# project is in a saved state and the events view is displayed
 # (TSK13 review: in the agents view, "New..." creates the agent
 # directly, without a dialog)
 # ---------------------------------------------------------------------
@@ -122,7 +122,7 @@ assert AssociateAgentStateUseCase.find_association(
     "anomaly 3: association not created by the matrix click"
 assert agents_ws.is_associated(hero_row, 0) is True
 
-# The association is visible from the journey view (data level)
+# The association is visible from the events view (data level)
 assert any(rel.agent_id == hero.id and rel.state_id == initial_state.id
            for rel in narrative_map.state_agent_rel)
 

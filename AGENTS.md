@@ -6,9 +6,9 @@ Règles de travail pour tout agent IA intervenant sur ce dépôt.
 
 Planoscript est un éditeur graphique de cartes narratives :
 application desktop PySide6 (Python >= 3.10) composée d'états (States),
-d'événements (Events) et d'agents reliés par des arcs, avec sauvegarde JSON
-et layout visuel persistant. MVP : deux espaces de travail — vue Parcours
-(Journey) et vue Agents (matrice agents × états, SU008/SU009) —, une seule
+d'événements et d'agents reliés par des arcs, avec sauvegarde JSON
+et layout visuel persistant. MVP : deux espaces de travail — vue Events
+et vue Agents (matrice agents × états, SU008/SU009) —, une seule
 carte narrative par projet, sélection unique (pas de rubber band
 multi-sélection).
 
@@ -45,7 +45,7 @@ src/
 ├── usecases/                        # project_management, file_management, view_management
 └── ui/
     ├── main_window.py               # Fenêtre principale, barre de menus, orchestration
-    ├── views/journey_workspace.py   # Vue graphique (QGraphicsView)
+    ├── views/events_workspace.py    # Vue graphique (QGraphicsView)
     ├── nodes/                       # base_node, state_node, event_node, agent_node, connection
     ├── widgets/                     # info_bar, ...
     ├── utils/                       # ui_utils
@@ -108,10 +108,10 @@ cela dispense de relire la section ciblée au moment d'une modification) :
   stylo (voir `Connection.shape`).
 - **Infobulles** : affichage immédiat dans `hoverEnterEvent` via
   `QToolTip.showText()` ; le workspace avale l'événement `ToolTip` automatique
-  de Qt (`JourneyWorkspace.viewportEvent`). Ne pas réintroduire le mécanisme
+  de Qt (`EventsWorkspace.viewportEvent`). Ne pas réintroduire le mécanisme
   automatique (délai système + infobulle en double).
 - **Menu contextuel** : pattern `menu.exec()` + dispatch sur l'action retournée
-  (voir `JourneyWorkspace.show_context_menu`) — pas de timer, pas de drapeaux
+  (voir `EventsWorkspace.show_context_menu`) — pas de timer, pas de drapeaux
   d'état, une seule connexion par signal.
 - **Feedback de sélection** : brancher `set_selected_appearance` via
   `itemChange(ItemSelectedChange)` (pattern commun à BaseNode et Connection).

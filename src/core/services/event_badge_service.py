@@ -15,7 +15,7 @@ the state). Same display rules as the agent badge (TSK05): fixed-size
 pill with a counter, hidden at 0, '9+' beyond 9.
 
 The badges live on the state cards of the agents view only (TSC review
-28-10-2026, retour n°1: in the journey view the connections are visible,
+28-10-2026, retour n°1: in the events view the connections are visible,
 the badges would overload the nodes; only the agent badge remains there).
 
 Kept free of any Qt dependency so it can be unit tested without a

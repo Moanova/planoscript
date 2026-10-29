@@ -8,11 +8,11 @@
 # ---------------------------------------------------------------------
 """Graphical items of the agents x states matrix (TSK15).
 
-The agents workspace matrix is a QGraphicsView (like the journey
+The agents workspace matrix is a QGraphicsView (like the events
 workspace): each State and each Agent is drawn as a card with the same
-appearance as the journey nodes (rounded rectangle, surface background,
+appearance as the events nodes (rounded rectangle, surface background,
 type-colored outline, centered label, hover outline, immediate tooltip).
-Agents use the event tint (copper): agents have no node in the journey
+Agents use the event tint (copper): agents have no node in the events
 view (decision TSC 26-10-2026).
 
 Each intersection of an agent row and a state column holds a
@@ -38,20 +38,20 @@ from ui.utils import theme
 
 class MatrixCardItem(QGraphicsRectItem):
     """A card of the agents matrix (state column header or agent row
-    header), rendered like a journey node.
+    header), rendered like an events node.
 
     Not movable by itself: the agents workspace controls the drag (RG068
     reordering, initial state pinned). Reports press/release positions
     through callbacks set by the workspace.
 
-    Selectable (TSK13 review): like the journey nodes, a card can be
+    Selectable (TSK13 review): like the events nodes, a card can be
     selected; the selection is shown by a dashed outline in the type
     color (charter 98: selection > hover > type). A click selects the
     card, a drag still reorders it (RG068).
 
     Event badges (TSK13, agents view only): a state card carries two
     badges at the bottom, same pill + counter style as the agent badge
-    of the journey view — left badge = source events (Event_to_state
+    of the events view — left badge = source events (Event_to_state
     arcs pointing to the state), right badge = target events
     (State_to_event arcs leaving the state), copper fill (event tint).
     Agent cards carry no event badge.
@@ -64,12 +64,13 @@ class MatrixCardItem(QGraphicsRectItem):
 
     LABEL_MAX_DISPLAY_LENGTH = 8  # same truncation rule as BaseNode
 
-    # Event badge constants (state cards): same style as the journey
+    # Event badge constants (state cards): same style as the events
     # agent badge (charter 98), copper fill (event tint) per the TSK13
-    # decision. Position (TSC 28-10-2026): centered vertically, straddling
-    # the left/right edges — the same coordinates as the journey
-    # connection ports (input left, output right), so the badge marks
-    # the same side as the port it counts.
+    # decision. Position: centered vertically; horizontally, mostly
+    # inside the outline — 2/3 in, 1/3 out (TSK18, same horizontal rule
+    # as the events agent badge, TSK17) — so the badge still marks the
+    # same side as the events connection port it counts (input left,
+    # output right).
     EVENT_BADGE_DIAMETER = 16.0
     EVENT_BADGE_BG_COLOR = theme.color(
         "event_badge_bg_color", theme.EVENT_COLOR)
@@ -188,22 +189,28 @@ class MatrixCardItem(QGraphicsRectItem):
         self._position_event_badges()
 
     def _position_event_badges(self) -> None:
-        """Place the event badges on the state card, centered vertically
-        and straddling the left (source events) and right (target
-        events) edges — the same coordinates as the journey connection
-        ports (TSC 28-10-2026)."""
+        """Place the event badges on the state card: centered vertically,
+        and on the horizontal axis mostly inside the outline — two
+        thirds inside, one third outside (TSK18, TSC 29-10-2026, same
+        horizontal rule as the events agent badge TSK17). The outside
+        part is one third of the diameter, rounded to an integer
+        (= 5 px on a 16 px diameter). The left badge (source events)
+        stays on the left side, the right badge (target events) on the
+        right side — the same sides as the events connection ports.
+        """
         if self.event_badge_in is None:
             return
         diameter = self.EVENT_BADGE_DIAMETER
+        outside = round(diameter / 3)
         rect = self.rect()
         y = rect.height() / 2 - diameter / 2
-        self.event_badge_in.setPos(-diameter / 2, y)
+        self.event_badge_in.setPos(-outside, y)
         text_rect = self.event_badge_in_text.boundingRect()
         self.event_badge_in_text.setPos(
             (diameter - text_rect.width()) / 2,
             (diameter - text_rect.height()) / 2
         )
-        x = rect.width() - diameter / 2
+        x = rect.width() - diameter + outside
         self.event_badge_out.setPos(x, y)
         text_rect = self.event_badge_out_text.boundingRect()
         self.event_badge_out_text.setPos(

@@ -1,5 +1,5 @@
-from ui.views.journey_workspace import JourneyWorkspace
+from ui.views.events_workspace import EventsWorkspace
 
 __all__ = [
-    "JourneyWorkspace",
+    "EventsWorkspace",
 ]

@@ -20,7 +20,7 @@ The MVP must verify that the graphical representation provides real value for st
 | Components      | Create, move, select and display the three component types (agent, state, event) | SU003 |
 | Agents          | Manage project agents and agent-state associations; agents view (agents × states matrix) | SU008, SU009 |
 | Relationships   | Create and display the initially supported relationships               | SU004 |
-| Visualization   | Journey view, grid, panning, scrolling                                 | SU006 |
+| Visualization   | Events view, grid, panning, scrolling                                 | SU006 |
 | Persistence     | Local saving of data and layout                                        | RG003 |
 | Export          | Local export for reading in a browser                                  | SU007 |
 

@@ -21,7 +21,7 @@ Responsibilities:
 
 Separation of responsibilities:
 - This use case: business logic and data
-- JourneyWorkspace: creation and display of QGraphicsLineItem
+- EventsWorkspace: creation and display of QGraphicsLineItem
 """
 
 import logging

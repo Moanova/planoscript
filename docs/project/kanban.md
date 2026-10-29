@@ -1,7 +1,7 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 7
-- **Date** : 26-10-2026
+- **Version** : 8
+- **Date** : 29-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
 ---
@@ -25,9 +25,8 @@ EPC04 : TSK15 → TSK13
 
 ## To do
 
-- [ ] **EPC04 — Révision de la mécanique de gestion des agents et des associations avec les états**
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
-- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Journey actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
+- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
@@ -44,7 +43,8 @@ EPC04 : TSK15 → TSK13
 
 ## En revue
 
-- (aucune tâche en revue)
+- [ ] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié
+- [ ] TSK19 — Renommage de la vue « Journey » en vue « Events » (cohérence avec la vue « Agents » : les états sont centraux dans les deux vues) — renommage couche UI uniquement (`EventsWorkspace`, onglet « Events », menus, signaux, tests) ; la couche métier `Journey`/`Journey_node` (parcours narratif, clés JSON) est conservée — détail dans `tasks/TSK19_rename_journey_view.md` — tests 106 passed + 10 offscreen PASSED
 
 ## Done
 
@@ -90,3 +90,6 @@ EPC04 : TSK15 → TSK13
   - [x] TSK08 — Affichage de la matrice agents × états en lecture seule → #TSK06, #TSK07
   - [x] TSK09 — Édition des cellules de la matrice (cocher/décocher → use case d'association) → #TSK08, #TSK03
   - [x] TSK10 — (P2) Navigation croisée entre vues avec focus (RG067) → #TSK08
+- [x] **EPC04 — Révision de la mécanique de gestion des agents et des associations avec les états** (TSK15 → TSK13, toutes deux validées TSC le 28-10-2026)
+  - [x] TSK15 — Révision de l'implémentation de la matrice d'association des agents aux états (QGraphicsView, cartes 80×40, cases 20×20, grille 120×80) → validée TSC le 28-10-2026
+  - [x] TSK13 — Révision de la mécanique de création/édition des agents et de l'association états-agents (7 points + retours de test + repositionnement des badges d'évènement) → validée TSC le 28-10-2026

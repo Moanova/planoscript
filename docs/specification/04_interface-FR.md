@@ -13,7 +13,7 @@
 - **Type** : Disposition verticale principale (QVBoxLayout) avec des sections distinctes.
 - **Structure** :
   - **Haut** : Barre de menus intégrée (QMenuBar).
-  - **Centre** : Espace de travail principal (JourneyWorkspace).
+  - **Centre** : Espace de travail principal (EventsWorkspace).
   - **Bas** : Barre d'informations (75 %) + Barre de zoom (25 %) — *Barre de zoom actuellement désactivée*.
 
 > **Note** : Les barres latérales (composants à gauche, parcours à droite) sont implémentées mais **non intégrées** à la fenêtre principale.
@@ -53,8 +53,8 @@
     - Supprimer (Suppr) — Non implémenté
 
   - **Affichage** :
-    - **Parcours** :
-      - Liste des parcours — Non implémenté
+    - **Events** :
+      - EventsList — Non implémenté
     - **Zoom** :
       - Zoom avant (Ctrl+=) — Non implémenté
       - Zoom arrière (Ctrl+-) — Non implémenté
@@ -62,21 +62,21 @@
 
   - **Projet** :
     - **Vue** :
-      - Parcours — Non implémenté (la vue est active via la barre d'onglets, pas via ce menu)
+      - Events — Non implémenté (la vue est active via la barre d'onglets, pas via ce menu)
       - Agents — Non implémenté (la vue est active via la barre d'onglets ; SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
     - **Composants...** :
       - **Agent** :
         - Nouveau... — Fonctionnel, comportement selon la vue active (FN031, TSK13 + revue TSC 28-10-2026) :
-          - Vue « Parcours » : ouvre directement le dialogue « New Agent », pré-rempli avec un libellé par défaut « Agent {id} » (comme les états/événements), éditable dans le dialogue.
+          - Vue « Events » : ouvre directement le dialogue « New Agent », pré-rempli avec un libellé par défaut « Agent {id} » (comme les états/événements), éditable dans le dialogue.
           - Vue « Agents » : création directe d'un agent dans la ligne de la matrice, avec le libellé par défaut (pas de dialogue).
           - Actif dès qu'un projet est ouvert, dans les deux vues.
         - Éditer — Fonctionnel, comportement selon la vue active (TSK13 + revue TSC 28-10-2026) :
-          - Vue « Parcours » : ouvre un dialogue de sélection de l'agent à éditer, puis le dialogue « New Agent » pré-rempli ; actif dès qu'au moins un agent existe (la sélection se fait dans le dialogue).
+          - Vue « Events » : ouvre un dialogue de sélection de l'agent à éditer, puis le dialogue « New Agent » pré-rempli ; actif dès qu'au moins un agent existe (la sélection se fait dans le dialogue).
           - Vue « Agents » : ouvre directement le dialogue d'édition de l'agent dont la carte est sélectionnée ; grisé si aucune carte agent n'est sélectionnée.
         - Supprimer — Fonctionnel, comportement selon la vue active (TSK13 + revue TSC 28-10-2026) :
-          - Vue « Parcours » : dialogue de sélection de l'agent à supprimer, puis confirmation indiquant le nombre d'associations supprimées en cascade (RG064) ; actif dès qu'au moins un agent existe.
+          - Vue « Events » : dialogue de sélection de l'agent à supprimer, puis confirmation indiquant le nombre d'associations supprimées en cascade (RG064) ; actif dès qu'au moins un agent existe.
           - Vue « Agents » : suppression directe de l'agent dont la carte est sélectionnée, avec la même confirmation RG064 ; grisé si aucune carte agent n'est sélectionnée.
-      - Menu global (barre de menus) : accessible depuis les vues « Parcours » et « Agents » ; le menu contextuel d'une carte agent (vue « Agents ») offre les mêmes actions « Edit Agent »/« Delete Agent », alignées sur le menu général.
+      - Menu global (barre de menus) : accessible depuis les vues « Events » et « Agents » ; le menu contextuel d'une carte agent (vue « Agents ») offre les mêmes actions « Edit Agent »/« Delete Agent », alignées sur le menu général.
       - **État** :
         - Nouveau... — Fonctionnel
         - Éditer — Non implémenté (actif si un node État est sélectionné)
@@ -167,7 +167,7 @@
   - Police : Arial, 9 pt.
 
 - **Éléments** :
-  - Onglet « Parcours » — **Actif par défaut**
+  - Onglet « Events » — **Actif par défaut**
   - Onglet « Agents » — **Fonctionnel** (second espace de travail, matrice agents × états — SU009, TSK07–TSK15)
   - Les onglets « Relations » et « Chapitres » sont des reliquats d'une version antérieure : ils ne font pas partie du MVP et sont retirés de la spécification.
 
@@ -179,9 +179,9 @@
 
 
 ### 6. Espace de travail (Centre)
-- **Fichier** : `./src/ui/views/journey_workspace.py`
+- **Fichier** : `./src/ui/views/events_workspace.py`
 - **Description** : Espace de travail principal pour visualiser et éditer la carte narrative.
-- **Classe** : `JourneyWorkspace` (héritant de `QGraphicsView`).
+- **Classe** : `EventsWorkspace` (héritant de `QGraphicsView`).
 
 - **Style** :
   - Arrière-plan : `#ffffff`.
@@ -246,7 +246,7 @@
       - **Description** : *Non affichée* — à implémenter.
     - **Badge sur les nœuds État** (TSK05) :
       - **Badge d'agents** (coin bas-droit de la carte, 2/3 dedans et 1/3 dehors du contour — TSK17, TSC 28-10-2026) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
-      - *Pas de badge d'évènement en vue parcours* (revue TSC 28-10-2026, retour n°1 : les connexions y sont visibles, les badges surchargeraient les nœuds) — les badges d'évènement sont affichés sur les cartes d'état de la **vue agents** (voir section 6.bis).
+      - *Pas de badge d'évènement en vue Events* (revue TSC 28-10-2026, retour n°1 : les connexions y sont visibles, les badges surchargeraient les nœuds) — les badges d'évènement sont affichés sur les cartes d'état de la **vue agents** (voir section 6.bis).
     - **Points d'accroche** :
       - 4 points (haut, bas, gauche, droite) — *Pas encore visuellement implémentés*.
       - Devraient être visibles au survol (carrés de 8 px, couleur `#4CAF50`).
@@ -266,23 +266,23 @@
 ### 6.bis. Vue agents (Espace de travail secondaire) — *Implémentée (TSK07–TSK15)*
 
 - **Fichier** : `./src/ui/views/agents_workspace.py`
-- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Agents » de la barre d'onglets. `QGraphicsView` (comme la vue parcours, TSK15). Les créations/éditions d'agents et d'états y sont possibles via le menu global et les menus contextuels (TSK13).
+- **Description** : Second espace de travail dédié aux associations entre les agents du projet et les états de la carte narrative courante. Accessible via l'onglet « Agents » de la barre d'onglets. `QGraphicsView` (comme la vue Events, TSK15). Les créations/éditions d'agents et d'états y sont possibles via le menu global et les menus contextuels (TSK13).
 - **Représentation** : Matrice agents × états en vue graphique.
   - Une carte par agent du projet (colonne de gauche, lignes) ; une carte par état de la carte narrative courante (ligne du haut, colonnes) ; une case à cocher 20×20 à chaque intersection.
-  - Cartes 80×40 rendues comme les nœuds de la vue parcours (surface `#2D2D2D`, contour teinté du type : or `#E5C07B` pour les états, cuivre `#D19A66` pour les agents) ; libellé tronqué à 8 caractères, infobulle immédiate au survol.
-  - Grille de fond 120×80 (config `agents_view_cell_width`/`_height`) : chaque carte et chaque case est centrée dans sa cellule (marges 20 px pour les cartes, 50/30 px pour les cases). La grille est redessinée sur la zone visible (pattern vue parcours) et la scène s'étend vers la droite/le bas uniquement : la matrice reste ancrée au coin haut-gauche.
+  - Cartes 80×40 rendues comme les nœuds de la vue Events (surface `#2D2D2D`, contour teinté du type : or `#E5C07B` pour les états, cuivre `#D19A66` pour les agents) ; libellé tronqué à 8 caractères, infobulle immédiate au survol.
+  - Grille de fond 120×80 (config `agents_view_cell_width`/`_height`) : chaque carte et chaque case est centrée dans sa cellule (marges 20 px pour les cartes, 50/30 px pour les cases). La grille est redessinée sur la zone visible (pattern vue Events) et la scène s'étend vers la droite/le bas uniquement : la matrice reste ancrée au coin haut-gauche.
   - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
-- **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue parcours, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
-- **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux pastilles avec compteur, même style que le badge d'agents de la vue parcours mais en cuivre `#D19A66` (teinte du type Événement), **centrés verticalement et à cheval sur les bords gauche et droit** de la carte — mêmes coordonnées que les ports de connexion (entrant/sortant) des états en vue parcours (repositionnement TSC 28-10-2026) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue parcours, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
+- **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue Events, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
+- **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux pastilles avec compteur, même style que le badge d'agents de la vue Events mais en cuivre `#D19A66` (teinte du type Événement), **centrés verticalement, et sur l'axe horizontal 2/3 dedans / 1/3 dehors du contour** de la carte (5 px dehors sur un diamètre de 16 — TSK18, TSC 29-10-2026, même règle horizontale que le badge d'agents de la vue Events, TSK17) — toujours du même côté que les ports de connexion (entrant/sortant) des états en vue Events (côtés TSC 28-10-2026) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue Events, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
 - **Contrat de focus (navigation croisée, TSK10/RG067, étendu par TSK13)** :
-  - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue parcours avec atténuation du reste du graphe ; état cible depuis la vue agents → bascule vers la vue parcours et focus du node de l'état, TSK13).
+  - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue Events avec atténuation du reste du graphe ; état cible depuis la vue agents → bascule vers la vue Events et focus du node de l'état, TSK13).
   - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
 - **Menus contextuels (TSK13, alignés sur le menu général par la revue TSC 28-10-2026)** :
-  - Carte agent : « Edit Agent » et « Delete Agent » ont le même comportement que le menu général en vue « Agents » (édition/suppression directe de la carte sélectionnée — le clic droit sélectionne la carte cliquée ; « Delete Agent » avec confirmation RG064), « Show in journey view » (TSK10).
-  - Carte état : « Edit State » (dialogue pré-rempli), « Delete State » (désactivé pour l'état initial, RG031 ; confirmation si des arcs ou associations existent, cascade RG065), « Show in journey view » (bascule vers la vue parcours + focus du node, extension du contrat TSK10/RG067).
-  - Grille (hors matrice) : « New Agent » (création directe dans la ligne de la matrice, reste dans la vue agents), « New State » (reste dans la vue agents ; la nouvelle colonne apparaît dans la matrice), « New Event » (crée le node dans la vue parcours, bascule vers la vue parcours et sélectionne le node — même comportement que le point 03).
-- **Création d'un événement depuis la vue agents (TSK13)** : que la création parte du menu global « Project > Components... > Event > New... » ou du menu contextuel de la grille, la vue bascule sur « Parcours » une fois l'événement créé, et le node créé est sélectionné. La création d'un agent ou d'un état depuis la vue agents ne bascule pas la vue.
+  - Carte agent : « Edit Agent » et « Delete Agent » ont le même comportement que le menu général en vue « Agents » (édition/suppression directe de la carte sélectionnée — le clic droit sélectionne la carte cliquée ; « Delete Agent » avec confirmation RG064), « Show in events view » (TSK10).
+  - Carte état : « Edit State » (dialogue pré-rempli), « Delete State » (désactivé pour l'état initial, RG031 ; confirmation si des arcs ou associations existent, cascade RG065), « Show in events view » (bascule vers la vue Events + focus du node, extension du contrat TSK10/RG067).
+  - Grille (hors matrice) : « New Agent » (création directe dans la ligne de la matrice, reste dans la vue agents), « New State » (reste dans la vue agents ; la nouvelle colonne apparaît dans la matrice), « New Event » (crée le node dans la vue Events, bascule vers la vue Events et sélectionne le node — même comportement que le point 03).
+- **Création d'un événement depuis la vue agents (TSK13)** : que la création parte du menu global « Project > Components... > Event > New... » ou du menu contextuel de la grille, la vue bascule sur « Events » une fois l'événement créé, et le node créé est sélectionné. La création d'un agent ou d'un état depuis la vue agents ne bascule pas la vue.
 - **Rôles** :
   - Afficher les associations agent-état de la carte courante.
   - Éditer les associations (cocher/décocher).
@@ -369,9 +369,9 @@
 - [x] Gestion de l'état modifié du projet
 - [x] Boîtes de dialogue « À propos » et « Journal des modifications »
 - [x] Gestion des agents du projet (créer, éditer, supprimer avec cascade RG064 — FN031, TSK01/TSK02 ; sous-menu « Agent » Nouveau.../Éditer/Supprimer avec dialogue de sélection — TSK13)
-- [x] Associations agent-état depuis la vue parcours (dialogue « Associer des agents... » — FN030, TSK04)
-- [x] Badges d'agents sur les nœuds d'état dans la vue parcours (TSK05)
-- [x] Badges d'évènement (source/cible) sur les cartes d'état dans la vue agents (TSK13 ; absents de la vue parcours — revue TSC 28-10-2026)
+- [x] Associations agent-état depuis la vue Events (dialogue « Associer des agents... » — FN030, TSK04)
+- [x] Badges d'agents sur les nœuds d'état dans la vue Events (TSK05)
+- [x] Badges d'évènement (source/cible) sur les cartes d'état dans la vue agents (TSK13 ; absents de la vue Events — revue TSC 28-10-2026)
 - [x] Vue « Agents » : matrice agents × états en vue graphique, édition des cellules, ordre RG068, grille 120×80 (TSK07–TSK15, SU008/SU009)
 - [x] Navigation croisée entre vues avec focus (RG067 — TSK10, étendu état→parcours par TSK13)
 - [x] Menus contextuels des vues parcours et agents (création/édition/suppression agent, édition/suppression état, bascule après création d'événement — TSK13)
@@ -379,7 +379,7 @@
 ### Partiellement implémentées
 - [ ] Barre de composants (existe mais non intégrée)
 - [ ] Barre de parcours (existe mais non intégrée)
-- [ ] Barre d'onglets (les deux onglets Parcours/Agents sont actifs)
+- [ ] Barre d'onglets (les deux onglets Events/Agents sont actifs)
 - [ ] Barre de zoom (existe mais non connectée)
 - [ ] Nœuds de référence temporelle (classe non implémentée)
 - [ ] Nœuds de référence spatiale (classe non implémentée)
@@ -407,7 +407,7 @@
 ./src/ui/
 ├── main_window.py          # Fenêtre principale
 ├── views/
-│   └── journey_workspace.py # Espace de travail
+│   └── events_workspace.py # Espace de travail
 ├── widgets/
 │   ├── components_toolbar.py # Barre de composants (non intégrée)
 │   ├── journeys_toolbar.py   # Barre de parcours (non intégrée)
@@ -445,7 +445,7 @@
 ## Prochaines étapes recommandées
 
 1. **Intégrer les barres latérales** dans `main_window.py`
-2. **Connecter le zoom** entre `ZoomBar` et `JourneyWorkspace`
+2. **Connecter le zoom** entre `ZoomBar` et `EventsWorkspace`
 3. **Implémenter l'aimantation sur la grille**
 4. **Ajouter les points d'accroche** sur les nœuds
 5. **Connecter la barre d'onglets** pour basculer entre les vues

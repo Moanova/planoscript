@@ -394,7 +394,7 @@ class BaseNode(QGraphicsRectItem):
         # Tooltip: display the entity's label (lb) IMMEDIATELY,
         # bypassing the system hover delay (~1s). The workspace
         # swallows Qt's delayed automatic tooltip event (see
-        # JourneyWorkspace.viewportEvent), which would otherwise pop a
+        # EventsWorkspace.viewportEvent), which would otherwise pop a
         # second tooltip at the cursor when the mouse rests.
         lb = getattr(self.entity, 'lb', None) if self.entity is not None else None
         if lb:

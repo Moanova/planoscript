@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------
 # Application  : Planoscript
-# Script       : journey_workspace.py
+# Script       : events_workspace.py
 # Version      : 1
 # Date         : 01-06-2026
 # Design       : TSC
@@ -39,7 +39,7 @@ _BG_PRIMARY = _get_config("bg_primary", theme.BG_PRIMARY)
 logger = logging.getLogger(__name__)
 
 
-class JourneyWorkspace(QGraphicsView, QObject):
+class EventsWorkspace(QGraphicsView, QObject):
     """Central workspace with infinite scrolling and dynamic grid"""
     
     # Signal emitted when a relation is created between two nodes

@@ -167,7 +167,7 @@
     - Il présente deux ports d'attachement actifs : entrant (gauche) et sortant (droite).
     - Il n'est pas redimensionnable.
     - Toute création marque la carte, et donc le projet, comme modifié.
-- **État** : Partiellement implémenté (création via menu, positionnée au centre de l'espace de travail — à aligner sur le comportement attendu "emplacement désigné par l'utilisateur"). TSK13 : création d'un événement depuis la vue agents (menu global ou menu contextuel de la grille) bascule vers la vue parcours et sélectionne le node créé ; « New Agent » est proposé dans le menu contextuel de la grille de la vue parcours (création directe, sans bascule) et dans celui de la grille de la vue agents (reste dans la vue agents).
+- **État** : Partiellement implémenté (création via menu, positionnée au centre de l'espace de travail — à aligner sur le comportement attendu "emplacement désigné par l'utilisateur"). TSK13 : création d'un événement depuis la vue agents (menu global ou menu contextuel de la grille) bascule vers la vue Events et sélectionne le node créé ; « New Agent » est proposé dans le menu contextuel de la grille de la vue Events (création directe, sans bascule) et dans celui de la grille de la vue agents (reste dans la vue agents).
 
 ## FN015 : Modifier les attributs d'un composant
 - **Description** : Modifier les attributs éditables d'un composant via son panneau de propriétés.
@@ -205,7 +205,7 @@
     - Si des données sont associées au composant, une confirmation est demandée.
     - La suppression entraîne la suppression en cascade de toutes les relations reliant le composant aux autres composants.
     - Toute suppression marque la carte, et donc le projet, comme modifié.
-- **État** : Partiellement implémenté. Suppression d'un agent via le sous-menu « Project › Components... › Agent › Supprimer » (dialogue de sélection + confirmation RG064 ; en vue agents : suppression directe de la carte sélectionnée — revue TSC 28-10-2026) et via le menu contextuel d'une carte agent dans la vue agents (TSK13) ; suppression d'un état via le menu contextuel d'une carte état dans la vue agents (TSK13 : confirmation si des arcs/associations existent, entrée désactivée pour l'état initial RG031, cascade RG065) et via le menu contextuel d'un node état dans la vue parcours (désactivé pour l'état initial, **confirmation SU003 si l'état est connecté à au moins un évènement et/ou associé à au moins un agent** — revue TSC 28-10-2026) ; suppression d'un évènement via le menu contextuel d'un node évènement dans la vue parcours (**confirmation SU003 si l'évènement est connecté à au moins un état** — revue TSC 28-10-2026). L'option de menu « State › Delete » / « Event › Delete » reste spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
+- **État** : Partiellement implémenté. Suppression d'un agent via le sous-menu « Project › Components... › Agent › Supprimer » (dialogue de sélection + confirmation RG064 ; en vue agents : suppression directe de la carte sélectionnée — revue TSC 28-10-2026) et via le menu contextuel d'une carte agent dans la vue agents (TSK13) ; suppression d'un état via le menu contextuel d'une carte état dans la vue agents (TSK13 : confirmation si des arcs/associations existent, entrée désactivée pour l'état initial RG031, cascade RG065) et via le menu contextuel d'un node état dans la vue Events (désactivé pour l'état initial, **confirmation SU003 si l'état est connecté à au moins un évènement et/ou associé à au moins un agent** — revue TSC 28-10-2026) ; suppression d'un évènement via le menu contextuel d'un node évènement dans la vue Events (**confirmation SU003 si l'évènement est connecté à au moins un état** — revue TSC 28-10-2026). L'option de menu « State › Delete » / « Event › Delete » reste spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN019 : Gérer l'appartenance d'un composant aux parcours
 - **Description** : Modifier la liste des parcours auxquels un composant est rattaché.
@@ -332,14 +332,14 @@
 
 ## FN030 : Associer des agents à un état
 
-- **Description** : Associer ou dissocier un ou plusieurs agents à un état de la carte narrative, depuis la vue parcours ou depuis la vue agents.
-- **Références** : SU008 ; menu contextuel d'un état « Associer des agents... » (vue parcours) ; matrice agents × états (vue agents) ; RG063.
+- **Description** : Associer ou dissocier un ou plusieurs agents à un état de la carte narrative, depuis la vue Events ou depuis la vue agents.
+- **Références** : SU008 ; menu contextuel d'un état « Associer des agents... » (vue Events) ; matrice agents × états (vue agents) ; RG063.
 - **Comportement attendu** :
-    - Depuis la vue parcours, le menu contextuel d'un état ouvre un dialogue listant tous les agents du projet avec leur statut d'association courant pour cet état (coché/décoché). Cocher associe, décocher dissocie.
+    - Depuis la vue Events, le menu contextuel d'un état ouvre un dialogue listant tous les agents du projet avec leur statut d'association courant pour cet état (coché/décoché). Cocher associe, décocher dissocie.
     - Le dialogue permet de créer un nouvel agent et de l'associer en une seule opération ; la création suit les règles de FN031 (identifiant, libellé, type, note), le dialogue n'étant qu'un point d'entrée supplémentaire.
     - Depuis la vue agents, l'édition s'effectue en cochant/décochant la cellule de la matrice.
     - L'application empêche la création d'une association en double (RG063).
-    - Les agents associés à un état sont représentés par des badges sur le node de l'état dans la vue parcours.
+    - Les agents associés à un état sont représentés par des badges sur le node de l'état dans la vue Events.
     - Toute association ou dissociation marque la carte, et donc le projet, comme modifiés.
 - **État** : Implémenté (TSK03/TSK04/TSK05/TSK09 : use case d'association, dialogue « Associer des agents... », badges, édition des cellules de la matrice).
 
@@ -354,19 +354,19 @@
     - La suppression d'un agent supprime en cascade toutes ses associations aux états (RG064), avec confirmation préalable indiquant le nombre d'associations supprimées.
     - Toute création, modification ou suppression d'agent marque le projet comme modifié.
     - Le sous-menu est global (barre de menus) : accessible depuis les vues « Parcours » et « Agents ».
-- **État** : Implémenté (TSK01/TSK02 : création/édition/suppression avec cascade RG064 ; TSK13 : sous-menu Nouveau.../Éditer/Supprimer, menus contextuels des deux vues, « New Agent » dans le menu contextuel de la grille de la vue parcours ; **revue TSC 28-10-2026 : comportement du sous-menu selon la vue active** — vue « Parcours » : dialogues (création avec libellé par défaut « Agent {id} » éditable, sélection puis édition/suppression avec confirmation RG064) ; vue « Agents » : création directe dans la matrice avec libellé par défaut, édition/suppression directes de la carte agent sélectionnée (grisé sans sélection), sur la base de la sélection des cartes alignée sur la vue parcours).
+- **État** : Implémenté (TSK01/TSK02 : création/édition/suppression avec cascade RG064 ; TSK13 : sous-menu Nouveau.../Éditer/Supprimer, menus contextuels des deux vues, « New Agent » dans le menu contextuel de la grille de la vue Events ; **revue TSC 28-10-2026 : comportement du sous-menu selon la vue active** — vue « Events » : dialogues (création avec libellé par défaut « Agent {id} » éditable, sélection puis édition/suppression avec confirmation RG064) ; vue « Agents » : création directe dans la matrice avec libellé par défaut, édition/suppression directes de la carte agent sélectionnée (grisé sans sélection), sur la base de la sélection des cartes alignée sur la vue Events).
 
-## FN032 : Basculer entre la vue parcours et la vue agents (navigation croisée)
+## FN032 : Basculer entre la vue Events et la vue agents (navigation croisée)
 
 - **Description** : Basculer d'une vue à l'autre en ciblant une entité (état ou agent) afin d'examiner ses relations dans l'autre représentation.
-- **Références** : SU009 ; RG067 ; menu contextuel d'un état « Voir dans la vue agents » (vue parcours) ; menu contextuel d'un agent « Voir dans la vue parcours » (vue agents) ; menu contextuel d'un état « Voir dans la vue parcours » (vue agents, TSK13).
+- **Références** : SU009 ; RG067 ; menu contextuel d'un état « Voir dans la vue agents » (vue Events) ; menu contextuel d'un agent « Voir dans la vue Events » (vue agents) ; menu contextuel d'un état « Voir dans la vue Events » (vue agents, TSK13).
 - **Comportement attendu** :
-    - Depuis la vue parcours, « Voir dans la vue agents » bascule vers la vue agents et met en évidence la colonne de l'état ciblé (surbrillance + défilement).
-    - Depuis la vue agents, « Voir dans la vue parcours » bascule vers la vue parcours et met en évidence l'ensemble des états associés à l'agent ciblé ; le reste du graphe est atténué.
-    - Depuis la vue agents, « Voir dans la vue parcours » sur un état bascule vers la vue parcours et met le focus sur le node de l'état ciblé (extension du contrat TSK10/RG067 par TSK13).
+    - Depuis la vue Events, « Voir dans la vue agents » bascule vers la vue agents et met en évidence la colonne de l'état ciblé (surbrillance + défilement).
+    - Depuis la vue agents, « Voir dans la vue Events » bascule vers la vue Events et met en évidence l'ensemble des états associés à l'agent ciblé ; le reste du graphe est atténué.
+    - Depuis la vue agents, « Voir dans la vue Events » sur un état bascule vers la vue Events et met le focus sur le node de l'état ciblé (extension du contrat TSK10/RG067 par TSK13).
     - Le focus est un état visuel temporaire (RG067) : un clic dans le vide ou la touche Échap le relâche.
     - La navigation ne marque ni la carte ni le projet comme modifiés.
-- **État** : Implémenté (TSK10 : bascule et focus dans les deux sens ; TSK13 : navigation état→vue parcours depuis la vue agents).
+- **État** : Implémenté (TSK10 : bascule et focus dans les deux sens ; TSK13 : navigation état→vue Events depuis la vue agents).
 
 ---
 

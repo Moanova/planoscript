@@ -37,7 +37,7 @@ narrative_map = mw.project_service.current_project.narrative_map[0]
 initial = narrative_map.state[0]
 assoc_uc.execute(agent=hero, state=initial)
 
-# --- Journey -> Agents: focus the initial state column
+# --- Events -> Agents: focus the initial state column
 mw._focus_state_in_agents_view(initial.id)
 app.processEvents()
 assert mw.pages.currentWidget() is mw.agents_page
@@ -50,23 +50,23 @@ from PySide6.QtTest import QTest
 mw._release_focus()
 assert not mw.agents_page.has_focus()
 
-# --- Agents -> Journey: focus the states of an associated agent
+# --- Agents -> Events: focus the states of an associated agent
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
-mw._focus_agent_in_journey_view(hero.id)
+mw._focus_agent_in_events_view(hero.id)
 app.processEvents()
-assert mw.pages.currentWidget() is mw.journey_page
+assert mw.pages.currentWidget() is mw.events_page
 assert mw.workspace.has_focus()
 assert initial.id in mw.workspace._focused_state_ids
 
-# Escape releases the journey focus
+# Escape releases the events focus
 mw._release_focus()
 assert not mw.workspace.has_focus()
 
-# --- Agents -> Journey: agent without association -> message, no switch
+# --- Agents -> Events: agent without association -> message, no switch
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
-mw._focus_agent_in_journey_view(oracle.id)
+mw._focus_agent_in_events_view(oracle.id)
 app.processEvents()
 assert mw.pages.currentWidget() is mw.agents_page  # no switch
 assert not mw.workspace.has_focus()
@@ -80,12 +80,12 @@ app.processEvents()
 mw._release_focus()
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
-mw._focus_agent_in_journey_view(hero.id)
+mw._focus_agent_in_events_view(hero.id)
 app.processEvents()
 mw._release_focus()
 mw.tab_bar.setCurrentTab("Agents")
 app.processEvents()
-mw._focus_agent_in_journey_view(oracle.id)
+mw._focus_agent_in_events_view(oracle.id)
 app.processEvents()
 assert not mw.project_service.is_modified
 
