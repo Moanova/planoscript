@@ -173,7 +173,7 @@
 - **Description** : Modify the editable attributes of a component via its properties panel.
 - **References** : SU003 ; menu "Project › Components... › State › Edit" and "Project › Components... › Event › Edit".
 - **Expected behavior** :
-  - The properties panel presents the editable attributes according to the component type (agent, state, event).
+  - The properties panel presents the editable attributes according to the component type (agent, state, event): label, type, **note** (a few summary notes describing the object — compact input area) and **content** (the narrative content itself — larger input area, TSK20, 29-10-2026).
   - The label is not subject to uniqueness within the map.
   - Any attribute modification marks the map, and therefore the project, as modified.
 - **Status** : Not implemented (properties panel not defined). The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.

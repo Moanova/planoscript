@@ -8,7 +8,7 @@
 # ---------------------------------------------------------------------
 """Use Case for updating the editable attributes of a project agent (FN031).
 
-Editable attributes of an agent: lb, typ, note (SU008).
+Editable attributes of an agent: lb, typ, note, content (SU008, TSK20).
 """
 import logging
 from datetime import datetime
@@ -30,7 +30,8 @@ class UpdateAgentUseCase:
 
     def execute(self, entity: Agent, lb: str,
                 typ: Optional[str] = None,
-                note: Optional[str] = None) -> Optional[Dict]:
+                note: Optional[str] = None,
+                content: Optional[str] = None) -> Optional[Dict]:
         """Update the data of an agent.
 
         Args:
@@ -38,6 +39,7 @@ class UpdateAgentUseCase:
             lb: New label value
             typ: New type value ("Subject" or "Object"; None keeps current)
             note: New note value (None keeps the current value)
+            content: New narrative content (None keeps the current value, TSK20)
 
         Returns:
             Dictionary with 'success', 'entity', 'entity_id'
@@ -67,6 +69,8 @@ class UpdateAgentUseCase:
         entity.typ = new_typ
         if note is not None:
             entity.note = note if note.strip() else None
+        if content is not None:
+            entity.content = content if content.strip() else None
         entity.modification_date_time = datetime.now()
         self.project_service.set_modified(True)
 

@@ -52,7 +52,7 @@ def make_agent_dialog(lb):
             return self.Accepted
 
         def get_values(self):
-            return {'lb': lb, 'typ': 'Subject', 'note': ''}
+            return {'lb': lb, 'typ': 'Subject', 'note': '', 'content': ''}
 
     return StubAgentDialog
 

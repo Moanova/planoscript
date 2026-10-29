@@ -13,7 +13,7 @@ This use case handles the modification of business entity attributes and
 the project modification flag, but DOES NOT handle any Qt graphic objects.
 
 Responsibilities:
-- Validate the new attribute values (label, type, note)
+- Validate the new attribute values (label, type, note, content)
 - Update the business entity (State or Event) and its modification timestamp
 - Mark the project as modified
 
@@ -37,8 +37,8 @@ class UpdateComponentUseCase:
     Use Case for updating the editable attributes of an existing component.
 
     Editable attributes:
-    - State: lb, typ, note
-    - Event: lb, note
+    - State: lb, typ, note, content
+    - Event: lb, note, content (TSK20)
 
     Attributes:
         project_service: Service for managing the current project
@@ -56,7 +56,8 @@ class UpdateComponentUseCase:
         self.project_service = project_service
 
     def execute(self, entity: Any, lb: str, note: Optional[str] = None,
-                typ: Optional[str] = None) -> Optional[Dict]:
+                typ: Optional[str] = None,
+                content: Optional[str] = None) -> Optional[Dict]:
         """
         Execute the update of a component's data.
 
@@ -65,6 +66,7 @@ class UpdateComponentUseCase:
             lb: New label value
             note: New note value (None keeps the current value)
             typ: New type value (State only; ignored for Event)
+            content: New narrative content (None keeps the current value, TSK20)
 
         Returns:
             Dictionary containing:
@@ -117,6 +119,8 @@ class UpdateComponentUseCase:
         entity.lb = new_lb
         if note is not None:
             entity.note = note if note.strip() else None
+        if content is not None:
+            entity.content = content if content.strip() else None
         if component_type == "State":
             entity.typ = new_typ
         entity.modification_date_time = datetime.now()

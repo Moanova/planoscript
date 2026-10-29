@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from core.models.data_model import Agent
+from config.config_loader import get as _get_config
 from ui.utils import theme
 
 
@@ -21,7 +22,10 @@ class AgentDialog(QDialog):
 
     Displays the editable attributes of a project agent and returns the
     values entered by the user.
-    Agent: lb, typ, note
+    Agent: lb, typ, note, content
+
+    TSK20: 'note' holds short summary notes (compact input area),
+    'content' holds the narrative content (larger input area).
 
     Works in both modes:
     - creation: entity is None, form prefilled with default_label
@@ -30,6 +34,8 @@ class AgentDialog(QDialog):
     """
 
     AGENT_TYPES = ["Subject", "Object"]
+    NOTE_MAX_HEIGHT_PX = _get_config("dialog_note_max_height_px", 60)
+    CONTENT_MIN_HEIGHT_PX = _get_config("dialog_content_min_height_px", 160)
 
     def __init__(self, entity=None, parent=None, default_label=None):
         super().__init__(parent)
@@ -71,12 +77,21 @@ class AgentDialog(QDialog):
             self.typ_combo.setCurrentIndex(index)
         self.form.addRow("Type:", self.typ_combo)
 
-        # Note field
+        # Note field (TSK20: compact area, summary notes)
         self.note_edit = QTextEdit()
         note = getattr(self.entity, 'note', None) or ""
         self.note_edit.setPlainText(note)
-        self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.note_edit.setMaximumHeight(self.NOTE_MAX_HEIGHT_PX)
         self.form.addRow("Note:", self.note_edit)
+
+        # Content field (TSK20: larger area, narrative content)
+        self.content_edit = QTextEdit()
+        content = getattr(self.entity, 'content', None) or ""
+        self.content_edit.setPlainText(content)
+        self.content_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.content_edit.setMinimumHeight(self.CONTENT_MIN_HEIGHT_PX)
+        self.form.addRow("Content:", self.content_edit)
 
         # Inline validation message (hidden by default)
         self.error_label = QLabel("")
@@ -106,10 +121,11 @@ class AgentDialog(QDialog):
         """Return the values entered by the user.
 
         Returns:
-            Dictionary with keys 'lb', 'typ' and 'note'
+            Dictionary with keys 'lb', 'typ', 'note' and 'content'
         """
         return {
             'lb': self.lb_edit.text().strip(),
             'typ': self.typ_combo.currentText(),
-            'note': self.note_edit.toPlainText()
+            'note': self.note_edit.toPlainText(),
+            'content': self.content_edit.toPlainText()
         }

@@ -438,6 +438,7 @@
 3. **Scalability**: The sidebars and zoom bar are implemented as separate widgets, ready to be integrated.
 4. **Style**: The application uses Qt Style Sheets (QSS) for consistent rendering.
 5. **Internationalization**: Texts are currently in English only. A refactoring for i18n is recommended.
+6. **Note / content fields of components (TSK20, 29-10-2026)**: the creation/edition dialogs (State, Event, Agent) have two input areas — **Note** (summary, capped height `dialog_note_max_height_px` = 60 px) and **Content** (narrative content, min height `dialog_content_min_height_px` = 160 px, expanding area), both in config.json.
 
 
 ---

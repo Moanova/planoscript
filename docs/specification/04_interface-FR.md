@@ -438,6 +438,7 @@
 3. **Extensibilité** : Les barres latérales et la barre de zoom sont implémentées en tant que widgets séparés, prêts à être intégrés.
 4. **Style** : L'application utilise des feuilles de style Qt (QSS) pour un rendu cohérent.
 5. **Internationalisation** : Les textes sont actuellement uniquement en anglais. Une refactorisation pour l'i18n est recommandée.
+6. **Champs note / content des composants (TSK20, 29-10-2026)** : les dialogues de création/édition (State, Event, Agent) comportent deux zones de saisie — **Note** (résumé, hauteur limitée `dialog_note_max_height_px` = 60 px) et **Content** (contenu narratif, hauteur min `dialog_content_min_height_px` = 160 px, zone extensible), toutes deux dans config.json.
 
 
 ---

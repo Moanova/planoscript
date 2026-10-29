@@ -98,7 +98,7 @@ class StubAgentDialog:
     def exec(self):
         return self.Accepted
     def get_values(self):
-        return {'lb': 'Villain', 'typ': 'Subject', 'note': ''}
+        return {'lb': 'Villain', 'typ': 'Subject', 'note': '', 'content': ''}
 
 orig_dlg = main_window_module.AgentDialog
 main_window_module.AgentDialog = StubAgentDialog
@@ -130,7 +130,7 @@ class StubEditDialog:
     def exec(self):
         return self.Accepted
     def get_values(self):
-        return {'lb': 'Hero renamed', 'typ': 'Subject', 'note': ''}
+        return {'lb': 'Hero renamed', 'typ': 'Subject', 'note': '', 'content': ''}
 
 orig_sel = main_window_module.AgentSelectionDialog
 main_window_module.AgentSelectionDialog = StubSelectionDialog
@@ -591,7 +591,7 @@ class StubEditDialog2:
     def exec(self):
         return self.Accepted
     def get_values(self):
-        return {'lb': 'Spy renamed', 'typ': 'Object', 'note': ''}
+        return {'lb': 'Spy renamed', 'typ': 'Object', 'note': '', 'content': ''}
 
 selection_dialog_called = []
 class SpySelectionDialog:

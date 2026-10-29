@@ -120,7 +120,8 @@ class AgentAssociationDialog(QDialog):
             return
         values = dialog.get_values()
         result = self.create_agent_usecase.execute(
-            lb=values['lb'], typ=values['typ'], note=values['note'])
+            lb=values['lb'], typ=values['typ'], note=values['note'],
+            content=values['content'])
         if not (result and result.get('success')):
             self.status_label.setText("Cannot create agent: invalid data")
             return

@@ -130,6 +130,10 @@
                "type": "string",
                "description": "Annotation de l'agent"
             },
+            "content": {
+               "type": "string",
+               "description": "Contenu narratif de l'agent"
+            },
             "typ": {
                "type": "string",
                "enum": [
@@ -172,6 +176,10 @@
             "note": {
                "type": "string",
                "description": "Annotation de l'état"
+            },
+            "content": {
+               "type": "string",
+               "description": "Contenu narratif de l'état"
             },
             "typ": {
                "type": "string",
@@ -217,6 +225,10 @@
             "note": {
                "type": "string",
                "description": "Annotation de l'évènement"
+            },
+            "content": {
+               "type": "string",
+               "description": "Contenu narratif de l'événement"
             },
             "creation_date_time": {
                "type": "string",
@@ -370,6 +382,10 @@
                "type": "integer",
                "description": "Identifiant unique de l'état cible (référence à State.id)"
             },
+            "note": {
+               "type": "string",
+               "description": "Annotation de la relation événement vers état"
+            },
             "creation_date_time": {
                "type": "string",
                "format": "date-time",
@@ -403,6 +419,10 @@
             "event_id": {
                "type": "integer",
                "description": "Identifiant unique de l'évènement cible (référence à Event.id)"
+            },
+            "note": {
+               "type": "string",
+               "description": "Annotation de la relation état vers événement"
             },
             "creation_date_time": {
                "type": "string",

@@ -27,6 +27,7 @@ EPC04 : TSK15 → TSK13
 
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 - [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
+- [ ] TSK21 — Édition des annotations (`note`) des 3 types de relations (FN021/SU004) : arcs Event_to_state/State_to_event via menu contextuel de la connexion (vue Events), State_agent_rel via clic droit sur case cochée (vue Agents) — solution validée TSC 29-10-2026 — implémentation en séance ultérieure → #TSK20 — détail dans `tasks/TSK21_relation_annotation_edition.md`
 
 - [ ] SU003 — Duplication d'un composant (FN016)
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #SU005
@@ -44,6 +45,7 @@ EPC04 : TSK15 → TSK13
 ## En revue
 
 - [ ] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié
+- [ ] TSK20 — Modèle de données : clé `content` après `note` dans Agent/State/Event, clé `note` ajoutée à Event_to_state/State_to_event (State_agent_rel inchangé) + impacts code (dialogues Note/Content, use cases, tests) + doc — détail dans `tasks/TSK20_data_model_content_note.md` — tests 110 passed + 10 offscreen PASSED + round-trip JSON vérifié
 - [ ] TSK19 — Renommage de la vue « Journey » en vue « Events » (cohérence avec la vue « Agents » : les états sont centraux dans les deux vues) — renommage couche UI uniquement (`EventsWorkspace`, onglet « Events », menus, signaux, tests) ; la couche métier `Journey`/`Journey_node` (parcours narratif, clés JSON) est conservée — détail dans `tasks/TSK19_rename_journey_view.md` — tests 106 passed + 10 offscreen PASSED
 
 ## Done

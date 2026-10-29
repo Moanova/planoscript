@@ -11,7 +11,7 @@ Covers SU008/FN031 (agent creation and edition):
   addition to project.agent, project marked as modified
 - Invalid Agent.typ refused
 - Empty label falls back to default label on creation, refused on update
-- Update: lb, typ, note, modification_date_time, project modified
+- Update: lb, typ, note, content, modification_date_time, project modified
 - Persistence round trip: agents survive save/load
 - No project refused
 """
@@ -57,14 +57,17 @@ class TestCreateAgentUseCase:
         assert agent.lb == "Agent 1"
         assert agent.typ == "Subject"
         assert agent.note is None
+        assert agent.content is None
         assert agent in project_service.current_project.agent
 
     def test_create_with_provided_values(self, project_service, create_usecase):
-        result = create_usecase.execute(lb="Hero", typ="Object", note="A note")
+        result = create_usecase.execute(lb="Hero", typ="Object", note="A note",
+                                        content="Narrative content")
         agent = result['entity']
         assert agent.lb == "Hero"
         assert agent.typ == "Object"
         assert agent.note == "A note"
+        assert agent.content == "Narrative content"
 
     def test_sequential_unique_ids(self, project_service, create_usecase):
         first = create_usecase.execute()
@@ -103,11 +106,13 @@ class TestUpdateAgentUseCase:
         agent = self._make_agent(create_usecase)
         project_service.set_modified(False)
         result = update_usecase.execute(
-            entity=agent, lb="Villain", typ="Object", note="New note")
+            entity=agent, lb="Villain", typ="Object", note="New note",
+            content="New content")
         assert result is not None and result['success']
         assert agent.lb == "Villain"
         assert agent.typ == "Object"
         assert agent.note == "New note"
+        assert agent.content == "New content"
         assert agent.modification_date_time is not None
         assert project_service.is_modified
 
@@ -128,6 +133,12 @@ class TestUpdateAgentUseCase:
         agent = self._make_agent(create_usecase)
         update_usecase.execute(entity=agent, lb="Hero 2", note=None)
         assert agent.note == "Old"
+
+    def test_content_none_keeps_current(self, create_usecase, update_usecase):
+        agent = self._make_agent(create_usecase)
+        agent.content = "Old content"
+        update_usecase.execute(entity=agent, lb="Hero 2", content=None)
+        assert agent.content == "Old content"
 
     def test_no_project_refused(self, create_usecase, update_usecase):
         agent = self._make_agent(create_usecase)

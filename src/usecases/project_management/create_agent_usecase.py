@@ -10,7 +10,7 @@
 
 The agent is an entity carried by the project (not by a narrative map),
 with a project-unique integer ID, a label, a type ("Subject" or "Object")
-and an optional note (SU008).
+and an optional note and content (SU008, TSK20).
 """
 import logging
 from typing import Optional, Dict
@@ -31,13 +31,15 @@ class CreateAgentUseCase:
 
     def execute(self, lb: Optional[str] = None,
                 typ: str = "Subject",
-                note: Optional[str] = None) -> Optional[Dict]:
+                note: Optional[str] = None,
+                content: Optional[str] = None) -> Optional[Dict]:
         """Create an agent and add it to the current project.
 
         Args:
             lb: Label of the agent (defaults to "Agent {id}")
             typ: Type of the agent ("Subject" or "Object")
             note: Optional note of the agent
+            content: Optional narrative content of the agent (TSK20)
 
         Returns:
             Dictionary with 'success', 'entity', 'entity_id'
@@ -59,7 +61,8 @@ class CreateAgentUseCase:
             lb=(lb.strip() if isinstance(lb, str) and lb.strip()
                 else f"Agent {entity_id}"),
             typ=typ,
-            note=(note if note and note.strip() else None)
+            note=(note if note and note.strip() else None),
+            content=(content if content and content.strip() else None)
         )
         project.agent.append(entity)
         self.project_service.set_modified(True)

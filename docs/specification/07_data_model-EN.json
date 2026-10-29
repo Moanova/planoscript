@@ -130,6 +130,10 @@
                "type": "string",
                "description": "Annotation of the agent"
             },
+            "content": {
+               "type": "string",
+               "description": "Narrative content for the agent"
+            },
             "typ": {
                "type": "string",
                "enum": [
@@ -172,6 +176,10 @@
             "note": {
                "type": "string",
                "description": "Annotation of the state"
+            },
+            "content": {
+               "type": "string",
+               "description": "Narrative content for the state"
             },
             "typ": {
                "type": "string",
@@ -217,6 +225,10 @@
             "note": {
                "type": "string",
                "description": "Annotation of the event"
+            },
+            "content": {
+               "type": "string",
+               "description": "Narrative content for the event"
             },
             "creation_date_time": {
                "type": "string",
@@ -370,6 +382,10 @@
                "type": "integer",
                "description": "Unique identifier of the target state (reference to State.id)"
             },
+            "note": {
+               "type": "string",
+               "description": "Annotation of the event-to-state relationship"
+            },
             "creation_date_time": {
                "type": "string",
                "format": "date-time",
@@ -403,6 +419,10 @@
             "event_id": {
                "type": "integer",
                "description": "Unique identifier of the target event (reference to Event.id)"
+            },
+            "note": {
+               "type": "string",
+               "description": "Annotation of the state-to-event relationship"
             },
             "creation_date_time": {
                "type": "string",

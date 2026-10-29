@@ -28,6 +28,7 @@ class Agent:
     lb: str
     typ: str = "Subject"  # Type of agent ("Subject" or "Object")
     note: Optional[str] = None
+    content: Optional[str] = None
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
     
@@ -66,6 +67,7 @@ class State:
     lb: str
     typ: str = "Action"  # Type of state ("Initial", "Action", "Relation", "Final")
     note: Optional[str] = None
+    content: Optional[str] = None
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
 
@@ -103,6 +105,7 @@ class Event:
     id: int
     lb: str
     note: Optional[str] = None
+    content: Optional[str] = None
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
     
@@ -215,6 +218,7 @@ class Event_to_state:
     id: int
     event_id: int  # Reference to Event.id
     state_id: int  # Reference to State.id
+    note: Optional[str] = None
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
 
@@ -251,6 +255,7 @@ class State_to_event:
     id: int
     state_id: int  # Reference to State.id
     event_id: int  # Reference to Event.id
+    note: Optional[str] = None
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
 

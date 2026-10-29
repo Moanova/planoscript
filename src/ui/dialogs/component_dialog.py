@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QTextEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy)
 from PySide6.QtCore import Qt
 from core.models.data_model import State, Event
+from config.config_loader import get as _get_config
 from ui.utils import theme
 
 
@@ -21,11 +22,16 @@ class ComponentDialog(QDialog):
     Displays the editable attributes of a narrative map component
     (State or Event) and returns the values entered by the user.
 
-    State: lb, typ, note
-    Event: lb, note
+    State: lb, typ, note, content
+    Event: lb, note, content
+
+    TSK20: 'note' holds short summary notes (compact input area),
+    'content' holds the narrative content (larger input area).
     """
 
     STATE_TYPES = ["Initial", "Action", "Relation", "Final"]
+    NOTE_MAX_HEIGHT_PX = _get_config("dialog_note_max_height_px", 60)
+    CONTENT_MIN_HEIGHT_PX = _get_config("dialog_content_min_height_px", 160)
     EDITABLE_STATE_TYPES = ["Action", "Relation", "Final"]  # RG062: "Initial" is reserved for the initial state
     DISPLAY_LABEL_MAX_LENGTH = 8  # Temporary rule: display truncated to 8 characters
 
@@ -45,7 +51,7 @@ class ComponentDialog(QDialog):
         self.setStyleSheet(theme.DIALOG_STYLESHEET)
         self.form = QFormLayout()
         self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
-        # Fields stay at the same position; only the note field grows vertically
+        # Fields stay at the same position; only the content field grows (TSK20)
         self.layout.addLayout(self.form, stretch=1)
         self.layout.setAlignment(self.form, Qt.AlignTop)
         self._add_buttons()
@@ -72,12 +78,21 @@ class ComponentDialog(QDialog):
                     self.typ_combo.setCurrentIndex(index)
             self.form.addRow("Type:", self.typ_combo)
 
-        # Note field
+        # Note field (TSK20: compact area, summary notes)
         self.note_edit = QTextEdit()
         note = getattr(self.entity, 'note', None) or ""
         self.note_edit.setPlainText(note)
-        self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.note_edit.setMaximumHeight(self.NOTE_MAX_HEIGHT_PX)
         self.form.addRow("Note:", self.note_edit)
+
+        # Content field (TSK20: larger area, narrative content)
+        self.content_edit = QTextEdit()
+        content = getattr(self.entity, 'content', None) or ""
+        self.content_edit.setPlainText(content)
+        self.content_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.content_edit.setMinimumHeight(self.CONTENT_MIN_HEIGHT_PX)
+        self.form.addRow("Content:", self.content_edit)
 
         # Inline validation message (hidden by default)
         self.error_label = QLabel("")
@@ -108,11 +123,12 @@ class ComponentDialog(QDialog):
         Return the values entered by the user.
 
         Returns:
-            Dictionary with keys 'lb', 'typ' (State only) and 'note'
+            Dictionary with keys 'lb', 'typ' (State only), 'note' and 'content'
         """
         values = {
             'lb': self.lb_edit.text().strip(),
-            'note': self.note_edit.toPlainText()
+            'note': self.note_edit.toPlainText(),
+            'content': self.content_edit.toPlainText()
         }
         if self.component_type == "State":
             values['typ'] = self.typ_combo.currentText()

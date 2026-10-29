@@ -737,3 +737,31 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   singulier `EventsWorkspace` ; libellés de menus stubs renommés en
   « EventsList »/« Events » ; `tests/test_journeys/` conservé (features
   du parcours narratif FN023-FN027, hors périmètre).
+
+
+## 29-10-2026 — TSK20 : modèle de données, clés `content` (Agent/State/Event) et `note` sur les arcs
+
+- **Demande TSC** (périmètre confirmé après analyse) : `content` ajouté
+  après `note` dans Agent/State/Event ; `note` ajouté à Event_to_state et
+  State_to_event (State_agent_rel l'avait déjà) ; report des impacts sur
+  le code actif.
+- **Implémentation** : `data_model.py` (5 champs ajoutés, sérialisation
+  générique — pas de migration, projets existants → None) ; use cases
+  create/update agent et update component (paramètre `content`, None =
+  conserver) ; dialogues ComponentDialog/AgentDialog : zone **Note**
+  compacte (60 px max) + zone **Content** large (160 px min), dimensions
+  dans config.json (`dialog_note_max_height_px`,
+  `dialog_content_min_height_px`) ; câblage main_window +
+  agent_association_dialog ; 4 tests unitaires content ajoutés ; stubs
+  offscreen corrigés ; doc `07_data_model` FR/EN (ordre des propriétés
+  respecté), `03_features` FR/EN (FN015), `04_interface` FR/EN (notes de
+  conception).
+- **Tests** : py_compile OK ; 110 passed (pytest) ; 10 offscreen PASSED ;
+  script jetable : round-trip JSON content/note + chargement rétrocompatible
+  + champs des dialogues (hauteurs 60/160, get_values). Tooltips inchangés
+  (note seule, content réservé à l'infobulle longue plus tard).
+- **Kanban** : TSK20 Doing → En revue ; TSK21 créé en To do (édition des
+  annotations des 3 relations, solution clic-droit sur case cochée validée,
+  dépendance → #TSK20).
+- **Fin de séance** : TSK19 commité/poussé (a1bcdf8) ; TSK20 non commité
+  (pas d'instruction). Aucun problème bloquant.

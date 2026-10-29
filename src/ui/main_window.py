@@ -1104,10 +1104,10 @@ class MainWindow(QMainWindow):
         self._refresh_agents_view()
         self._update_menu_state()
 
-    def _create_agent_from_values(self, lb, typ, note):
+    def _create_agent_from_values(self, lb, typ, note, content=None):
         """Shared agent creation (use case + refreshes). Returns True on
         success."""
-        result = self.create_agent_usecase.execute(lb=lb, typ=typ, note=note)
+        result = self.create_agent_usecase.execute(lb=lb, typ=typ, note=note, content=content)
         if result and result.get('success'):
             self.info_bar.show_message("Agent created")
             # TSK08: a new agent row may have appeared -> refresh
@@ -1129,7 +1129,7 @@ class MainWindow(QMainWindow):
         if self.tab_bar.currentTab() == "Agents":
             project = self.project_service.current_project
             default_lb = f"Agent {project.get_next_id('agent')}" if project else None
-            self._create_agent_from_values(lb=default_lb, typ="Subject", note=None)
+            self._create_agent_from_values(lb=default_lb, typ="Subject", note=None, content=None)
             return
         project = self.project_service.current_project
         default_lb = f"Agent {project.get_next_id('agent')}" if project else None
@@ -1138,7 +1138,8 @@ class MainWindow(QMainWindow):
             return
         values = dialog.get_values()
         self._create_agent_from_values(
-            lb=values['lb'], typ=values['typ'], note=values['note'])
+            lb=values['lb'], typ=values['typ'], note=values['note'],
+            content=values['content'])
 
     def _edit_agent(self):
         """Edit an agent from the "Project > Components... > Agent >
@@ -1162,7 +1163,7 @@ class MainWindow(QMainWindow):
         values = dialog.get_values()
         result = self.update_agent_usecase.execute(
             entity=agent, lb=values['lb'],
-            typ=values['typ'], note=values['note'])
+            typ=values['typ'], note=values['note'], content=values['content'])
         if result and result.get('success'):
             self.info_bar.show_message("Agent updated")
             # TSK05: agent label may have changed, refresh tooltips
@@ -1283,6 +1284,7 @@ class MainWindow(QMainWindow):
             entity=entity,
             lb=values['lb'],
             note=values['note'],
+            content=values['content'],
             typ=values.get('typ')
         )
         if result and result.get('success'):
@@ -1302,7 +1304,7 @@ class MainWindow(QMainWindow):
         values = dialog.get_values()
         result = self.update_agent_usecase.execute(
             entity=agent, lb=values['lb'],
-            typ=values['typ'], note=values['note'])
+            typ=values['typ'], note=values['note'], content=values['content'])
         if result and result.get('success'):
             self.info_bar.show_message("Agent updated")
             # TSK05: agent label may have changed, refresh tooltips
@@ -1324,6 +1326,7 @@ class MainWindow(QMainWindow):
             entity=state,
             lb=values['lb'],
             note=values['note'],
+            content=values['content'],
             typ=values.get('typ')
         )
         if result and result.get('success'):

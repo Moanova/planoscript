@@ -8,7 +8,7 @@
 Unit tests for UpdateComponentUseCase.
 
 Covers SU003 (component data edition):
-- Valid update of State (lb, typ, note) and Event (lb, note)
+- Valid update of State (lb, typ, note, content) and Event (lb, note, content)
 - modification_date_time is set on update
 - Empty label refused
 - Invalid State.typ refused
@@ -105,6 +105,26 @@ def test_none_note_keeps_existing_value(usecase):
     state.note = "Keep me"
     usecase.execute(entity=state, lb="State", note=None)
     assert state.note == "Keep me"
+
+
+def test_content_update(usecase):
+    state = _make_state()
+    usecase.execute(entity=state, lb="State", content="Once upon a time")
+    assert state.content == "Once upon a time"
+
+
+def test_empty_content_becomes_none(usecase):
+    state = _make_state()
+    state.content = "Old content"
+    usecase.execute(entity=state, lb="State", content="   ")
+    assert state.content is None
+
+
+def test_none_content_keeps_existing_value(usecase):
+    state = _make_state()
+    state.content = "Keep me"
+    usecase.execute(entity=state, lb="State", content=None)
+    assert state.content == "Keep me"
 
 
 def test_state_typ_defaults_to_current_when_none(usecase):

@@ -173,7 +173,7 @@
 - **Description** : Modifier les attributs éditables d'un composant via son panneau de propriétés.
 - **Références** : SU003 ; menu "Project › Components... › State › Edit" et "Project › Components... › Event › Edit".
 - **Comportement attendu** :
-    - Le panneau de propriétés présente les attributs éditables selon le type du composant (agent, état, événement).
+    - Le panneau de propriétés présente les attributs éditables selon le type du composant (agent, état, événement) : libellé, type, **note** (quelques notes de résumé décrivant l'objet — zone de saisie compacte) et **content** (contenu narratif proprement dit — zone de saisie plus grande, TSK20, 29-10-2026).
     - Le libellé n'est pas contraint à l'unicité au sein de la carte.
     - Toute modification d'attribut marque la carte, et donc le projet, comme modifié.
 - **État** : Non implémenté (panneau de propriétés non défini). L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.

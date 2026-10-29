@@ -39,5 +39,7 @@
   "agents_view_cell_height": 80,
   "agents_view_checkbox_size": 20,
   "agents_view_checkbox_color": "#383838",
-  "agents_view_checkbox_check_color": "#F0F0F0"
+  "agents_view_checkbox_check_color": "#F0F0F0",
+  "dialog_note_max_height_px": 60,
+  "dialog_content_min_height_px": 160
 }
