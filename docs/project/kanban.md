@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 11
+- **Version** : 12
 - **Date** : 29-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -50,9 +50,9 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [ ] TSK21 — Scénario SU004 (FN021) : édition des relations (note + rattachement aux parcours via la liste des parcours sur la connexion/association) — arcs via menu contextuel « Edit Relation » de la connexion (vue Events) et menu Project › Relations... › Edit, State_agent_rel via clic droit « Annotate association... » sur case cochée (vue Agents), infobulle note au survol de la connexion — détail dans `tasks/TSK21_relation_annotation_edition.md` — tests 141 passed (+14)
 
-- [ ] TSK22 — Fondations parcours (EPC05) : `active_journey_id` + `Journey_node.state_agent_rel_id` dans le modèle, use cases `journey_management` (create/update/activate, attach/detach), rattachement auto au parcours actif, cascades étendues, règles RG026/RG027/RG031/RG052 réécrites FR/EN — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md` — tests 127 passed (+17)
-
 ## Done
+
+- [x] TSK22 — Fondations parcours (EPC05) : `active_journey_id` + `Journey_node.state_agent_rel_id` dans le modèle, use cases `journey_management` (create/update/activate, attach/detach), rattachement auto au parcours actif, cascades étendues, règles RG026/RG027/RG031/RG052 réécrites FR/EN — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md` — tests 127 passed (+17) — validée TSC le 29-10-2026
 
 - [x] TSK23 — UI de gestion des parcours : `Display › Journey › JourneyList` remplace `Display › Events` (liste cochable dynamique, parcours actif) + entrées `Project › Journeys...` New.../Edit (FN023/FN024, Delete stub → TSK25) → #TSK22 — détail dans `tasks/TSK23_journey_ui.md` — validée TSC le 29-10-2026 (5 revues traitées)
 - [x] TSK18 — Ajustement esthétique : badges d'événement des cartes d'état (vue Agents) 2/3 dedans / 1/3 dehors sur l'axe horizontal (5 px dehors sur 16, même règle que l'axe X du badge d'agents de la vue Events, TSK17) — détail dans `tasks/TSK18_event_badge_position.md` — tests 106 passed + 10 offscreen PASSED + rendu QImage vérifié — validée TSC le 29-10-2026

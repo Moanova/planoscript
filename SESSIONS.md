@@ -888,3 +888,15 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   py_compile OK ; yaml OK ; script offscreen `offscreen_tsk21_relation_menus.py`
   à valider en GUI (libGL indisponible dans le sandbox).
 - Kanban v11 : TSK21 → En revue. Fiche TSK21 journalisée.
+
+
+## 29-10-2026 — fin de séance
+
+- TSK21 implémentée et poussée (commit ad71007) : édition des relations (note +
+  rattachement parcours) — en En revue, validée fonctionnellement par TSC en GUI.
+- TSK22 passée en Terminé (validée TSC 29-10-2026) — kanban v12 ; TSK21 reste
+  en En revue.
+- Point acté pour plus tard : le rattachement auto à la création d'une connexion
+  vise le parcours actif (pas forcément le défaut) ; repli sur le parcours par
+  défaut quand active_journey_id est absent (rétrocompatibilité).
+- Prochaine séance : TSK25 (suppression d'un parcours, FN027).
