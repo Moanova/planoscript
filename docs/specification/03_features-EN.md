@@ -264,7 +264,7 @@
   - The new journey is automatically activated and becomes the current journey.
   - Any component created thereafter is attached to this journey.
   - Any creation marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK23) - menu "Project > Journeys... > New..." (dialog) + "Display > Journey > JourneyList"; new journey auto-activated (RG023).
 
 ## FN024 : Rename and describe a journey
 - **Description** : Modify the label and description of a journey.
@@ -272,7 +272,7 @@
 - **Expected behavior** :
   - The modification is performed via a dialog box or a properties panel.
   - Any modification marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK23) - menu "Project > Journeys... > Edit" (selection dialog + edition dialog: label + note).
 
 ## FN025 : Duplicate a journey
 - **Description** : Duplicate an existing journey.
@@ -290,7 +290,7 @@
   - Activation is performed from the journey list.
   - The activated journey becomes the current journey: new components are attached to it and the display filtering applies to it (cf. FN029).
   - Activation marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK23) - checkable item in "Display > Journey > JourneyList" (FN026).
 
 ## FN027 : Delete a journey
 - **Description** : Delete a journey from the narrative map.

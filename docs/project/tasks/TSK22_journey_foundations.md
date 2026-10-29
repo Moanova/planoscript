@@ -53,3 +53,21 @@ Points clés :
 
 - UI de gestion des parcours (TSK23), duplication (TSK24), suppression
   (TSK25), filtre d'affichage FN029.
+
+## Journal (29-10-2026)
+
+- Modèle : `Journey_node.state_agent_rel_id`, `NarrativeMap.active_journey_id`
+  (+ `get_active_journey()`, repli parcours par défaut), `Journey_node.for_relation()`.
+- Use cases `src/usecases/journey_management/` : Create/Update/ActivateJourney,
+  Attach/DetachRelationToJourney (1..n parcours par relation, idempotent).
+- Rattachement auto au parcours actif : `ArcService.create_arc` (arcs) et
+  `AssociateAgentStateUseCase` (associations) via `ArcService.attach_to_active_journey`.
+- Cascades : `ArcService.delete_related_arcs` (RG056 étendue),
+  dissociation, `RemoveStateAssociationsUseCase` (RG065), `DeleteAgentUseCase` (RG064).
+- `CreateProjectUseCase` active le parcours par défaut (RG022).
+- Règles RG026/RG027/RG031/RG052 réécrites FR/EN ; `active_journey_id` ajouté
+  à `07_data_model` FR/EN (niveau carte narrative, type integer/null).
+- Tests : +17 dans `tests/test_journeys/test_journey_foundations.py` ;
+  suite complète 127 passed ; py_compile OK. Scripts offscreen non exécutables
+  dans le sandbox (libGL.so.1) — aucun changement UI dans cette tâche.
+- Ouvert (acté) : `sequence_order` ; noeud partagé arc + `state_agent_rel_id`.

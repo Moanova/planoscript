@@ -114,7 +114,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG031
-- **Description** : Chaque carte narrative possède un et un seul état initial. Cet état initial se retrouve obligatoirement dans tous les parcours. Tous les parcours commencent à cet état initial. Cet état est créé automatiquement par l'application et ne peut jamais être supprimé.
+- **Description** : Chaque carte narrative possède un et un seul état initial. Cet état est créé automatiquement par l'application et ne peut jamais être supprimé. L'état initial participe à tous les parcours existants dans la carte par l'intermédiaire de ses rattachements : chacun de ses arcs sortants rattaché à un parcours y fait participer l'état initial (RG026). Tous les parcours commencent à cet état initial.
 - **Classification** : Structure des cartes narratives.
 
 ## RG032
@@ -178,11 +178,11 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG026
-- **Description** : Les relations entre composants (état ou événement) n'ont pas de rattachement direct aux parcours. Une relation est implicite au sein d'un parcours si et seulement si ses deux composants extrémités sont tous deux rattachés à ce parcours.
+- **Description** : Une relation (arc état-événement ou association agent-état) appartient aux parcours des noeuds de parcours (Journey_node) qui la référencent : de 1 à n parcours. L'appartenance d'un composant (état ou événement) à un parcours est dérivée : le composant appartient à un parcours si et seulement si au moins une de ses relations y est rattachée. Un composant sans aucune relation (orphelin) n'appartient à aucun parcours et n'est visible que lorsque le filtre par parcours est désactivé (FN029).
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG027
-- **Description** : L'appartenance d'un composant (état ou événement) à un ou plusieurs parcours est gérée via une liste à choix multiples dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
+- **Description** : Le rattachement d'une relation (arc ou association agent-état) à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans les propriétés de la connexion (menu d'édition de la relation), et non dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG028
@@ -198,7 +198,7 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG052
-- **Description** : Le concept de parcours n'est pas activé tant qu'aucune relation n'a été établie dans la carte narrative. À la création d'un état isolé, aucun nœud de parcours n'est créé. Le rattachement d'un état à un parcours s'effectue lors de la création d'une relation le reliant à un évènement : un nœud de parcours est alors créé, référençant l'arc correspondant et rattachant l'état au parcours actuellement activé.
+- **Description** : Aucun noeud de parcours n'est créé pour un composant isolé (état ou événement sans relation). Le rattachement d'une relation à un parcours s'effectue à la création de la connexion (ou de l'association agent-état) : un noeud de parcours référençant l'arc (ou l'association) est alors créé dans le parcours actuellement activé. Il peut également être ajouté ou retiré ultérieurement via le menu d'édition de la relation (RG027).
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG054

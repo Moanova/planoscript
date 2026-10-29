@@ -121,6 +121,7 @@ class ArcService:
                 event_id=target_entity.id
             )
             narrative_map.state_to_event.append(arc)
+            ArcService.attach_to_active_journey(narrative_map, arc)
             return arc
 
         elif isinstance(source_entity, Event) and isinstance(target_entity, State):
@@ -138,6 +139,7 @@ class ArcService:
                 state_id=target_entity.id
             )
             narrative_map.event_to_state.append(arc)
+            ArcService.attach_to_active_journey(narrative_map, arc)
             return arc
 
         # Invalid combination (State-State, Event-Event, or invalid types)
@@ -185,6 +187,32 @@ class ArcService:
         return connections
 
     @staticmethod
+    def attach_to_active_journey(narrative_map: 'NarrativeMap', relation) -> None:
+        """Attach a newly created relation (arc or agent-state association)
+        to the active journey (RG052 revised, docs/conception/journey_attachment.md).
+
+        Creates one Journey_node referencing the relation in the active
+        journey. No-op when no journey exists.
+        """
+        from core.models.data_model import Journey_node
+
+        journey = narrative_map.get_active_journey()
+        if journey is None:
+            return
+        node = Journey_node.for_relation(narrative_map, journey.id, relation)
+        narrative_map.journey_node.append(node)
+
+    @staticmethod
+    def delete_journey_nodes_for_arcs(narrative_map: 'NarrativeMap',
+                                      deleted_arc_ids: set) -> None:
+        """Remove every Journey_node referencing a deleted arc (RG056 extended)."""
+        narrative_map.journey_node = [
+            node for node in narrative_map.journey_node
+            if node.state_to_event_id not in deleted_arc_ids
+            and node.event_to_state_id not in deleted_arc_ids
+        ]
+
+    @staticmethod
     def delete_related_arcs(
         narrative_map: 'NarrativeMap',
         entity_id: int,
@@ -203,6 +231,8 @@ class ArcService:
             entity_type: The type of the entity ('State' or 'Event')
         """
         if entity_type == "State":
+            deleted = {arc.id for arc in narrative_map.state_to_event if arc.state_id == entity_id}
+            deleted |= {arc.id for arc in narrative_map.event_to_state if arc.state_id == entity_id}
             narrative_map.state_to_event = [
                 arc for arc in narrative_map.state_to_event
                 if arc.state_id != entity_id
@@ -212,6 +242,8 @@ class ArcService:
                 if arc.state_id != entity_id
             ]
         elif entity_type == "Event":
+            deleted = {arc.id for arc in narrative_map.state_to_event if arc.event_id == entity_id}
+            deleted |= {arc.id for arc in narrative_map.event_to_state if arc.event_id == entity_id}
             narrative_map.state_to_event = [
                 arc for arc in narrative_map.state_to_event
                 if arc.event_id != entity_id
@@ -220,6 +252,10 @@ class ArcService:
                 arc for arc in narrative_map.event_to_state
                 if arc.event_id != entity_id
             ]
+        else:
+            return
+        # RG056 extended: cascade to the journey nodes referencing the deleted arcs
+        ArcService.delete_journey_nodes_for_arcs(narrative_map, deleted)
 
     @staticmethod
     def get_arc_between(

@@ -54,6 +54,13 @@
                   "format": "date-time",
                   "description": "Date et heure de dernière modification de la carte narrative"
                },
+               "active_journey_id": {
+                  "type": [
+                     "integer",
+                     "null"
+                  ],
+                  "description": "Identifiant du parcours actuellement activé (référence à Journey.id) ; null = parcours par défaut (rétrocompatible)"
+               },
                "state": {
                   "type": "array",
                   "items": {

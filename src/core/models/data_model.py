@@ -297,6 +297,7 @@ class Journey_node:
     sequence_order: int  # Position in the journey sequence
     event_to_state_id: Optional[int] = None  # Incoming arc (Event_to_state.id); None for initial state
     state_to_event_id: Optional[int] = None  # Outgoing arc (State_to_event.id); None for final state
+    state_agent_rel_id: Optional[int] = None  # Agent-state association (State_agent_rel.id); None if the node carries an arc
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
 
@@ -304,8 +305,8 @@ class Journey_node:
         for attr in ['id', 'journey_id', 'sequence_order']:
             if not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
-        # Optional arc references: convert to int if present and not None
-        for attr in ['event_to_state_id', 'state_to_event_id']:
+        # Optional references: convert to int if present and not None
+        for attr in ['event_to_state_id', 'state_to_event_id', 'state_agent_rel_id']:
             val = getattr(self, attr)
             if val is not None and not isinstance(val, int):
                 setattr(self, attr, int(val))
@@ -328,6 +329,33 @@ class Journey_node:
             data['modification_date_time'] = datetime.fromisoformat(data['modification_date_time'])
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
 
+    @classmethod
+    def for_relation(cls, narrative_map: 'NarrativeMap', journey_id: int,
+                     relation) -> 'Journey_node':
+        """Build a journey node referencing an arc or an agent-state association.
+
+        The arc/association type selects the referenced field:
+        State_to_event -> state_to_event_id, Event_to_state -> event_to_state_id,
+        State_agent_rel -> state_agent_rel_id.
+        sequence_order defaults to the next position in the journey.
+        """
+        from core.models.data_model import State_to_event, Event_to_state, State_agent_rel
+        kwargs = {'id': narrative_map.get_next_id('journey_node'),
+                  'journey_id': journey_id,
+                  'sequence_order': 0}
+        if isinstance(relation, State_to_event):
+            kwargs['state_to_event_id'] = relation.id
+        elif isinstance(relation, Event_to_state):
+            kwargs['event_to_state_id'] = relation.id
+        elif isinstance(relation, State_agent_rel):
+            kwargs['state_agent_rel_id'] = relation.id
+        else:
+            raise TypeError(f"Unsupported relation type: {type(relation)}")
+        existing = [n.sequence_order for n in narrative_map.journey_node
+                    if n.journey_id == journey_id]
+        kwargs['sequence_order'] = (max(existing) + 1) if existing else 1
+        return cls(**kwargs)
+
 
 # ---------------------------------------------------------------------
 # Narrative Map Container
@@ -342,6 +370,9 @@ class NarrativeMap:
     lb: str
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
+
+    # Active journey (RG022/RG023); None means the default journey
+    active_journey_id: Optional[int] = None
 
     # Entities
     state: List[State] = field(default_factory=list)
@@ -360,6 +391,7 @@ class NarrativeMap:
             'lb': self.lb,
             'creation_date_time': self.creation_date_time.isoformat(),
             'modification_date_time': self.modification_date_time.isoformat() if self.modification_date_time else None,
+            'active_journey_id': self.active_journey_id,
             'state': [s.to_dict() for s in self.state],
             'event': [e.to_dict() for e in self.event],
             'journey': [j.to_dict() for j in self.journey],
@@ -376,6 +408,7 @@ class NarrativeMap:
             lb=data.get('lb'),
             creation_date_time=datetime.fromisoformat(data['creation_date_time']) if isinstance(data.get('creation_date_time'), str) else data.get('creation_date_time'),
             modification_date_time=datetime.fromisoformat(data['modification_date_time']) if isinstance(data.get('modification_date_time'), str) else data.get('modification_date_time'),
+            active_journey_id=data.get('active_journey_id'),
             state=[State.from_dict(s) for s in data.get('state', [])],
             event=[Event.from_dict(e) for e in data.get('event', [])],
             journey=[Journey.from_dict(j) for j in data.get('journey', [])],
@@ -384,6 +417,22 @@ class NarrativeMap:
             state_to_event=[State_to_event.from_dict(a) for a in data.get('state_to_event', [])],
             journey_node=[Journey_node.from_dict(n) for n in data.get('journey_node', [])]
         )
+
+    def get_active_journey(self) -> Optional['Journey']:
+        """Return the active journey (RG022/RG023).
+
+        Falls back to the default journey when active_journey_id is None
+        (retrocompatible with projects saved before the field existed),
+        then to the first journey.
+        """
+        if self.active_journey_id is not None:
+            for j in self.journey:
+                if j.id == self.active_journey_id:
+                    return j
+        for j in self.journey:
+            if j.default:
+                return j
+        return self.journey[0] if self.journey else None
 
     def get_next_id(self, entity_type: str) -> int:
         """Get the next available ID for a given entity type.

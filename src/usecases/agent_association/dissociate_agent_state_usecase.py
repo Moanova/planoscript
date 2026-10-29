@@ -66,6 +66,11 @@ class DissociateAgentStateUseCase:
             rel for rel in narrative_map.state_agent_rel
             if rel is not existing
         ]
+        # RG066 revised: drop the journey nodes referencing the removed association
+        narrative_map.journey_node = [
+            node for node in narrative_map.journey_node
+            if node.state_agent_rel_id != existing.id
+        ]
         self.project_service.set_modified(True)
 
         logger.info("Agent %s dissociated from state %s", agent.id, state.id)

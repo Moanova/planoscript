@@ -17,6 +17,13 @@
 
 La direction d'un arc est portée par la table, pas par un champ : depuis un état S, `State_to_event.state_id = S` donne les événements suivants, `Event_to_state.state_id = S` les événements précédents (et symétriquement depuis un événement). Aucun champ de direction supplémentaire n'est nécessaire.
 
+### Normalisation des termes (actée TSC 29-10-2026, audit complet dans TSK26)
+
+- **arc** : objet métier directionnel du modèle de données (`State_to_event` / `Event_to_state`) — terme des règles RG054+ ; utilisé dans le code (`ArcService`).
+- **connection** : objet visuel de la couche UI (classe `Connection`, `ConnectionLayout`) — la ligne entre deux nodes.
+- **association** : objet métier `State_agent_rel` (code : `AssociateAgentStateUseCase`...).
+- **relation** : terme chapeau réservé aux spécifications et aux menus (arc ∪ association) ; à ne plus utiliser pour désigner un objet précis dans le code.
+
 ## 2. Principes retenus
 
 1. **Les arcs ne sont créés que par connexion utilisateur.** Pas de création implicite d'arc à la création d'un State/Event (l'ancien mécanisme `State_node(from_event_id=0, …)` a été supprimé le 03-10-2026, commit 5ddbcb1).

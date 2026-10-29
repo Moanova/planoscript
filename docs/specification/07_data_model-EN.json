@@ -54,6 +54,13 @@
                   "format": "date-time",
                   "description": "Date and time of last narrative map modification"
                },
+               "active_journey_id": {
+                  "type": [
+                     "integer",
+                     "null"
+                  ],
+                  "description": "Identifier of the currently active journey (reference to Journey.id); null = default journey (backward compatible)"
+               },
                "state": {
                   "type": "array",
                   "items": {

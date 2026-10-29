@@ -34,11 +34,10 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - [ ] SU003 — Rattachement des composants aux parcours (FN019) → #TSK25
 
 - [ ] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027 — découpé en TSK22–TSK26 ; conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md`)
-  - [ ] TSK22 — Fondations parcours : parcours actif dans le modèle (`NarrativeMap.active_journey_id`, RG022/RG023) + use cases créer/renommer/activer un parcours (FN023/FN024/FN026, RG055) + persistance JSON + tests + réécriture des règles RG026/RG027/RG031/RG052 (FR/EN) selon la conception `docs/conception/journey_attachment.md` — détail dans `tasks/TSK22_journey_foundations.md`
-  - [ ] TSK23 — UI de gestion des parcours : sous-menu `Display › Journey › JourneyList` (liste cochable, parcours actif) + entrées Project Nouveau/Éditer/Supprimer (FN023/FN024) → #TSK22
+  - [ ] TSK23 — UI de gestion des parcours : `Display › Journey › JourneyList` remplace `Display › Events` (liste cochable dynamique, parcours actif) + entrées `Project › Journeys...` New.../Edit (FN023/FN024, Delete stub → TSK25) → #TSK22 — détail dans `tasks/TSK23_journey_ui.md`
   - [ ] TSK24 — Duplication d'un parcours (FN025 : nouvel id, nom distinctif, composants du parcours source rattachés à la copie) → #TSK22
   - [ ] TSK25 — Suppression d'un parcours (FN027, RG029/RG055/RG066 révisée : dernier parcours non supprimable, réattribution obligatoire des composants exclusifs, bascule vers le parcours par défaut des noeuds orphelins incl. `state_agent_rel_id`) → #TSK22, #TSK24
-- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : ex. inverser l'ordre des clés `event_to_state_id` / `state_to_event_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; audit des autres points potentiellement ambigus au fil de la réalisation
+- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : distinction actée le 29-10-2026 (`arc` = donnée métier directionnelle, `connection` = objet visuel UI, `association` = State_agent_rel, `relation` = terme chapeau specs/menus uniquement — voir `docs/conception/journey_attachment.md` §1) ; à appliquer : audit arc/connection/relation dans tout le code + ex. inverser l'ordre des clés `state_to_event_id` / `event_to_state_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; autres points ambigus au fil de la réalisation
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
@@ -46,7 +45,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## Doing
 
-- (aucune tâche en cours)
+- [ ] TSK22 — Fondations parcours (EPC05) — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md`
 
 ## En revue
 

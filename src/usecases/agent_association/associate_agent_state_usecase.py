@@ -59,12 +59,15 @@ class AssociateAgentStateUseCase:
             }
 
         from core.models.data_model import State_agent_rel
+        from core.services.arc_service import ArcService
         relation = State_agent_rel(
             id=narrative_map.get_next_id('state_agent_rel'),
             state_id=state.id,
             agent_id=agent.id
         )
         narrative_map.state_agent_rel.append(relation)
+        # RG066 revised: the association is attached to the active journey
+        ArcService.attach_to_active_journey(narrative_map, relation)
         self.project_service.set_modified(True)
 
         logger.info("Agent %s associated with state %s", agent.id, state.id)

@@ -51,10 +51,15 @@ from usecases.agent_association.remove_state_associations_usecase import RemoveS
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
+from usecases.journey_management import (
+    CreateJourneyUseCase, UpdateJourneyUseCase, ActivateJourneyUseCase
+)
 from ui.dialogs.component_dialog import ComponentDialog
 from ui.dialogs.agent_dialog import AgentDialog
 from ui.dialogs.agent_selection_dialog import AgentSelectionDialog
 from ui.dialogs.agent_association_dialog import AgentAssociationDialog
+from ui.dialogs.journey_dialog import JourneyDialog
+from ui.dialogs.journey_selection_dialog import JourneySelectionDialog
 from config.config_loader import get as _get_config
 from config.user_state_loader import get as _get_user_state, set as _set_user_state
 
@@ -90,6 +95,10 @@ class MainWindow(QMainWindow):
         self.remove_state_associations_usecase = RemoveStateAssociationsUseCase(self.project_service)
         self.update_component_usecase = UpdateComponentUseCase(self.project_service)
         self.create_relation_usecase = CreateRelationUseCase(self.project_service)
+        # TSK23: journey management (EPC05)
+        self.create_journey_usecase = CreateJourneyUseCase(self.project_service)
+        self.update_journey_usecase = UpdateJourneyUseCase(self.project_service)
+        self.activate_journey_usecase = ActivateJourneyUseCase(self.project_service)
         self.about_service = AboutService()
         self.change_log_service = ChangeLogService()
 
@@ -335,8 +344,10 @@ class MainWindow(QMainWindow):
 
         # Display menu
         self.display_menu = self.menu_bar.addMenu("Display")
-        self.events_menu = self.display_menu.addMenu("Events")
-        self.menu_actions['list_events'] = self.events_menu.addAction("EventsList", lambda: None)
+        # TSK23: dynamic checkable list of journeys (active journey is checked)
+        self.journey_menu = self.display_menu.addMenu("Journey")
+        self.journey_list_menu = self.journey_menu.addMenu("JourneyList")
+        self.journey_list_menu.aboutToShow.connect(self._rebuild_journey_list_menu)
         self.zoom_menu = self.display_menu.addMenu("Zoom")
         self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
         self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
@@ -378,6 +389,12 @@ class MainWindow(QMainWindow):
         self.menu_actions['relation_edit'] = self.relations_menu.addAction("Edit", lambda: self._edit_selected_relation())
         self.menu_actions['relation_delete'] = self.relations_menu.addAction("Delete", lambda: self._delete_selected_relation())
 
+        # Journeys submenu (TSK23, FN023/FN024; Delete stubbed until TSK25)
+        self.journeys_menu = self.project_menu.addMenu("Journeys...")
+        self.menu_actions['journey_new'] = self.journeys_menu.addAction("New...", lambda: self._new_journey())
+        self.menu_actions['journey_edit'] = self.journeys_menu.addAction("Edit", lambda: self._edit_journey())
+        self.menu_actions['journey_delete'] = self.journeys_menu.addAction("Delete", lambda: None)  # TSK25
+
         # About menu (always enabled)
         self.about_menu = self.menu_bar.addMenu("About")
         self.about_menu.addAction("Change Log", self._show_changelog)
@@ -412,12 +429,23 @@ class MainWindow(QMainWindow):
         self.menu_actions['paste'].setEnabled(False)
         self.menu_actions['delete'].setEnabled(False)
 
-        self.events_menu.setEnabled(False)
+        self.journey_menu.setEnabled(False)
         self.zoom_menu.setEnabled(False)
 
         self.view_menu.setEnabled(False)
         self.components_menu.setEnabled(has_project)
         self.relations_menu.setEnabled(has_project)
+        # TSK23: journeys menus need an open project; Edit/Delete also
+        # need at least one journey (always true: RG022 default journey)
+        self.journeys_menu.setEnabled(has_project)
+        self.journey_menu.setEnabled(has_project)
+        has_journey = bool(
+            has_project and self.project_service.current_project
+            and self.project_service.current_project.narrative_map
+            and self.project_service.current_project.narrative_map[0].journey)
+        self.menu_actions['journey_new'].setEnabled(has_project)
+        self.menu_actions['journey_edit'].setEnabled(has_journey)
+        self.menu_actions['journey_delete'].setEnabled(has_journey)
 
         for action_key in actions:
             if action_key in self.menu_actions:
@@ -1204,6 +1232,88 @@ class MainWindow(QMainWindow):
         if dialog.exec() != AgentSelectionDialog.Accepted:
             return None
         return dialog.get_selected_agent()
+
+    # ---------------------------------------------------------------------
+    # Journeys (TSK23, EPC05, FN023/FN024/FN026)
+    # ---------------------------------------------------------------------
+
+    def _current_narrative_map(self):
+        """Return the current narrative map, or None if no project."""
+        project = self.project_service.current_project
+        if not project or not project.narrative_map:
+            return None
+        return project.narrative_map[0]
+
+    def _new_journey(self):
+        """Create a journey from "Project > Journeys... > New..." (TSK23,
+        FN023). The new journey is automatically activated (RG023)."""
+        narrative_map = self._current_narrative_map()
+        if narrative_map is None:
+            return
+        default_lb = f"Journey {narrative_map.get_next_id('journey')}"
+        dialog = JourneyDialog(parent=self, default_label=default_lb)
+        if dialog.exec() != JourneyDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.create_journey_usecase.execute(lb=values['lb'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message(f"Journey created: {result['entity'].lb}")
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot create journey")
+
+    def _edit_journey(self):
+        """Edit a journey from "Project > Journeys... > Edit" (TSK23, FN024):
+        selection dialog, then the edition dialog."""
+        journey = self._select_journey()
+        if journey is None:
+            return
+        dialog = JourneyDialog(entity=journey, parent=self)
+        if dialog.exec() != JourneyDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.update_journey_usecase.execute(
+            journey, lb=values['lb'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message("Journey updated")
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot update journey: invalid data")
+
+    def _select_journey(self):
+        """Open the journey selection dialog (TSK23) and return the
+        selected journey, or None if the dialog was cancelled or no
+        journey exists."""
+        narrative_map = self._current_narrative_map()
+        if narrative_map is None or not narrative_map.journey:
+            self.info_bar.show_message("No journey in the map")
+            return None
+        dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
+        if dialog.exec() != JourneySelectionDialog.Accepted:
+            return None
+        return dialog.get_selected_journey()
+
+    def _rebuild_journey_list_menu(self):
+        """Rebuild the "Display > Journey > JourneyList" dynamic menu (TSK23):
+        one checkable action per journey, checked for the active journey."""
+        self.journey_list_menu.clear()
+        narrative_map = self._current_narrative_map()
+        if narrative_map is None:
+            return
+        active = narrative_map.get_active_journey()
+        for journey in narrative_map.journey:
+            action = self.journey_list_menu.addAction(journey.lb)
+            action.setCheckable(True)
+            action.setChecked(active is not None and journey.id == active.id)
+            action.triggered.connect(
+                lambda checked=False, j=journey: self._activate_journey(j))
+
+    def _activate_journey(self, journey):
+        """Activate a journey from the JourneyList menu (TSK23, FN026)."""
+        result = self.activate_journey_usecase.execute(journey)
+        if result and result.get('success'):
+            self.info_bar.show_message(f"Active journey: {journey.lb}")
+        self._update_menu_state()
 
     def _delete_agent_with_confirmation(self, agent):
         """Delete an agent with confirmation (RG064: the confirmation

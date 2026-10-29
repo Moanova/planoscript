@@ -68,12 +68,12 @@ menu:
           items:
             - name: JourneyList
               dynamic: true
-              description: Dynamic list of narrative map routes
+              description: Dynamic checkable list of the journeys of the narrative map; the checked item is the active journey
               behavior:
                 user_editable: true
                 checked_field: "checked"
                 default_checked: true
-              note: "Not implemented"
+              note: "Implemented (TSK23) - Rebuilt on aboutToShow; clicking an item activates that journey (FN026, RG023). Replaces the former Display > Events submenu"
         - name: Zoom
           items:
             - name: Zoom in
@@ -121,6 +121,14 @@ menu:
                   note: "Not implemented - Enabled only when an Event node is selected"
                 - name: Delete
                   note: "Not implemented - Enabled only when an Event node is selected"
+        - name: Journeys...
+          items:
+            - name: New...
+              note: "Implemented (TSK23) - Opens the 'New Journey' dialog (default label 'Journey {id}', editable); the new journey is automatically activated (FN023, RG023). Enabled as soon as a project is open"
+            - name: Edit
+              note: "Implemented (TSK23) - Opens a journey selection dialog, then the edition dialog (label + note, FN024). Enabled as soon as at least one journey exists"
+            - name: Delete
+              note: "Not implemented - Stub until TSK25 (FN027)"
         - name: Relations...
           items:
             - name: Connect State and Event

@@ -49,13 +49,21 @@ class RemoveStateAssociationsUseCase:
         project = self.project_service.current_project
         deleted_associations = 0
         for narrative_map in project.narrative_map:
+            removed_ids = set()
             remaining = []
             for rel in narrative_map.state_agent_rel:
                 if rel.state_id == state.id:
                     deleted_associations += 1
+                    removed_ids.add(rel.id)
                 else:
                     remaining.append(rel)
             narrative_map.state_agent_rel = remaining
+            # RG065 + RG066 revised: drop the journey nodes of removed associations
+            if removed_ids:
+                narrative_map.journey_node = [
+                    node for node in narrative_map.journey_node
+                    if node.state_agent_rel_id not in removed_ids
+                ]
 
         if deleted_associations:
             self.project_service.set_modified(True)

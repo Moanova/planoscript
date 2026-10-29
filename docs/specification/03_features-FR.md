@@ -264,7 +264,7 @@
     - Le nouveau parcours est automatiquement activé et devient le parcours courant.
     - Tout composant créé par la suite est rattaché à ce parcours.
     - Toute création marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK23) — menu « Project › Journeys... › New... » (dialogue) + « Display › Journey › JourneyList » ; nouveau parcours auto-activé (RG023).
 
 ## FN024 : Renommer et décrire un parcours
 - **Description** : Modifier le libellé et la description d'un parcours.
@@ -272,7 +272,7 @@
 - **Comportement attendu** :
     - La modification s'effectue via une boîte de dialogue ou un panneau de propriétés.
     - Toute modification marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK23) — menu « Project › Journeys... › Edit » (dialogue de sélection + dialogue d'édition : libellé + note).
 
 ## FN025 : Dupliquer un parcours
 - **Description** : Dupliquer un parcours existant.
@@ -290,7 +290,7 @@
     - L'activation s'effectue depuis la liste des parcours.
     - Le parcours activé devient le parcours courant : les nouveaux composants y sont rattachés et le filtrage d'affichage s'y applique (cf. FN029).
     - L'activation marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK23) — élément coché dans « Display › Journey › JourneyList » (FN026).
 
 ## FN027 : Supprimer un parcours
 - **Description** : Supprimer un parcours de la carte narrative.

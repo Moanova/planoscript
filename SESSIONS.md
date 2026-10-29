@@ -765,3 +765,59 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   dépendance → #TSK20).
 - **Fin de séance** : TSK19 commité/poussé (a1bcdf8) ; TSK20 non commité
   (pas d'instruction). Aucun problème bloquant.
+
+
+## 29-10-2026 — TSK22 : fondations parcours (EPC05, SU005/FN023-FN026)
+
+- **Conception** (validée TSC en séance, consignée dans
+  `docs/conception/journey_attachment.md`) : `Journey_node` est la table de
+  liaison vers les parcours ; le rattachement se fait sur les **connexions
+  (arcs)** et associations agent-état, jamais sur les composants ; 1 arc dans
+  1..n parcours = n noeuds ; appartenance des composants dérivée des noeuds ;
+  objets orphelins acceptés (invisibles sous filtre parcours FN029) ;
+  RG058 inchangée (pas de paire forward/backward). Vocabulaire acté (TSK26) :
+  `arc` = donnée métier directionnelle, `connection` = objet visuel UI,
+  `association` = State_agent_rel, `relation` = terme chapeau specs/menus.
+- **Implémentation** : `Journey_node.state_agent_rel_id` +
+  `NarrativeMap.active_journey_id` (+ `get_active_journey()` avec repli
+  parcours par défaut, rétrocompatible) + `Journey_node.for_relation()` ;
+  package `usecases/journey_management/` (create/update/activate journey,
+  attach/detach relation — nommage arc/association) ; rattachement auto au
+  parcours actif dans `ArcService.create_arc` et à la création d'un
+  `State_agent_rel` ; cascades RG056/RG064/RG065 étendues aux noeuds
+  (suppression arc / dissociation / suppression état / suppression agent) ;
+  `CreateProjectUseCase` active le parcours par défaut (RG022).
+- **Règles réécrites FR/EN** : RG026 (appartenance dérivée via les noeuds),
+  RG027 (liste à choix multiples sur la connexion), RG031 (état initial via
+  ses rattachements), RG052 (noeud créé à la création de la connexion, dans
+  le parcours actif). `07_data_model` FR/EN : `active_journey_id` ajouté au
+  niveau carte narrative.
+- **Tests** : py_compile OK ; **127 passed** (pytest, +17 nouveaux dans
+  `tests/test_journeys/test_journey_foundations.py` : activation RG022/RG023,
+  RG055, rattachement auto arc/association, attach/detach 1..n parcours,
+  cascades, round-trip JSON + chargement legacy sans les nouveaux champs).
+  Scripts offscreen non exécutables dans le sandbox (libGL.so.1 manquant) —
+  inchangé par cette tâche (pas de modification UI).
+- **Kanban** : TSK18/TSK20/TSK19 passées en Terminé (commit d3786f0, poussé) ;
+  EPC05 créé (TSK22–TSK26) ; TSK22 Doing → En revue ; TSK26 (normalisation
+  vocabulaire) complétée avec la distinction actée.
+- **Points laissés ouverts** (actés) : `sequence_order` (focus à la tâche
+  concernée) ; noeud partagé arc + state_agent_rel_id (à discuter à la tâche).
+- **Fin de séance** : non commité (pas d'instruction de commit).
+
+
+## 29-10-2026 — TSK23 : UI de gestion des parcours (EPC05, FN023/FN024/FN026)
+
+- **Implémentation** : `Display › Events` remplacé par `Display › Journey ›
+  JourneyList` (menu dynamique cochable, parcours actif coché, clic →
+  activation FN026) ; `Project › Journeys... › New.../Edit` (FN023/FN024,
+  Delete stub jusqu'à TSK25) ; nouveaux dialogues `journey_dialog.py` (lb +
+  note) et `journey_selection_dialog.py` (pattern AgentSelectionDialog) ;
+  handlers dans `main_window.py` + état des menus ; use cases TSK22 câblés.
+- **Specs** : `05_menu-EN.yaml` (JourneyList + Journeys..., note de
+  remplacement), `03_features` FR/EN FN023/FN024/FN026 → Implémenté (TSK23).
+- **Tests** : py_compile OK ; 127 passed (inchangé) ; script offscreen
+  `tests/test_journeys/offscreen_tsk23_journey_menu.py` écrit mais non
+  exécutable dans le sandbox (libGL.so.1) — à valider en séance GUI.
+- **Kanban** : TSK23 Doing → En revue (TSK22 reste En revue).
+- **Fin de séance** : non committé (pas d'instruction de commit).

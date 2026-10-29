@@ -114,8 +114,8 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG031
-- **Description**: Each narrative map has one and only one initial state. This initial state is necessarily found in all journeys. All journeys begin at this initial state. This state is automatically created by the application and can never be deleted.
-- **Classification**: Narrative Map Structure.
+- **Description** : Each narrative map has one and only one initial state. This state is automatically created by the application and can never be deleted. The initial state participates in all existing journeys of the map through its attachments: each of its outgoing arcs attached to a journey makes the initial state part of that journey (RG026). All journeys begin at this initial state.
+- **Classification** : Narrative Map Structure.
 
 ## RG032
 - **Description**: Each valid and complete journey ends with a final state. This final state may be specific to each journey, unlike the initial state which is common to all journeys. During editing, a journey may temporarily not have a final state.
@@ -178,12 +178,12 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG026
-- **Description**: Relationships between components (state or event) have no direct attachment to journeys. A relationship is implicit within a journey if and only if both of its endpoint components are attached to that journey.
-- **Classification**: Journey Logic and Membership.
+- **Description** : A relationship (state-event arc or agent-state association) belongs to the journeys of the journey nodes (Journey_node) that reference it: from 1 to n journeys. A component's (state or event) membership in a journey is derived: the component belongs to a journey if and only if at least one of its relationships is attached to it. A component with no relationship (orphan) belongs to no journey and is visible only when the journey filter is disabled (FN029).
+- **Classification** : Journey Logic and Membership.
 
 ## RG027
-- **Description**: A component's (state or event) membership in one or more journeys is managed via a multiple-choice list in the component's properties. The option is disabled if only one journey exists in the map.
-- **Classification**: Journey Logic and Membership.
+- **Description** : Attaching a relationship (arc or agent-state association) to one or more journeys is managed via a multiple-choice list of journeys, presented in the properties of the connection (relation edit menu), not in the component's properties. The option is disabled if only one journey exists in the map.
+- **Classification** : Journey Logic and Membership.
 
 ## RG028
 - **Description**: The user cannot remove a state from its last journey. An event can be removed from all its journeys, in which case it becomes orphan of all journeys until it is engaged in a relation with a state.
@@ -198,8 +198,8 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG052
-- **Description**: The journey concept is not activated until a relation has been established in the narrative map. Upon creation of an isolated state, no journey node is created. The attachment of a state to a journey occurs when a relation connecting it to an event is established: a journey node is then created, referencing the corresponding edge and attaching the state to the currently activated journey.
-- **Classification**: Journey Logic and Membership.
+- **Description** : No journey node is created for an isolated component (state or event with no relationship). Attaching a relationship to a journey happens when the connection (or agent-state association) is created: a journey node referencing the arc (or the association) is then created in the currently active journey. It can also be added or removed later via the relationship edit menu (RG027).
+- **Classification** : Journey Logic and Membership.
 
 ## RG054
 - **Description**: When a user establishes a relationship between a state and an event, the application creates a new state-event edge specifying the state, the event, and the direction of the relation (predecessor or successor). No two identical edges may exist for the same state, event, and direction.

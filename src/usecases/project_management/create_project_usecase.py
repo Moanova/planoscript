@@ -29,13 +29,14 @@ class CreateProjectUseCase:
         Extracted from execute() so it can be reused by future use cases
         (e.g. CreateNarrativeMapUseCase) without duplication.
         """
-        # RG022: create the default journey
+        # RG022: create the default journey and activate it
         default_journey = Journey(
             id=narrative_map.get_next_id('journey'),
             lb="Journey 1",
             default=True
         )
         narrative_map.journey.append(default_journey)
+        narrative_map.active_journey_id = default_journey.id
 
         # RG031: create the initial state
         initial_state = State(
