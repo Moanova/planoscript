@@ -15,7 +15,8 @@ Checks:
 - the default journey is listed and checked after project creation (RG022)
 - creating a journey via the use case adds a checked item (RG023)
 - activating another journey moves the check (FN026)
-- Project > Journeys... New.../Edit exist, Delete is a stub (TSK25)
+- Project > Journeys... New.../Edit/Delete... exist; the selection dialog
+  is Ok/Cancel only (TSK25 UX review 30-10-2026: no Delete button there)
 """
 import os
 import sys
@@ -78,13 +79,14 @@ assert nm.active_journey_id == j2.id
 assert not hasattr(mw, 'events_menu')
 assert 'list_events' not in mw.menu_actions
 
-# Selection dialog (TSK23 review): Delete/Ok/Cancel, no New... button
+# Selection dialog (TSK23 review + TSK25 UX review): Ok/Cancel only,
+# no New... and no Delete button
 from ui.dialogs.journey_selection_dialog import JourneySelectionDialog
 dlg = JourneySelectionDialog(nm.journey, parent=mw)
 assert not hasattr(dlg, 'new_button')
-assert dlg.get_action() is None
+assert not hasattr(dlg, 'delete_button')
 # a journey is always selected: row 0 at construction
 assert dlg.list_widget.currentRow() == 0
-assert dlg.ok_button.isEnabled() and dlg.delete_button.isEnabled()
+assert dlg.ok_button.isEnabled()
 
 print("OFFSCREEN TSK23 JOURNEY MENU CHECKS PASSED")

@@ -163,7 +163,7 @@
     - En MVP, la création s'effectue exclusivement depuis le menu (pas de barre d'outils).
     - Le composant est créé avec un identifiant entier unique dans la carte, le libellé par défaut du type, et l'icône correspondant à son type.
     - Il est positionné à l'emplacement désigné par l'utilisateur, aligné sur la grille d'alignement (toujours visible et active).
-    - Il est automatiquement rattaché au parcours actif ; un composant ne peut jamais exister hors d'un parcours.
+    - Aucun rattachement de parcours n'est créé à la création du composant : il appartient à un parcours dès qu'une de ses relations y est rattachée (RG024 révisée, RG026, RG052).
     - Il présente deux ports d'attachement actifs : entrant (gauche) et sortant (droite).
     - Il n'est pas redimensionnable.
     - Toute création marque la carte, et donc le projet, comme modifié.
@@ -207,15 +207,15 @@
     - Toute suppression marque la carte, et donc le projet, comme modifié.
 - **État** : Partiellement implémenté. Suppression d'un agent via le sous-menu « Project › Components... › Agent › Supprimer » (dialogue de sélection + confirmation RG064 ; en vue agents : suppression directe de la carte sélectionnée — revue TSC 28-10-2026) et via le menu contextuel d'une carte agent dans la vue agents (TSK13) ; suppression d'un état via le menu contextuel d'une carte état dans la vue agents (TSK13 : confirmation si des arcs/associations existent, entrée désactivée pour l'état initial RG031, cascade RG065) et via le menu contextuel d'un node état dans la vue Events (désactivé pour l'état initial, **confirmation SU003 si l'état est connecté à au moins un évènement et/ou associé à au moins un agent** — revue TSC 28-10-2026) ; suppression d'un évènement via le menu contextuel d'un node évènement dans la vue Events (**confirmation SU003 si l'évènement est connecté à au moins un état** — revue TSC 28-10-2026). L'option de menu « State › Delete » / « Event › Delete » reste spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
-## FN019 : Gérer l'appartenance d'un composant aux parcours
-- **Description** : Modifier la liste des parcours auxquels un composant est rattaché.
-- **Références** : SU003, SU005.
+## FN019 : Gérer le rattachement d'une relation aux parcours
+- **Description** : Modifier la liste des parcours auxquels une relation (arc état-événement ou association agent-état) est rattachée. L'appartenance d'un composant aux parcours en est dérivée (RG026).
+- **Références** : SU004, SU005.
 - **Comportement attendu** :
-    - L'appartenance est gérée via une liste à choix multiple dans les propriétés du composant, parmi les parcours existants de la carte.
-    - Un composant doit rester rattaché à au moins un parcours : le retrait du dernier rattachement est impossible (option non proposée ou action bloquée).
+    - Le rattachement est géré via une liste à choix multiples des parcours, présentée dans le menu d'édition de la relation (connexion), parmi les parcours existants de la carte.
+    - À la création d'une relation, celle-ci est automatiquement rattachée au parcours actuellement activé (RG052).
     - L'option est désactivée si la carte ne comporte qu'un seul parcours.
     - Toute modification de rattachement marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK22/TSK21) — liste cochable des parcours dans le dialogue d'édition de la relation : menu contextuel « Edit Relation » de la connexion (vue Events), « Project › Relations... › Edit », clic droit « Annotate association... » sur une case cochée (vue Agents) ; rattachement automatique au parcours actif à la création de la relation (RG052 révisée).
 
 ---
 
@@ -281,9 +281,9 @@
 - **Références** : SU005.
 - **Comportement attendu** :
     - La copie porte un nom distinct et un nouvel identifiant.
-    - Les composants rattachés au parcours source sont également rattachés à la copie.
+    - Les relations rattachées au parcours source sont également rattachées à la copie : un nœud de parcours est créé dans la copie pour chaque nœud du parcours source (mêmes arcs et associations référencés). La copie ne devient pas le parcours activé (RG023).
     - Toute duplication marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK24) — menu « Project › Journeys... › Duplicate... » (sélection du parcours source + dialogue pré-rempli « {libellé} (copy) » + note copiée) ; la copie n'est ni activée (RG023) ni par défaut (RG055).
 
 ## FN026 : Activer un parcours
 - **Description** : Activer un parcours comme parcours courant pour l'édition.
@@ -300,9 +300,9 @@
 - **Comportement attendu** :
     - La suppression du dernier parcours de la carte est impossible : l'application affiche un message explicatif.
     - Dans les autres cas, une confirmation est demandée.
-    - L'application identifie les composants rattachés exclusivement au parcours supprimé ; pour chacun, l'utilisateur choisit obligatoirement un nouveau parcours de rattachement via une fenêtre dédiée.
+    - Si le parcours supprimé était le parcours par défaut, le plus ancien parcours restant devient le parcours par défaut (RG055) ; si c'était le parcours activé, le parcours par défaut devient le parcours activé.
     - Toute suppression marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK25) — entrée dédiée « Project › Journeys... › Delete... » (fenêtre de sélection Ok/Cancel + confirmation ; dernier parcours refusé avec message explicatif, RG018 ; nœuds orphelins basculés vers le parcours par défaut, RG036/RG066).
 
 ---
 
@@ -324,7 +324,7 @@
 - **Références** : SU006.
 - **Comportement attendu** :
     - Le filtre permet de basculer entre "tout afficher" et "parcours actif".
-    - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seuls les composants rattachés au parcours sélectionné et les relations entre ces composants sont représentés.
+    - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seules les relations rattachées au parcours sélectionné et les composants auxquels elles donnent appartenance (RG026) sont représentés ; les relations rattachées aux autres parcours, les composants auxquels elles donnent appartenance et les composants orphelins (sans aucune relation) ne sont visibles que lorsque le filtre est désactivé.
     - Le filtrage ne marque pas la carte comme modifiée.
 - **État** : Non documenté dans le menu (section "Display › Journey" du menu ignorée en attendant sa correction).
 

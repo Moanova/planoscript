@@ -128,19 +128,19 @@
     - The editable attributes of a journey are its label and its description.
     - Each narrative map always contains at least one journey.
     - Upon the creation of a narrative map, the application automatically creates an initial journey, activates it, and assigns it a default name.
-    - A component can be attached simultaneously to multiple journeys. However, every component must remain attached to at least one journey at all times.
-    - Relationships between components have no direct attachment to journeys. A relationship is implicit within a journey if and only if both of its connected components are attached to that journey.
+    - A component may belong to several journeys at the same time, or to none if it is isolated (has no relationship).
+    - A relationship (arc or agent-state association) is directly attached to journeys through journey nodes (Journey_node). A component's membership in a journey is derived: the component belongs to a journey if and only if at least one of its relationships is attached to that journey.
     - Upon the creation of a new journey, it automatically becomes the activated journey.
-    - Any newly created component is automatically attached to the currently activated journey.
+    - Any newly created relationship is automatically attached to the currently activated journey (or to the default journey if no journey is activated); no attachment is created for an isolated component.
     - Deleting a journey is impossible if it is the last journey of the map; the application displays an explanatory message.
 - **Acceptance criteria**:
     - The user can create a new journey from the journey sidebar toolbar or the "Project" menu. The new journey is automatically activated and becomes the current journey.
     - The user can rename a journey and modify its description via a dialog box or a properties panel.
-    - The user can duplicate a journey; the copy automatically carries a distinctive name and a new identifier. The components attached to the source journey are also attached to the duplicated journey.
+    - The user can duplicate a journey; the copy automatically carries a distinctive name and a new identifier. The relationships attached to the source journey are also attached to the duplicated journey (their journey nodes are copied).
     - The user can activate a journey by selecting it from the list in the journey sidebar toolbar or from the "Project" menu. The activated journey becomes the current journey for editing.
     - The user can delete a journey with prior confirmation, provided it is not the last journey of the map.
-    - Upon deletion of a journey, the application identifies the components exclusively attached to it. For each, the user must mandatorily choose a new attachment journey via a dedicated window.
-    - A component's membership in one or more journeys is managed via a multiple-choice list in the component's properties. The option is disabled if only one journey exists in the map.
+    - Upon deletion of a journey, if the deleted journey was the default journey, the oldest remaining journey becomes the new default (RG055).
+    - The attachment of a relationship to one or more journeys is managed via a multiple-choice list of journeys, presented in the relationship edit menu (connection). The option is disabled if only one journey exists in the map.
     - Any creation, renaming, duplication, activation, deletion, or modification of a journey's attachments marks the map as modified, and consequently the project as modified.
 - **MVP scope**:
     - The journey toolbar is not implemented. The associated actions are therefore only handled by menu.

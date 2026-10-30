@@ -125,8 +125,12 @@ menu:
           items:
             - name: New...
               note: "Implemented (TSK23) - Opens the 'New Journey' dialog (default label 'Journey {id}', editable); the new journey is automatically activated (FN023, RG023). Enabled as soon as a project is open"
+            - name: Duplicate...
+              note: "Implemented (TSK24) - Opens a journey selection dialog, then the 'Duplicate Journey' dialog pre-filled with the source label suffixed ' (copy)' and the source note (both editable); duplicates the journey and copies its journey nodes (FN025). The copy is not activated (RG023 revised) and not default (RG055). Enabled as soon as at least one journey exists"
             - name: Edit
-              note: "Implemented (TSK23, review 29-10-2026) - Opens a journey selection dialog with Ok (edit the selected journey: label + note, FN024; a journey is always selected) and Delete (stub until TSK25/FN027). Creation is done from the separate New... entry of this submenu"
+              note: "Implemented (TSK23, review 29-10-2026) - Opens an Ok/Cancel journey selection dialog (a journey is always selected), then the edition dialog (label + note, FN024). Creation from the separate New... entry; deletion from the separate Delete... entry (TSK25 UX review 30-10-2026)"
+            - name: Delete...
+              note: "Implemented (TSK25, UX review 30-10-2026) - Opens an Ok/Cancel journey selection dialog, then a confirmation (FN027); the last journey of the map is refused with an explanatory message (RG018). Orphan journey nodes are switched to the default journey (RG036/RG066). Enabled as soon as at least one journey exists"
         - name: Relations...
           items:
             - name: Connect State and Event

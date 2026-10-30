@@ -163,7 +163,7 @@
   - In the MVP, creation is performed exclusively from the menu (no toolbar).
   - The component is created with a unique integer identifier within the map, the default label for the type, and the icon corresponding to its type.
   - It is positioned at the location designated by the user, aligned on the alignment grid (always visible and active).
-  - It is automatically attached to the active journey; a component can never exist outside a journey.
+  - No journey attachment is created when the component is created: it belongs to a journey as soon as one of its relationships is attached to it (RG024 revised, RG026, RG052).
   - It has two active attachment ports: incoming (left) and outgoing (right).
   - It is not resizable.
   - Any creation marks the map, and therefore the project, as modified.
@@ -207,15 +207,15 @@
   - Any deletion marks the map, and therefore the project, as modified.
 - **Status** : Partially implemented. Agent deletion via the "Project › Components... › Agent › Delete" submenu (selection dialog + RG064 confirmation; in the agents view: direct deletion of the selected card — TSC review 28-10-2026) and via the agent card context menu in the agents view (TSK13); state deletion via the state card context menu in the agents view (TSK13: confirmation when arcs/associations exist, entry disabled for the initial state RG031, RG065 cascades) and via the state node context menu in the events view (disabled for the initial state, **SU003 confirmation when the state is connected to at least one event and/or associated with at least one agent** — TSC review 28-10-2026); event deletion via the event node context menu in the events view (**SU003 confirmation when the event is connected to at least one state** — TSC review 28-10-2026). The "State › Delete" / "Event › Delete" menu options remain specified but not implemented; they are enabled only when a node of the relevant type is selected in the workspace.
 
-## FN019 : Manage the membership of a component to journeys
-- **Description** : Modify the list of journeys to which a component is attached.
-- **References** : SU003, SU005.
+## FN019 : Manage the attachment of a relationship to journeys
+- **Description** : Modify the list of journeys to which a relationship (state-event arc or agent-state association) is attached. A component's membership to journeys is derived from it (RG026).
+- **References** : SU004, SU005.
 - **Expected behavior** :
-  - Membership is managed via a multiple-choice list in the component properties, among the existing journeys of the map.
-  - A component must remain attached to at least one journey: removing the last attachment is impossible (option not offered or action blocked).
+  - The attachment is managed via a multiple-choice list of journeys, presented in the relationship edit menu (connection), among the existing journeys of the map.
+  - When a relationship is created, it is automatically attached to the currently activated journey (RG052).
   - The option is disabled if the map contains only one journey.
   - Any attachment modification marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK22/TSK21) — checkable list of journeys in the relationship edit dialog: "Edit Relation" context menu of the connection (Events view), "Project › Relations... › Edit", right-click "Annotate association..." on a checked cell (Agents view); automatic attachment to the active journey when the relationship is created (RG052 revised).
 
 ---
 
@@ -281,9 +281,9 @@
 - **References** : SU005.
 - **Expected behavior** :
   - The copy bears a distinct name and a new identifier.
-  - Components attached to the source journey are also attached to the copy.
+  - The relationships attached to the source journey are also attached to the copy: a journey node is created in the copy for each node of the source journey (same referenced arcs and associations). The copy does not become the activated journey (RG023).
   - Any duplication marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK24) — menu "Project › Journeys... › Duplicate..." (source journey selection + pre-filled dialog "{label} (copy)" + copied note); the copy is neither activated (RG023) nor default (RG055).
 
 ## FN026 : Activate a journey
 - **Description** : Activate a journey as the current journey for editing.
@@ -300,9 +300,9 @@
 - **Expected behavior** :
   - Deleting the last journey of the map is impossible: the application displays an explanatory message.
   - In other cases, a confirmation is requested.
-  - The application identifies the components attached exclusively to the deleted journey; for each one, the user must choose a new attachment journey via a dedicated window.
+  - If the deleted journey was the default journey, the oldest remaining journey becomes the new default (RG055); if it was the activated journey, the default journey becomes the activated one.
   - Any deletion marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK25) — dedicated entry "Project › Journeys... › Delete..." (Ok/Cancel selection dialog + confirmation; last journey refused with an explanatory message, RG018; orphan nodes switched to the default journey, RG036/RG066).
 
 ---
 
@@ -324,7 +324,7 @@
 - **References** : SU006.
 - **Expected behavior** :
   - The filter allows switching between "show all" and "active journey".
-  - Where applicable, switching from one journey to another instantly updates the display: only the components attached to the selected journey and the relations between these components are represented.
+  - Where applicable, switching from one journey to another instantly updates the display: only the relationships attached to the selected journey and the components to which they give membership (RG026) are represented; the relationships attached to other journeys, the components to which they give membership and orphan components (with no relationship) are visible only when the filter is disabled.
   - Filtering does not mark the map as modified.
 - **Status** : Not documented in the menu ("Display › Journey" section of the menu ignored pending its correction).
 

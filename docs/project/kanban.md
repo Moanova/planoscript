@@ -1,7 +1,7 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 12
-- **Date** : 29-10-2026
+- **Version** : 17
+- **Date** : 30-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
 ---
@@ -30,13 +30,8 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
 - [ ] SU003 — Duplication d'un composant (FN016)
-- [ ] SU003 — Rattachement des composants aux parcours (FN019) → #TSK25
 
-- [ ] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027 — découpé en TSK22–TSK26 ; conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md`)
-
-  - [ ] TSK24 — Duplication d'un parcours (FN025 : nouvel id, nom distinctif, composants du parcours source rattachés à la copie) → #TSK22
-  - [ ] TSK25 — Suppression d'un parcours (FN027, RG029/RG055/RG066 révisée : dernier parcours non supprimable, réattribution obligatoire des composants exclusifs, bascule vers le parcours par défaut des noeuds orphelins incl. `state_agent_rel_id`) → #TSK22, #TSK24
-- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : distinction actée le 29-10-2026 (`arc` = donnée métier directionnelle, `connection` = objet visuel UI, `association` = State_agent_rel, `relation` = terme chapeau specs/menus uniquement — voir `docs/conception/journey_attachment.md` §1) ; à appliquer : audit arc/connection/relation dans tout le code + ex. inverser l'ordre des clés `state_to_event_id` / `event_to_state_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; autres points ambigus au fil de la réalisation
+- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : distinction actée le 29-10-2026 (`arc` = donnée métier directionnelle, `connection` = objet visuel UI, `association` = State_agent_rel, `relation` = terme chapeau specs/menus uniquement — voir `docs/conception/journey_attachment.md` §1) ; à appliquer : audit arc/connection/relation dans tout le code + ex. inverser l'ordre des clés `state_to_event_id` / `event_to_state_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; autres points ambigus au fil de la réalisation — tâche transverse déplacée hors EPC05 à sa clôture (30-10-2026)
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
@@ -48,9 +43,17 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
-- [ ] TSK21 — Scénario SU004 (FN021) : édition des relations (note + rattachement aux parcours via la liste des parcours sur la connexion/association) — arcs via menu contextuel « Edit Relation » de la connexion (vue Events) et menu Project › Relations... › Edit, State_agent_rel via clic droit « Annotate association... » sur case cochée (vue Agents), infobulle note au survol de la connexion — détail dans `tasks/TSK21_relation_annotation_edition.md` — tests 141 passed (+14)
+- (aucune tâche en cours)
 
 ## Done
+
+- [x] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027) — TSK21–TSK25 terminées — conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md` — validée TSC le 30-10-2026 (TSK26, normalisation du vocabulaire, déplacée en tâche autonome hors épic ; FN019 répositionnée sur la connexion, ligne SU003 retirée du To do)
+
+- [x] TSK25 — Suppression d'un parcours (FN027 : dernier parcours non supprimable (RG018), nœuds orphelins basculés vers le parcours par défaut incl. `state_agent_rel_id` (RG036/RG066), default/actif réattribués (RG055)) → #TSK22, #TSK24 — use case `DeleteJourneyUseCase` + entrée dédiée `Project › Journeys... › Delete...` (sélection Ok/Cancel + confirmation, refus du dernier parcours — UX review 30-10-2026 : plus de bouton Delete dans la sélection Edit) — tests +11 (165 passed, 3 skipped) + offscreen PASSED — détail dans `tasks/TSK25_journey_deletion.md` — validée TSC le 30-10-2026
+
+- [x] TSK21 — Scénario SU004 (FN021) : édition des relations (note + rattachement aux parcours via la liste des parcours sur la connexion/association) — arcs via menu contextuel « Edit Relation » de la connexion (vue Events) et menu Project › Relations... › Edit, State_agent_rel via clic droit « Annotate association... » sur case cochée (vue Agents), infobulle note au survol de la connexion — détail dans `tasks/TSK21_relation_annotation_edition.md` — tests 165 passed (+14 au passage de la tâche) — validée TSC le 30-10-2026
+
+- [x] TSK24 — Duplication d'un parcours (FN025 : nouvel id, nom distinctif « {lb} (copy) », nœuds de parcours du source copiés vers la copie, copie ni activée (RG023 révisée) ni par défaut (RG055)) → #TSK22 — use case `DuplicateJourneyUseCase` + menu `Project › Journeys... › Duplicate...` + `JourneyDialog.default_note` — tests +13 (154 passed, 3 skipped) + offscreen PASSED — détail dans `tasks/TSK24_journey_duplication.md` — validée TSC le 30-10-2026
 
 - [x] TSK22 — Fondations parcours (EPC05) : `active_journey_id` + `Journey_node.state_agent_rel_id` dans le modèle, use cases `journey_management` (create/update/activate, attach/detach), rattachement auto au parcours actif, cascades étendues, règles RG026/RG027/RG031/RG052 réécrites FR/EN — détail dans `tasks/TSK22_journey_foundations.md` — conception : `docs/conception/journey_attachment.md` — tests 127 passed (+17) — validée TSC le 29-10-2026
 

@@ -114,7 +114,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG031
-- **Description** : Each narrative map has one and only one initial state. This state is automatically created by the application and can never be deleted. The initial state participates in all existing journeys of the map through its attachments: each of its outgoing arcs attached to a journey makes the initial state part of that journey (RG026). All journeys begin at this initial state.
+- **Description** : Each narrative map has one and only one initial state. This state is automatically created by the application and can never be deleted. The initial state participates in all existing journeys of the map through its attachments: each of its outgoing arcs attached to a journey makes the initial state part of that journey (RG026). In a consistent map, all journeys begin at this initial state; the application does not check this consistency (out of MVP scope, SU005).
 - **Classification** : Narrative Map Structure.
 
 ## RG032
@@ -126,7 +126,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG034
-- **Description**: The same component (state or event) can belong to multiple journeys without duplication thanks to the management of state-event edges and journey nodes. A state is attached to a journey via a journey node. An event is not directly attached to any journey; it belongs to a journey if and only if at least one state-event edge connects it to a state that is itself attached to that journey. An isolated event therefore belongs to no journey.
+- **Description**: The same component (state or event) can belong to multiple journeys without duplication: it is the relationships (state-event arcs and agent-state associations) that are attached to journeys through journey nodes (Journey_node), and the component's membership is derived from them (RG026). No journey attachment field exists on the component itself.
 - **Classification**: Narrative Map Structure.
 
 ## RG035
@@ -166,15 +166,15 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG023
-- **Description**: Upon the creation of a new journey, it automatically becomes the activated journey.
+- **Description**: Upon the creation of a new journey, it automatically becomes the activated journey. Duplicating a journey (FN025) creates a new journey without changing the activated journey.
 - **Classification**: Journey Logic and Membership.
 
 ## RG024
-- **Description**: A newly created state is automatically attached to the currently activated journey. A newly created event is not attached to any journey as long as it is isolated, that is, not linked by any incoming or outgoing relation to a state. An event becomes attached to a journey as soon as a relation connects it to a state that is itself attached to that journey. Conversely, if the last relation connecting an event to the states of a journey is deleted, the event becomes detached from that journey and returns to an orphan status with no journey.
+- **Description**: No journey attachment is created for a newly created component (state or event) as long as it is isolated, i.e. has no relationship (RG052). A component belongs to a journey as soon as a relationship involving it is attached to that journey (RG026). Conversely, if the last relationship attached to a journey that makes a component belong to that journey is detached from that journey (RG027) or deleted, the component ceases to belong to that journey and may become orphan of journeys again.
 - **Classification**: Journey Logic and Membership.
 
 ## RG025
-- **Description**: A component (state or event) can be attached simultaneously to multiple journeys. A state must remain attached to at least one journey at all times. An event, on the other hand, may be orphan of all journeys as long as it is not engaged in at least one relation with a state; this situation cannot arise for a state.
+- **Description**: A component (state or event) may belong to several journeys at the same time, or to none if it is isolated (has no relationship).
 - **Classification**: Journey Logic and Membership.
 
 ## RG026
@@ -185,16 +185,8 @@
 - **Description** : Attaching a relationship (arc or agent-state association) to one or more journeys is managed via a multiple-choice list of journeys, presented in the properties of the connection (relation edit menu), not in the component's properties. The option is disabled if only one journey exists in the map.
 - **Classification** : Journey Logic and Membership.
 
-## RG028
-- **Description**: The user cannot remove a state from its last journey. An event can be removed from all its journeys, in which case it becomes orphan of all journeys until it is engaged in a relation with a state.
-- **Classification**: Journey Logic and Membership.
-
 ## RG029
-- **Description**: There is always a default journey. Orphan nodes after the deletion of a journey are automatically switched to the default journey.
-- **Classification**: Journey Logic and Membership.
-
-## RG030
-- **Description**: When the user removes a component (state or event) from a journey, the application checks whether this component is connected to another component still attached to that journey. If so, the application raises an alert: the user can cancel the removal, or confirm the deletion of the inconsistent relationship.
+- **Description**: There is always a default journey.
 - **Classification**: Journey Logic and Membership.
 
 ## RG052

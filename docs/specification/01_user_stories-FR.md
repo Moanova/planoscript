@@ -128,19 +128,19 @@
     - Les attributs éditables d'un parcours sont son libellé et sa description.
     - Chaque carte narrative contient toujours au moins un parcours.
     - Lors de la création d'une carte narrative, l'application crée automatiquement un parcours initial, l'active et lui attribue un nom par défaut.
-    - Un composant peut être rattaché simultanément à plusieurs parcours. Tout composant doit cependant rester rattaché à au moins un parcours à tout moment.
-    - Les relations entre composants n'ont pas de rattachement direct aux parcours. Une relation est implicite au sein d'un parcours si et seulement si ses deux composants connectés sont tous deux rattachés à ce parcours.
+    - Un composant peut appartenir simultanément à plusieurs parcours, ou à aucun s'il est isolé (sans aucune relation).
+    - Une relation (arc ou association agent-état) est rattachée directement aux parcours par l'intermédiaire des nœuds de parcours (Journey_node). L'appartenance d'un composant à un parcours est dérivée : le composant appartient à un parcours si et seulement si au moins une de ses relations y est rattachée.
     - Lors de la création d'un nouveau parcours, celui-ci devient automatiquement le parcours activé.
-    - Tout composant nouvellement créé est automatiquement rattaché au parcours actuellement activé.
+    - Toute relation nouvellement créée est automatiquement rattachée au parcours actuellement activé (ou au parcours par défaut si aucun parcours n'est activé) ; aucun rattachement n'est créé pour un composant isolé.
     - La suppression d'un parcours est impossible s'il s'agit du dernier parcours de la carte ; l'application affiche un message explicatif.
 - **Critères d'acceptation** :
     - L'utilisateur peut créer un nouveau parcours depuis la barre d'outils latérale des parcours ou le menu "Projet". Le nouveau parcours est automatiquement activé et devient le parcours courant.
     - L'utilisateur peut renommer un parcours et modifier sa description via une boîte de dialogue ou un panneau de propriétés.
-    - L'utilisateur peut dupliquer un parcours ; la copie porte automatiquement un nom distinctif et un nouvel identifiant. Les composants rattachés au parcours source sont également rattachés au parcours dupliqué.
+    - L'utilisateur peut dupliquer un parcours ; la copie porte automatiquement un nom distinctif et un nouvel identifiant. Les relations rattachées au parcours source sont également rattachées au parcours dupliqué (leurs nœuds de parcours sont copiés).
     - L'utilisateur peut activer un parcours en le sélectionnant dans la liste de la barre d'outils latérale des parcours ou depuis le menu "Projet". Le parcours activé devient le parcours courant pour l'édition.
     - L'utilisateur peut supprimer un parcours avec confirmation préalable, sous réserve qu'il ne s'agisse pas du dernier parcours de la carte.
-    - Lors de la suppression d'un parcours, l'application identifie les composants qui lui sont exclusivement rattachés. Pour chacun, l'utilisateur doit obligatoirement choisir un nouveau parcours de rattachement via une fenêtre dédiée.
-    - L'appartenance d'un composant à un ou plusieurs parcours est gérée via une liste à choix multiples dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
+    - Lors de la suppression d'un parcours, si le parcours supprimé était le parcours par défaut, le plus ancien parcours restant le devient (RG055).
+    - Le rattachement d'une relation à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans le menu d'édition de la relation (connexion). L'option est désactivée si un seul parcours existe dans la carte.
     - Toute création, renommage, duplication, activation, suppression ou modification des rattachements d'un parcours marque la carte comme modifiée, et par conséquent le projet comme modifié.
 - **Périmètre MVP** :
     - La barre d'outils des parcours n'est pas implémentée. Les actions associées ne sont donc gérées que par menu.

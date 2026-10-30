@@ -25,17 +25,19 @@ class JourneyDialog(QDialog):
     Journey: lb, note
 
     Works in both modes:
-    - creation: entity is None, form prefilled with default_label
-      (editable)
+    - creation/duplication: entity is None, form prefilled with
+      default_label/default_note (editable)
     - edition: entity is a Journey, form prefilled from the entity
     """
 
     NOTE_MAX_HEIGHT_PX = _get_config("dialog_note_max_height_px", 60)
 
-    def __init__(self, entity=None, parent=None, default_label=None):
+    def __init__(self, entity=None, parent=None, default_label=None,
+                 default_note=None):
         super().__init__(parent)
         self.entity = entity
         self.default_label = default_label
+        self.default_note = default_note
         self._setup_ui()
         self._setup_content()
 
@@ -64,6 +66,8 @@ class JourneyDialog(QDialog):
         # Note field (compact area, summary notes - TSK20 convention)
         self.note_edit = QTextEdit()
         note = getattr(self.entity, 'note', None) or ""
+        if self.entity is None and self.default_note:
+            note = self.default_note  # duplication: prefill with the source note
         self.note_edit.setPlainText(note)
         self.note_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.note_edit.setMaximumHeight(self.NOTE_MAX_HEIGHT_PX)

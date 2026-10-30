@@ -59,6 +59,7 @@ from usecases.agent_association.update_agent_state_association_usecase import (
 )
 from usecases.journey_management import (
     CreateJourneyUseCase, UpdateJourneyUseCase, ActivateJourneyUseCase,
+    DuplicateJourneyUseCase, DeleteJourneyUseCase,
     AttachRelationToJourneyUseCase, DetachRelationFromJourneyUseCase
 )
 from ui.dialogs.component_dialog import ComponentDialog
@@ -107,6 +108,10 @@ class MainWindow(QMainWindow):
         self.create_journey_usecase = CreateJourneyUseCase(self.project_service)
         self.update_journey_usecase = UpdateJourneyUseCase(self.project_service)
         self.activate_journey_usecase = ActivateJourneyUseCase(self.project_service)
+        # TSK24: journey duplication (FN025)
+        self.duplicate_journey_usecase = DuplicateJourneyUseCase(self.project_service)
+        # TSK25: journey deletion (FN027)
+        self.delete_journey_usecase = DeleteJourneyUseCase(self.project_service)
         self.attach_relation_to_journey_usecase = AttachRelationToJourneyUseCase(self.project_service)
         self.detach_relation_from_journey_usecase = DetachRelationFromJourneyUseCase(self.project_service)
         # TSK21: relation edition (note + journey attachment, SU004/FN021)
@@ -402,12 +407,14 @@ class MainWindow(QMainWindow):
         self.menu_actions['relation_edit'] = self.relations_menu.addAction("Edit", lambda: self._edit_selected_relation())
         self.menu_actions['relation_delete'] = self.relations_menu.addAction("Delete", lambda: self._delete_selected_relation())
 
-        # Journeys submenu (TSK23, FN023/FN024; TSK23 review: no Delete
-        # entry here - deletion is handled from the selection dialog
-        # opened by Edit, stubbed until TSK25)
+        # Journeys submenu (TSK23, FN023/FN024; TSK24: Duplicate... FN025;
+        # TSK25 UX review 30-10-2026: Delete... has its own entry, the Edit
+        # selection dialog is Ok/Cancel only)
         self.journeys_menu = self.project_menu.addMenu("Journeys...")
         self.menu_actions['journey_new'] = self.journeys_menu.addAction("New...", lambda: self._new_journey())
+        self.menu_actions['journey_duplicate'] = self.journeys_menu.addAction("Duplicate...", lambda: self._duplicate_journey())
         self.menu_actions['journey_edit'] = self.journeys_menu.addAction("Edit", lambda: self._edit_journey())
+        self.menu_actions['journey_delete'] = self.journeys_menu.addAction("Delete...", lambda: self._delete_journey())
 
         # About menu (always enabled)
         self.about_menu = self.menu_bar.addMenu("About")
@@ -458,7 +465,9 @@ class MainWindow(QMainWindow):
             and self.project_service.current_project.narrative_map
             and self.project_service.current_project.narrative_map[0].journey)
         self.menu_actions['journey_new'].setEnabled(has_project)
+        self.menu_actions['journey_duplicate'].setEnabled(has_journey)
         self.menu_actions['journey_edit'].setEnabled(has_journey)
+        self.menu_actions['journey_delete'].setEnabled(has_journey)
 
         for action_key in actions:
             if action_key in self.menu_actions:
@@ -1264,40 +1273,23 @@ class MainWindow(QMainWindow):
         self._update_menu_state()
 
     def _edit_journey(self):
-        """Journey management from "Project > Journeys... > Edit" (TSK23,
-        FN024): a selection dialog with Ok (edit the selected journey)
-        and Delete (stub until TSK25). A journey is always selected, so
-        Ok/Delete are never disabled. Creation is done from the separate
-        "Project > Journeys... > New..." entry."""
-        narrative_map = self._current_narrative_map()
-        if narrative_map is None or not narrative_map.journey:
-            self.info_bar.show_message("No journey in the map")
+        """Edit a journey from "Project > Journeys... > Edit" (TSK23,
+        FN024): an Ok/Cancel selection dialog (TSK25 UX review 30-10-2026:
+        no Delete button here), then the edition dialog. Creation is done
+        from "Project > Journeys... > New...", deletion from
+        "Project > Journeys... > Delete..."."""
+        journey = self._select_journey()
+        if journey is None:
             return
-        # A fresh dialog instance per iteration (TSK23 fix): reusing one
-        # instance kept a stale _action between exec() calls
-        dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
-        result = dialog.exec()
-        while result == JourneySelectionDialog.Accepted:
-            action = dialog.get_action()
-            if action == "ok":
-                journey = dialog.get_selected_journey()
-                if journey is not None:
-                    edit_dialog = JourneyDialog(entity=journey, parent=self)
-                    if edit_dialog.exec() == JourneyDialog.Accepted:
-                        values = edit_dialog.get_values()
-                        update = self.update_journey_usecase.execute(
-                            journey, lb=values['lb'], note=values['note'])
-                        if update and update.get('success'):
-                            self.info_bar.show_message("Journey updated")
-                        else:
-                            self.info_bar.show_message("Cannot update journey: invalid data")
-                        break  # Ok ends the session
-            elif action == "delete":
-                # TSK25: journey deletion not implemented yet
-                self.info_bar.show_message("Journey deletion is not yet implemented")
-            # Fresh instance each iteration: no stale action can leak
-            dialog = JourneySelectionDialog(narrative_map.journey, parent=self)
-            result = dialog.exec()
+        edit_dialog = JourneyDialog(entity=journey, parent=self)
+        if edit_dialog.exec() == JourneyDialog.Accepted:
+            values = edit_dialog.get_values()
+            update = self.update_journey_usecase.execute(
+                journey, lb=values['lb'], note=values['note'])
+            if update and update.get('success'):
+                self.info_bar.show_message("Journey updated")
+            else:
+                self.info_bar.show_message("Cannot update journey: invalid data")
         self._update_menu_state()
 
     def _new_journey_dialog(self):
@@ -1319,6 +1311,61 @@ class MainWindow(QMainWindow):
             return result['entity']
         self.info_bar.show_message("Cannot create journey")
         return None
+
+    def _duplicate_journey(self):
+        """Duplicate a journey from "Project > Journeys... > Duplicate..."
+        (TSK24, FN025): select the source journey, prefill the dialog with
+        a distinct label and the source note, then duplicate. The copy is
+        not activated (RG023 revised 10-30-2026)."""
+        source = self._select_journey()
+        if source is None:
+            return
+        dialog = JourneyDialog(
+            parent=self,
+            default_label=f"{source.lb} (copy)",
+            default_note=source.note)
+        dialog.setWindowTitle("Duplicate Journey")
+        if dialog.exec() != JourneyDialog.Accepted:
+            return
+        values = dialog.get_values()
+        result = self.duplicate_journey_usecase.execute(
+            source, lb=values['lb'], note=values['note'])
+        if result and result.get('success'):
+            self.info_bar.show_message(f"Journey duplicated: {result['entity'].lb}")
+        else:
+            self.info_bar.show_message("Cannot duplicate journey")
+        self._update_menu_state()
+
+    def _delete_journey(self):
+        """Delete a journey from "Project > Journeys... > Delete..." (TSK25,
+        FN027; UX review 30-10-2026: dedicated entry + Ok/Cancel selection,
+        no Delete button in the Edit selection dialog). The last journey of
+        the map cannot be deleted (RG018): an explanatory message is shown
+        instead of the confirmation."""
+        journey = self._select_journey()
+        if journey is None:
+            return
+        narrative_map = self._current_narrative_map()
+        if narrative_map is None:
+            return
+        if len(narrative_map.journey) <= 1:
+            self.info_bar.show_message(
+                f"Cannot delete '{journey.lb}': last journey of the map (RG018)")
+            return
+        reply = QMessageBox.question(
+            self, "Confirmation",
+            f"Delete the journey '{journey.lb}'?\n"
+            "Its relations stay attached to the other journeys; orphan ones "
+            "are moved to the default journey.",
+            QMessageBox.Yes | QMessageBox.No)
+        if reply != QMessageBox.Yes:
+            return
+        result = self.delete_journey_usecase.execute(journey)
+        if result and result.get('success'):
+            self.info_bar.show_message(f"Journey deleted: {journey.lb}")
+        else:
+            self.info_bar.show_message("Cannot delete journey")
+        self._update_menu_state()
 
     def _select_journey(self):
         """Open the journey selection dialog (TSK23) and return the

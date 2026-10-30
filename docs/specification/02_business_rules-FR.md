@@ -114,7 +114,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG031
-- **Description** : Chaque carte narrative possède un et un seul état initial. Cet état est créé automatiquement par l'application et ne peut jamais être supprimé. L'état initial participe à tous les parcours existants dans la carte par l'intermédiaire de ses rattachements : chacun de ses arcs sortants rattaché à un parcours y fait participer l'état initial (RG026). Tous les parcours commencent à cet état initial.
+- **Description** : Chaque carte narrative possède un et un seul état initial. Cet état est créé automatiquement par l'application et ne peut jamais être supprimé. L'état initial participe à tous les parcours existants dans la carte par l'intermédiaire de ses rattachements : chacun de ses arcs sortants rattaché à un parcours y fait participer l'état initial (RG026). Dans une carte cohérente, tous les parcours commencent à cet état initial ; l'application ne vérifie pas cette cohérence (hors périmètre MVP, SU005).
 - **Classification** : Structure des cartes narratives.
 
 ## RG032
@@ -126,7 +126,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG034
-- **Description** : Un même composant (état ou événement) peut appartenir à plusieurs parcours sans duplication grâce à la gestion des arcs état-évènement et des nœuds de parcours. Un état est rattaché à un parcours par l'intermédiaire d'un nœud de parcours. Un événement n'est pas rattaché directement à un parcours ; il appartient à un parcours si et seulement si au moins un arc état-évènement le relie à un état qui est lui-même rattaché à ce parcours. Un événement isolé n'appartient donc à aucun parcours.
+- **Description** : Un même composant (état ou événement) peut appartenir à plusieurs parcours sans duplication : ce sont les relations (arcs état-événement et associations agent-état) qui sont rattachées aux parcours par l'intermédiaire des nœuds de parcours (Journey_node), et l'appartenance du composant en est dérivée (RG026). Aucun champ de rattachement aux parcours n'existe sur le composant.
 - **Classification** : Structure des cartes narratives.
 
 ## RG035
@@ -166,15 +166,15 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG023
-- **Description** : Lors de la création d'un nouveau parcours, celui-ci devient automatiquement le parcours activé.
+- **Description** : Lors de la création d'un nouveau parcours, celui-ci devient automatiquement le parcours activé. La duplication d'un parcours (FN025) crée un nouveau parcours sans modifier le parcours activé.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG024
-- **Description** : Tout état nouvellement créé est automatiquement rattaché au parcours actuellement activé. Un événement nouvellement créé n'est rattaché à aucun parcours tant qu'il est isolé, c'est-à-dire non relié par aucune relation entrante ou sortante à un état. Un événement devient rattaché à un parcours dès qu'une relation le relie à un état qui est lui-même rattaché à ce parcours. Inversement, si la dernière relation reliant un événement aux états d'un parcours est supprimée, l'événement est détaché de ce parcours et redevient orphelin de parcours.
+- **Description** : Aucun rattachement de parcours n'est créé pour un composant (état ou événement) nouvellement créé tant qu'il est isolé, c'est-à-dire sans aucune relation (RG052). Un composant appartient à un parcours dès qu'une relation le concernant y est rattachée (RG026). Inversement, si la dernière relation rattachée à un parcours qui fait appartenir un composant à ce parcours est détachée de ce parcours (RG027) ou supprimée, le composant cesse d'appartenir à ce parcours et peut redevenir orphelin de parcours.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG025
-- **Description** : Un composant (état ou événement) peut être rattaché simultanément à plusieurs parcours. Un état doit cependant rester rattaché à au moins un parcours à tout moment. Un événement, en revanche, peut être orphelin de tout parcours tant qu'il n'est pas engagé dans au moins une relation avec un état ; cette situation ne peut pas se présenter pour un état.
+- **Description** : Un composant (état ou événement) peut appartenir simultanément à plusieurs parcours, ou à aucun s'il est isolé (sans aucune relation).
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG026
@@ -185,16 +185,8 @@
 - **Description** : Le rattachement d'une relation (arc ou association agent-état) à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans les propriétés de la connexion (menu d'édition de la relation), et non dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
 - **Classification** : Logique des parcours et appartenance.
 
-## RG028
-- **Description** : L'utilisateur ne peut pas retirer un état de son dernier parcours. Un événement peut être retiré de tous ses parcours, auquel cas il devient orphelin de tout parcours jusqu'à ce qu'il soit engagé dans une relation avec un état.
-- **Classification** : Logique des parcours et appartenance.
-
 ## RG029
-- **Description** : Il existe toujours un parcours par défaut. Les noeuds orphelins après suppression d'un parcours sont automatiquement basculés vers le parcours par défaut.
-- **Classification** : Logique des parcours et appartenance.
-
-## RG030
-- **Description** : Lorsque l'utilisateur retire un composant (état ou événement) d'un parcours, l'application vérifie si ce composant est relié à un autre composant toujours rattaché à ce parcours. Si c'est le cas, l'application lève une alerte : l'utilisateur peut annuler le retrait, ou confirmer la suppression de la relation incohérente.
+- **Description** : Il existe toujours un parcours par défaut.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG052
