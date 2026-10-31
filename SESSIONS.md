@@ -1118,3 +1118,19 @@ les notes de conception, selon les décisions actées :
 - Specs : SU003/FN016 FR/EN « Implémenté (TSK28) : State/Event + Agent »,
   05_menu entrée Duplicate (sous-menu Agent).
 - À valider chez TSC : pytest offscreen complet (180+10 attendu).
+
+
+## 31-10-2026 — Anomalie TSK28 évolution : KeyError 'agent_duplicate' au lancement
+
+- Cause : l'entrée « Duplicate » du sous-menu Agent était enregistrée dans
+  `_update_menu_state` (lignes 528/532) mais jamais créée dans
+  `_create_menu_bar` — mon patch d'enregistrement de la clé avait porté sur
+  le mauvais bloc (state/event). `MainWindow()` levait KeyError au
+  `_update_menu_state()` initial (ligne 430).
+- Correctif : ajout de `menu_actions['agent_duplicate'] = agent_menu.addAction(...)`
+  dans `_create_menu_bar` ; py_compile OK ; vérification statique : toutes
+  les clés utilisées dans `_update_menu_state` sont créées dans
+  `_create_menu_bar` (AUCUNE manquante).
+- Leçon retenue (déjà dans AGENTS.md) : ne jamais supposer — ici un test
+  d'instanciation MainWindow offscreen aurait révélé le KeyError
+  immédiatement (impossible dans le sandbox, PySide6 absent).

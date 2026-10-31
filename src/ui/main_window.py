@@ -390,6 +390,7 @@ class MainWindow(QMainWindow):
         self.agent_menu = self.components_menu.addMenu("Agent")
         self.menu_actions['agent_new'] = self.agent_menu.addAction("New...", lambda: self._new_agent())
         self.menu_actions['agent_edit'] = self.agent_menu.addAction("Edit", lambda: self._edit_agent())
+        self.menu_actions['agent_duplicate'] = self.agent_menu.addAction("Duplicate", lambda: self._duplicate_agent())
         self.menu_actions['agent_delete'] = self.agent_menu.addAction("Delete", lambda: self._delete_agent())
 
         # State submenu (Type → Action)
