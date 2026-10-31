@@ -936,3 +936,11 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   projets visibles seulement) → report Miro non effectué cette séance.
 - Prochaine séance : validation TSC des 4 tâches en revue ; puis
   implémentation du filtre FN029 (TSK29) ou suite de l'audit TSK26.
+
+
+## 31-10-2026 — Décision : abandon du report kanban sur miro.com
+
+- Le compte miro.com utilisé est un compte gratuit limité à 3 boards (déjà
+  occupés par d'autres projets) : impossible de créer un board planoscript.
+- Décision actée : `docs/project/kanban.md` devient la source unique de
+  vérité du suivi ; la référence au board miro.com est retirée d'AGENTS.md.
