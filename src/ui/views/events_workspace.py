@@ -858,7 +858,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         # can coexist).
         from core.models.data_model import State as StateEntity, Event as EventEntity, Agent as AgentEntity
 
-        RELATION_ENTITY_MAP = {
+        ARC_MAP = {
             RelationType.STATE_TO_EVENT: ('state_to_event', StateEntity, EventEntity),
             RelationType.EVENT_TO_STATE: ('event_to_state', EventEntity, StateEntity),
             RelationType.STATE_AGENT_REL: ('state_agent_rel', StateEntity, AgentEntity),
@@ -871,7 +871,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         ]
 
         for conn_dict, rel_type in conn_subdicts:
-            attr_name, source_class, target_class = RELATION_ENTITY_MAP[rel_type]
+            attr_name, source_class, target_class = ARC_MAP[rel_type]
 
             for conn_layout in conn_dict.values():
                 source_node = self._find_node_by_entity_id_and_type(

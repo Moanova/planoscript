@@ -97,9 +97,14 @@ assert [n.journey_id for n in nodes] == [j2.id]
 assert mw.project_service.is_modified is True
 
 # --- Agents view: checkbox context menu (checked -> enabled) ---
+# The script must create an agent first, otherwise the matrix has no
+# checkbox at all (_check_items is empty -> StopIteration below)
+from usecases.project_management.create_agent_usecase import CreateAgentUseCase
+CreateAgentUseCase(mw.project_service).execute(lb="A1")
 mw._refresh_agents_view()
 app.processEvents()
 agents_ws = mw.agents_page
+assert agents_ws._check_items, "matrix has no checkbox (no agent)"
 check = next(iter(agents_ws._check_items.values()))
 check.set_checked(True)
 # _on_check_menu builds the menu and execs it; intercept exec to inspect
