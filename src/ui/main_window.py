@@ -376,7 +376,7 @@ class MainWindow(QMainWindow):
         # Project menu
         self.project_menu = self.menu_bar.addMenu("Project")
 
-        # MVP : events view only + the relation view will be reworked at a leter stage of development
+        # MVP : events view only + the agent-relations view will be reworked at a later stage of development
         self.view_menu = self.project_menu.addMenu("View")
         self.menu_actions['view_events'] = self.view_menu.addAction("Events", lambda: None)
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
@@ -1102,7 +1102,7 @@ class MainWindow(QMainWindow):
                 self.workspace.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'relation': arc,
+                    'arc': arc,
                     'relation_type': relation_type
                 })
             self.info_bar.show_message("State-Event relation created")
@@ -1116,7 +1116,7 @@ class MainWindow(QMainWindow):
 
 
     # ---------------------------------------------------------------------
-    # Component and relation editing / deletion (not yet implemented)
+    # Component and relation editing / deletion
     # ---------------------------------------------------------------------
     def _get_selected_item(self):
         """Return the single selected item in the workspace, or None."""
@@ -1758,11 +1758,11 @@ class MainWindow(QMainWindow):
         if item is None or not isinstance(item, Connection):
             self.info_bar.show_message("No relation selected")
             return
-        relation = getattr(item, 'relation_entity', None)
-        if relation is None:
+        arc = getattr(item, 'relation_entity', None)
+        if arc is None:
             self.info_bar.show_message("Cannot edit relation: no business entity associated")
             return
-        self._edit_relation(relation)
+        self._edit_relation(arc)
 
     def _edit_association(self, agent, state):
         """Edit the agent-state association of a checked matrix cell (TSK21).

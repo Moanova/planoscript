@@ -212,7 +212,7 @@ class State_agent_rel:
 @dataclass
 class Event_to_state:
     """
-    Arc: Event -> State (predecessor relation).
+    Arc: Event -> State (predecessor arc).
     Represents a directed arc from an event to a state.
     """
     id: int
@@ -249,7 +249,7 @@ class Event_to_state:
 @dataclass
 class State_to_event:
     """
-    Arc: State -> Event (successor relation).
+    Arc: State -> Event (successor arc).
     Represents a directed arc from a state to an event.
     """
     id: int
@@ -290,7 +290,7 @@ class Journey_node:
     Links a step of a journey to its incoming and outgoing arcs.
     The state is derived from the arcs (Event_to_state.state_id or
     State_to_event.state_id). At least one arc is always present;
-    the concept of journey is not activated until the first relation exists.
+    the concept of journey is not activated until the first arc exists.
     """
     id: int
     journey_id: int  # Reference to Journey.id

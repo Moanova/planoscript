@@ -655,11 +655,11 @@ class EventsWorkspace(QGraphicsView, QObject):
     def create_connection_from_data(self, connection_data: dict):
         """
         Creates a visual connection from 'source', 'target' and
-        'relation' (visual nodes and business entity).
+        'arc' (visual nodes and business arc/association entity).
         """
         source_node = connection_data.get('source')
         target_node = connection_data.get('target')
-        relation_entity = connection_data.get('relation')
+        relation_entity = connection_data.get('arc')
 
         if not (source_node and target_node):
             logger.warning("Invalid connection data format")
@@ -894,7 +894,7 @@ class EventsWorkspace(QGraphicsView, QObject):
                 self.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'relation': relation_entity,
+                    'arc': relation_entity,
                     'relation_type': rel_type
                 })
 
@@ -980,7 +980,7 @@ class EventsWorkspace(QGraphicsView, QObject):
                 self.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'relation': arc,
+                    'arc': arc,
                     'relation_type': RelationType.STATE_TO_EVENT
                 })
 
@@ -992,7 +992,7 @@ class EventsWorkspace(QGraphicsView, QObject):
                 self.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'relation': arc,
+                    'arc': arc,
                     'relation_type': RelationType.EVENT_TO_STATE
                 })
 

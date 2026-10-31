@@ -35,19 +35,19 @@ class DetachRelationFromJourneyUseCase:
     def __init__(self, project_service: ProjectService):
         self.project_service = project_service
 
-    def execute(self, relation: Relation, journey: Journey,
+    def execute(self, arc_or_association: Relation, journey: Journey,
                 narrative_map: Optional[NarrativeMap] = None) -> Optional[Dict]:
         """Detach a relation from a journey.
 
         Args:
-            relation: The arc (State_to_event / Event_to_state) or the
-                agent-state association (State_agent_rel) to detach
+            arc_or_association: The arc (State_to_event / Event_to_state) or
+                the agent-state association (State_agent_rel) to detach
             journey: The Journey entity to detach from
             narrative_map: Target NarrativeMap (optional, uses the first)
 
         Returns:
             Dictionary with 'success' and 'detached' (False when the
-            relation was not attached to this journey)
+            arc/association was not attached to this journey)
             Or None if the operation failed.
         """
         if narrative_map is None:
@@ -60,9 +60,9 @@ class DetachRelationFromJourneyUseCase:
             logger.warning("Invalid journey for detachment: %s", journey)
             return None
 
-        node = AttachRelationToJourneyUseCase.find_node(narrative_map, relation, journey.id)
+        node = AttachRelationToJourneyUseCase.find_node(narrative_map, arc_or_association, journey.id)
         if node is None:
-            logger.info("Relation %s not attached to journey %s", relation.id, journey.id)
+            logger.info("Arc/association %s not attached to journey %s", arc_or_association.id, journey.id)
             return {
                 'success': True,
                 'detached': False
@@ -72,8 +72,8 @@ class DetachRelationFromJourneyUseCase:
         if self.project_service:
             self.project_service.set_modified(True)
 
-        logger.info("Relation %s detached from journey %s (node %s removed)",
-                    relation.id, journey.id, node.id)
+        logger.info("Arc/association %s detached from journey %s (node %s removed)",
+                    arc_or_association.id, journey.id, node.id)
         return {
             'success': True,
             'detached': True

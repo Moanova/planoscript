@@ -7,11 +7,11 @@
 # Construction : Mistral Vibe
 # ---------------------------------------------------------------------
 """
-Package pour les cas d'usage de gestion de vue.
+Package for workspace view use cases.
 
-Ce package contient les use cases liés à la manipulation des éléments
-visuels dans l'espace de travail (création, suppression, modification
-de nœuds, gestion des connections, etc.).
+Contains the use cases related to manipulating the visual elements of the
+workspace (creation, deletion, modification of nodes, connection
+management, etc.).
 """
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase

@@ -676,11 +676,9 @@ class Connection(QGraphicsPathItem):
         self.relation_entity = entity
         if entity:
             self.layout.relation_id = entity.id
-            # Set label from entity's note/desc if available
+            # Set label from the entity's note if available
             if hasattr(entity, 'note') and entity.note:
                 self.layout.label = entity.note
-            elif hasattr(entity, 'desc') and entity.desc:
-                self.layout.label = entity.desc
         else:
             self.layout.relation_id = None
 
@@ -737,8 +735,6 @@ class Connection(QGraphicsPathItem):
         if self.relation_entity:
             if hasattr(self.relation_entity, 'note'):
                 self.relation_entity.note = text
-            elif hasattr(self.relation_entity, 'desc'):
-                self.relation_entity.desc = text
 
 
     def get_source_node(self) -> Optional[BaseNode]:

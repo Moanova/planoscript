@@ -1021,3 +1021,27 @@ les notes de conception, selon les décisions actées :
 - Vérifications : YAML OK, JSON 07 OK (00_specifications-EN.json invalide
   **avant** la séance — non touché), aucun « lien visuel » / « pastille » /
   « EventsList » / « barre latérale des parcours » restant dans 01-05.
+
+
+## 31-10-2026 — TSK26 : analyse du code (lots A/B/C) + lot A appliqué
+
+- **Analyse documentée** dans `docs/project/tasks/TSK26_vocabulary_normalization.md`
+  (nouvelle section « Analyse du code — lots A/B/C ») :
+  - lot A = corrections ciblées sans impact (fait) ;
+  - lot B = renommages d'interface touchant les tests (7 tests lisent
+    `result['relation']` des use cases association ; `relation_entity`
+    26 occurrences) — à faire avec la suite pytest ;
+  - lot C = refactors déconseillés (`CreateNodeUseCase`, `Journey_node`
+    vs `*Node` — clé JSON persistée, `self.workspace`).
+- **Lot A appliqué** (8 fichiers, py_compile OK) : clé `'relation': arc`
+  → `'arc'` dans `create_connection_from_data` (`main_window.py`,
+  `events_workspace.py`) ; variable locale `relation`→`arc`
+  (`main_window.py:1761`) ; code mort `entity.desc` supprimé
+  (`connection.py`) ; `set/get_description`→`set/get_note`
+  (`base_node.py`, aucun appelant) ; docstring FR→EN
+  (`usecases/view_management/__init__.py`) ; commentaires obsolètes
+  (`main_window.py` « not yet implemented », « leter ») ; docstrings
+  `data_model.py` (« predecessor arc », « first arc exists ») ;
+  paramètre `relation`→`arc_or_association` dans
+  attach/detach_relation_to_journey_usecase (appels tous positionnels,
+  tests non impactés).

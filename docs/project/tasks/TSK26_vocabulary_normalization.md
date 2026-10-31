@@ -49,11 +49,50 @@
 - Renommages code : `UpdateRelationUseCase.execute(arc=...)` (clé de
   retour `'arc'`), `ArcService.attach_to_active_journey(arc_or_association=...)`.
 
+## Réalisé (étape 3, 31-10-2026) — réalignement des specs
+
+Application des décisions TSC dans 01/02/03/04 FR+EN, 05_menu-EN.yaml et
+`docs/conception/journey_attachment.md` §1 (commit `47072f8`) : agent =
+composant de niveau projet ; « lien visuel » → « connexion (tracé
+temporaire) » ; prédécesseur/successeur (arcs) vs entrant/sortant (ports) ;
+SU005 sans barre latérale (JourneyList) ; description → note/content ;
+dialogue d'édition ; 04_interface : EventsList→JourneyList, 2 ports,
+pastille→badge ; 05_menu : View > Events ; « espace de travail
+(visualisation) ».
+
+## Analyse du code (audit, 31-10-2026) — lots A/B/C
+
+Audit de `src/` et `tests/` par rapport au vocabulaire acté :
+
+- **Lot A (fait, commit suivant)** — corrections ciblées sans impact :
+  clé de dict `'relation': arc` → `'arc'` (`main_window.py`,
+  `events_workspace.py`) ; variable locale `relation`→`arc`
+  (`main_window.py:1761`) ; code mort `entity.desc` supprimé
+  (`connection.py`) ; `set/get_description` → `set/get_note`
+  (`base_node.py`, 0 appelant) ; docstring FR→EN
+  (`usecases/view_management/__init__.py`) ; commentaires obsolètes
+  (`main_window.py:1119`, « leter ») ; docstrings `data_model.py`
+  (« predecessor arc », « first arc exists ») ; paramètre
+  `relation` → `arc_or_association` dans
+  `attach/detach_relation_to_journey_usecase.py` (appels positionnels,
+  tests non impactés).
+- **Lot B (à faire, nécessite la suite pytest)** — renommages
+  d'interface : use cases association (`relation`→`association`,
+  clé de retour `'relation'`→`'association'`) + 7 tests lisant
+  `['relation']` ; `Connection.relation_entity` → `arc_or_association`
+  (26 occ., 1 test offscreen) ; `CreateRelationUseCase` (232 lignes,
+  instancié mais jamais appelé — code mort à supprimer ou renommer).
+- **Lot C (déconseillé — documenter, ne pas faire)** : renommage
+  `CreateNodeUseCase`/`create_node_from_data` (~20 sites, « node » UI
+  légitime) ; `Journey_node` vs `*Node` (clé JSON persistée — ne pas
+  toucher) ; `self.workspace` (nom générique volontaire).
+
 ## Reste à faire
 
-- Étape 2 complète : audit arc/connection/relation dans tout le code.
-- Étape 3 : application des décisions TSC ci-dessus dans les specs
-  (01/02/03/04/05 FR+EN) et le code.
+- Lot B (ci-dessus) avec exécution de la suite pytest en environnement
+  complet (sandbox sans pytest/PySide6).
+- Lot C : documenter la correspondance composant/nœud dans cette fiche
+  (fait ci-dessus) — aucune action code.
 
 ## Hors périmètre
 

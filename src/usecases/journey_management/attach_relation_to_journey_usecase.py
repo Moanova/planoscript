@@ -33,13 +33,13 @@ class AttachRelationToJourneyUseCase:
     def __init__(self, project_service: ProjectService):
         self.project_service = project_service
 
-    def execute(self, relation: Relation, journey: Journey,
+    def execute(self, arc_or_association: Relation, journey: Journey,
                 narrative_map: Optional[NarrativeMap] = None) -> Optional[Dict]:
         """Attach a relation to a journey.
 
         Args:
-            relation: The arc (State_to_event / Event_to_state) or the
-                agent-state association (State_agent_rel) to attach
+            arc_or_association: The arc (State_to_event / Event_to_state) or
+                the agent-state association (State_agent_rel) to attach
             journey: The target Journey entity
             narrative_map: Target NarrativeMap (optional, uses the first)
 
@@ -57,25 +57,25 @@ class AttachRelationToJourneyUseCase:
         if not isinstance(journey, Journey) or journey not in narrative_map.journey:
             logger.warning("Invalid journey for attachment: %s", journey)
             return None
-        if not isinstance(relation, (State_to_event, Event_to_state, State_agent_rel)):
-            logger.warning("Invalid relation for attachment: %s", relation)
+        if not isinstance(arc_or_association, (State_to_event, Event_to_state, State_agent_rel)):
+            logger.warning("Invalid arc/association for attachment: %s", arc_or_association)
             return None
 
-        if self.find_node(narrative_map, relation, journey.id) is not None:
+        if self.find_node(narrative_map, arc_or_association, journey.id) is not None:
             logger.info("Relation already attached to journey %s", journey.id)
             return {
                 'success': True,
-                'node': self.find_node(narrative_map, relation, journey.id),
+                'node': self.find_node(narrative_map, arc_or_association, journey.id),
                 'already_attached': True
             }
 
-        node = Journey_node.for_relation(narrative_map, journey.id, relation)
+        node = Journey_node.for_relation(narrative_map, journey.id, arc_or_association)
         narrative_map.journey_node.append(node)
         if self.project_service:
             self.project_service.set_modified(True)
 
         logger.info("Relation %s attached to journey %s (node %s)",
-                    relation.id, journey.id, node.id)
+                    arc_or_association.id, journey.id, node.id)
         return {
             'success': True,
             'node': node,
@@ -83,16 +83,16 @@ class AttachRelationToJourneyUseCase:
         }
 
     @staticmethod
-    def find_node(narrative_map: NarrativeMap, relation: Relation,
+    def find_node(narrative_map: NarrativeMap, arc_or_association: Relation,
                   journey_id: int) -> Optional[Journey_node]:
-        """Return the Journey_node linking a relation to a journey, or None."""
+        """Return the Journey_node linking an arc/association to a journey, or None."""
         for node in narrative_map.journey_node:
             if node.journey_id != journey_id:
                 continue
-            if isinstance(relation, State_to_event) and node.state_to_event_id == relation.id:
+            if isinstance(arc_or_association, State_to_event) and node.state_to_event_id == arc_or_association.id:
                 return node
-            if isinstance(relation, Event_to_state) and node.event_to_state_id == relation.id:
+            if isinstance(arc_or_association, Event_to_state) and node.event_to_state_id == arc_or_association.id:
                 return node
-            if isinstance(relation, State_agent_rel) and node.state_agent_rel_id == relation.id:
+            if isinstance(arc_or_association, State_agent_rel) and node.state_agent_rel_id == arc_or_association.id:
                 return node
         return None

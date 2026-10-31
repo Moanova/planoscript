@@ -619,19 +619,19 @@ class TypedNode(BaseNode):
         super().update_from_layout()
         self._update_colors()
 
-    def set_description(self, description: str) -> None:
-        """Set the entity's description (stored in the 'note' field)."""
-        self.entity.note = description
+    def set_note(self, note: str) -> None:
+        """Set the entity's note."""
+        self.entity.note = note
 
-    def get_description(self) -> Optional[str]:
-        """Get the entity's description."""
+    def get_note(self) -> Optional[str]:
+        """Get the entity's note."""
         return self.entity.note
 
     def get_full_info(self) -> str:
         """Get a formatted string with all entity information."""
         info = f"{self.ENTITY_TYPE_LABEL}: {self.entity.lb}\n"
         if self.entity.note:
-            info += f"Description: {self.entity.note}\n"
+            info += f"Note: {self.entity.note}\n"
         return info
 
     def get_port_position(self, port_name: str) -> QPointF:
