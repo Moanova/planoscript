@@ -40,6 +40,10 @@
   "agents_view_checkbox_size": 20,
   "agents_view_checkbox_color": "#383838",
   "agents_view_checkbox_check_color": "#F0F0F0",
+  "events_view_port_size_px": 8,
+  "events_view_port_margin_px": 4,
+  "events_view_badge_diameter_px": 16.0,
+  "events_view_hit_area_width_px": 12.0,
   "dialog_note_max_height_px": 60,
   "dialog_content_min_height_px": 160
 }

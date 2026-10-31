@@ -1045,6 +1045,11 @@ class EventsWorkspace(QGraphicsView, QObject):
         if isinstance(item, StateNode):
             # Context menu for State nodes
             handlers[menu.addAction("Edit State")] = lambda: self.main_window._edit_selected_component("State")
+            # TSK28 (FN016): the initial state cannot be duplicated (RG062)
+            duplicate_state = menu.addAction("Duplicate State")
+            if getattr(item.entity, 'typ', None) == "Initial":
+                duplicate_state.setEnabled(False)
+            handlers[duplicate_state] = lambda: self.main_window._duplicate_selected_component("State")
             handlers[menu.addAction("Associate agents...")] = lambda: self.main_window._associate_agents_to_state(item.entity)
             # TSK10: "Show in agents view" is disabled when the state
             # has no agent association to show
@@ -1064,6 +1069,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         elif isinstance(item, EventNode):
             # Context menu for Event nodes
             handlers[menu.addAction("Edit Event")] = lambda: self.main_window._edit_selected_component("Event")
+            handlers[menu.addAction("Duplicate Event")] = lambda: self.main_window._duplicate_selected_component("Event")
             handlers[menu.addAction("Delete Event")] = lambda: self.main_window._delete_selected_component("Event")
 
         elif isinstance(item, Connection):

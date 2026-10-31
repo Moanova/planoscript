@@ -347,13 +347,13 @@
                "type": "integer",
                "description": "Ordinal position in the journey sequence"
             },
+            "state_to_event_id": {
+               "type": "integer",
+               "description": "Unique identifier of the outgoing arc (reference to State_to_event.id); null for the final state. Listed first: a map always starts from the initial state (TSK26)"
+            },
             "event_to_state_id": {
                "type": "integer",
                "description": "Unique identifier of the incoming arc (reference to Event_to_state.id); null for the initial state"
-            },
-            "state_to_event_id": {
-               "type": "integer",
-               "description": "Unique identifier of the outgoing arc (reference to State_to_event.id); null for the final state"
             },
             "state_agent_rel_id": {
                "type": "integer",

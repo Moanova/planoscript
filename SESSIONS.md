@@ -900,3 +900,39 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   vise le parcours actif (pas forcément le défaut) ; repli sur le parcours par
   défaut quand active_journey_id est absent (rétrocompatibilité).
 - Prochaine séance : TSK25 (suppression d'un parcours, FN027).
+
+
+## 31-10-2026 — Séance : TSK16, TSK28 (FN016), TSK26 (étape 1), TSK27 (conception FN029)
+
+- **TSK16** : dimensions de la vue Events sorties des constantes de classe
+  vers `config.json` (`events_view_port_size_px`=8, `events_view_port_margin_px`=4,
+  `events_view_badge_diameter_px`=16.0, `events_view_hit_area_width_px`=12.0)
+  dans `base_node.py`, `state_node.py`, `connection.py` (défauts identiques).
+- **TSK28 (SU003/FN016)** : duplication d'un composant State/Event —
+  `DuplicateComponentUseCase` (nouvel id RG020, « {lb} (copy) », attributs
+  hérités, copie isolée : aucun Journey_node RG024/RG052 révisées, refus de
+  l'état initial RG062, copie placée +1 cran de grille à droite), entrées
+  « Duplicate » dans `Project > Components... > State/Event` et les menus
+  contextuels de la vue Events (désactivées pour l'état initial). Tests
+  +15 (`tests/test_components/test_component_duplication.py`).
+- **TSK26 (étape 1)** : ordre des clés `Journey_node` inversé
+  (`state_to_event_id` avant `event_to_state_id` ; vérifié en round-trip
+  JSON) + `07_data_model-FR/EN.json` ; audit vocabulaire partiel
+  (`UpdateRelationUseCase.execute(arc=...)`,
+  `ArcService.attach_to_active_journey(arc_or_association=...)`).
+- **TSK27 (conception)** : filtre d'affichage par parcours FN029/RG042 —
+  note `docs/conception/journey_filter.md` : visibilité dérivée de RG026
+  (relations du parcours actif + composants dérivés ; orphelins masqués sous
+  filtre), état du filtre non persisté (RG041), entrée « All journeys » dans
+  `Display > Journey > JourneyList`, vue Agents non filtrée, comportements
+  d'édition sous filtre. FN029 passé à « Conçu » (FR/EN), 05_menu maj.
+- Kanban v18 : 4 tâches en En revue. Fiches : TSK16, TSK26, TSK27, TSK28.
+- **Problème rencontré** : pytest/PySide6 non installables dans le sandbox
+  (pas de réseau) → suite complète non exécutée ici ; py_compile OK sur tous
+  les fichiers modifiés, JSON/YAML valides, tests TSK28 exécutés
+  manuellement 15/15 PASS, round-trip Journey_node OK. Suite pytest à
+  rejouer en environnement complet (`QT_QPA_PLATFORM=offscreen python -m pytest tests/ -q`).
+- Board Miro « planoscript » non retrouvé via content_search (3 boards d'autres
+  projets visibles seulement) → report Miro non effectué cette séance.
+- Prochaine séance : validation TSC des 4 tâches en revue ; puis
+  implémentation du filtre FN029 (TSK29) ou suite de l'audit TSK26.

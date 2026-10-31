@@ -187,19 +187,19 @@ class ArcService:
         return connections
 
     @staticmethod
-    def attach_to_active_journey(narrative_map: 'NarrativeMap', relation) -> None:
-        """Attach a newly created relation (arc or agent-state association)
-        to the active journey (RG052 revised, docs/conception/journey_attachment.md).
+    def attach_to_active_journey(narrative_map: 'NarrativeMap', arc_or_association) -> None:
+        """Attach a newly created arc or agent-state association to the
+        active journey (RG052 revised, docs/conception/journey_attachment.md).
 
-        Creates one Journey_node referencing the relation in the active
-        journey. No-op when no journey exists.
+        Creates one Journey_node referencing the arc/association in the
+        active journey. No-op when no journey exists.
         """
         from core.models.data_model import Journey_node
 
         journey = narrative_map.get_active_journey()
         if journey is None:
             return
-        node = Journey_node.for_relation(narrative_map, journey.id, relation)
+        node = Journey_node.for_relation(narrative_map, journey.id, arc_or_association)
         narrative_map.journey_node.append(node)
 
     @staticmethod

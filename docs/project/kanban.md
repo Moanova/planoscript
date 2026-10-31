@@ -1,7 +1,7 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 17
-- **Date** : 30-10-2026
+- **Version** : 18
+- **Date** : 31-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
 ---
@@ -27,11 +27,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 ## To do
 
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
-- [ ] TSK16 — Paramétrer dans config.json les dimensions de la vue Events actuellement en constantes de classe (taille/marge des ports `base_node.py`, diamètre du badge `state_node.py`, largeur de zone cliquable `connection.py`)
 
-- [ ] SU003 — Duplication d'un composant (FN016)
-
-- [ ] TSK26 — Normalisation du vocabulaire dans l'ensemble du projet (docs, code, JSON) : distinction actée le 29-10-2026 (`arc` = donnée métier directionnelle, `connection` = objet visuel UI, `association` = State_agent_rel, `relation` = terme chapeau specs/menus uniquement — voir `docs/conception/journey_attachment.md` §1) ; à appliquer : audit arc/connection/relation dans tout le code + ex. inverser l'ordre des clés `state_to_event_id` / `event_to_state_id` dans `Journey_node` (mettre `state_to_event_id` en premier, une carte commençant toujours par l'état initial) ; autres points ambigus au fil de la réalisation — tâche transverse déplacée hors EPC05 à sa clôture (30-10-2026)
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
@@ -43,7 +39,10 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
-- (aucune tâche en cours)
+- [x] TSK16 — Dimensions de la vue Events dans config.json (`events_view_port_size_px`, `events_view_port_margin_px`, `events_view_badge_diameter_px`, `events_view_hit_area_width_px`) — `base_node.py`/`state_node.py`/`connection.py` lisent config avec défauts identiques — py_compile OK — fiche `tasks/TSK16_config_dimensions.md`
+- [x] TSK28 — Duplication d'un composant (SU003/FN016) : `DuplicateComponentUseCase` (nouvel id RG020, libellé « {lb} (copy) », attributs hérités, copie isolée sans Journey_node RG024/RG052, refus de l'état initial RG062, position +1 cran de grille à droite) + entrées « Duplicate » dans Project›Components...›State/Event et menus contextuels (désactivées pour l'état initial) — tests +15 (exécutés manuellement 15/15 PASS ; pytest non installable dans le sandbox) — fiche `tasks/TSK28_component_duplication.md`
+- [x] TSK26 — Normalisation du vocabulaire (étape 1) : ordre des clés `Journey_node` inversé (`state_to_event_id` avant `event_to_state_id`, vérifié en round-trip JSON) + `07_data_model-FR/EN.json` mis à jour ; audit partiel : paramètre `relation`→`arc` dans `UpdateRelationUseCase.execute`, `arc_or_association` dans `ArcService.attach_to_active_journey` — py_compile OK — fiche `tasks/TSK26_vocabulary_normalization.md` (audit complet à poursuivre)
+- [x] TSK27 — Conception du filtre d'affichage par parcours (FN029/RG042) : note `docs/conception/journey_filter.md` (visibilité dérivée RG026, état non persisté RG041, entrée « All journeys » dans Display›Journey›JourneyList, vue Agents non filtrée, comportements d'édition sous filtre) — FN029 « Conçu » FR/EN, 05_menu mis à jour — fiche `tasks/TSK27_journey_filter_conception.md`
 
 ## Done
 

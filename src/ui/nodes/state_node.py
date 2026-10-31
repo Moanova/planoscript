@@ -21,6 +21,7 @@ from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
 from core.models.data_model import State
 from core.models.view_model import NodeLayout
 from core.services.agent_badge_service import AgentBadgeService
+from config.config_loader import get as _get_config
 from ui.nodes.base_node import TypedNode
 from ui.utils import theme
 
@@ -52,7 +53,8 @@ class StateNode(TypedNode):
     # inside the outline: 2/3 in, 1/3 out)
     # Charter 98: soft gold fill (state type color), soft white outline,
     # dark text for readability on the light fill.
-    BADGE_DIAMETER = 16.0
+    # TSK16: diameter sourced from config.json (events view)
+    BADGE_DIAMETER = _get_config("events_view_badge_diameter_px", 16.0)
     BADGE_BG_COLOR = theme.color("badge_bg_color", theme.BADGE_BG_COLOR)
     BADGE_BORDER_COLOR = theme.color("badge_border_color", theme.BADGE_BORDER_COLOR)
     BADGE_TEXT_COLOR = theme.color("badge_text_color", theme.BADGE_TEXT_COLOR)

@@ -33,6 +33,7 @@ from typing import Optional, Any
 from core.models.view_model import ConnectionLayout, ConnectionStyle, PortPosition, RelationType
 from core.models.data_model import State_agent_rel
 from core.services.layout_service import LayoutService
+from config.config_loader import get as _get_config
 from ui.nodes.base_node import BaseNode
 from ui.utils import theme
 
@@ -67,7 +68,8 @@ class Connection(QGraphicsPathItem):
     ARROW_SIZE = 10.0
 
     # Width (pixels) of the invisible clickable area around the line (see shape())
-    HIT_AREA_WIDTH = 12.0
+    # TSK16: sourced from config.json (events view)
+    HIT_AREA_WIDTH = _get_config("events_view_hit_area_width_px", 12.0)
 
     # RG059: clearance (pixels) between a routed connection and an obstacle node
     ROUTE_MARGIN = 20.0

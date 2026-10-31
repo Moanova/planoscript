@@ -295,8 +295,10 @@ class Journey_node:
     id: int
     journey_id: int  # Reference to Journey.id
     sequence_order: int  # Position in the journey sequence
-    event_to_state_id: Optional[int] = None  # Incoming arc (Event_to_state.id); None for initial state
+    # TSK26: state_to_event_id first — a map always starts from the initial
+    # state, so the outgoing arc is listed before the incoming one
     state_to_event_id: Optional[int] = None  # Outgoing arc (State_to_event.id); None for final state
+    event_to_state_id: Optional[int] = None  # Incoming arc (Event_to_state.id); None for initial state
     state_agent_rel_id: Optional[int] = None  # Agent-state association (State_agent_rel.id); None if the node carries an arc
     creation_date_time: datetime = field(default_factory=datetime.now)
     modification_date_time: Optional[datetime] = None
@@ -306,7 +308,7 @@ class Journey_node:
             if not isinstance(getattr(self, attr), int):
                 setattr(self, attr, int(getattr(self, attr)))
         # Optional references: convert to int if present and not None
-        for attr in ['event_to_state_id', 'state_to_event_id', 'state_agent_rel_id']:
+        for attr in ['state_to_event_id', 'event_to_state_id', 'state_agent_rel_id']:
             val = getattr(self, attr)
             if val is not None and not isinstance(val, int):
                 setattr(self, attr, int(val))

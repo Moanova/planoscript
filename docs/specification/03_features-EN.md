@@ -321,12 +321,14 @@
 
 ## FN029 : Filter the display by journey
 - **Description** : Display either all components and relations of the map, or only those of the active journey.
-- **References** : SU006.
+- **References** : SU006 ; RG026, RG042.
 - **Expected behavior** :
   - The filter allows switching between "show all" and "active journey".
-  - Where applicable, switching from one journey to another instantly updates the display: only the relationships attached to the selected journey and the components to which they give membership (RG026) are represented; the relationships attached to other journeys, the components to which they give membership and orphan components (with no relationship) are visible only when the filter is disabled.
+  - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the selected journey and the components to which they give membership (RG026) are represented; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are visible only when the filter is disabled.
   - Filtering does not mark the map as modified.
-- **Status** : Not documented in the menu ("Display › Journey" section of the menu ignored pending its correction).
+  - Entry point: checkable "All journeys" entry at the top of "Display › Journey › JourneyList" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
+  - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3).
+- **Status** : Designed (TSK27, 31-10-2026) — design note `docs/conception/journey_filter.md` ; implementation to come.
 
 ---
 

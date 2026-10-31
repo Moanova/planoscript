@@ -15,8 +15,10 @@ de nœuds, gestion des connections, etc.).
 """
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
+from usecases.view_management.duplicate_component_usecase import DuplicateComponentUseCase
 
 __all__ = [
     "CreateNodeUseCase",
     "CreateRelationUseCase",
+    "DuplicateComponentUseCase",
 ]

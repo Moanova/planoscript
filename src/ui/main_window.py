@@ -53,6 +53,7 @@ from usecases.agent_association.remove_state_associations_usecase import RemoveS
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
 from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
+from usecases.view_management.duplicate_component_usecase import DuplicateComponentUseCase
 from usecases.view_management.update_relation_usecase import UpdateRelationUseCase
 from usecases.agent_association.update_agent_state_association_usecase import (
     UpdateAgentStateAssociationUseCase
@@ -103,6 +104,7 @@ class MainWindow(QMainWindow):
         self.dissociate_agent_state_usecase = DissociateAgentStateUseCase(self.project_service)
         self.remove_state_associations_usecase = RemoveStateAssociationsUseCase(self.project_service)
         self.update_component_usecase = UpdateComponentUseCase(self.project_service)
+        self.duplicate_component_usecase = DuplicateComponentUseCase(self.project_service)
         self.create_relation_usecase = CreateRelationUseCase(self.project_service)
         # TSK23: journey management (EPC05)
         self.create_journey_usecase = CreateJourneyUseCase(self.project_service)
@@ -393,12 +395,14 @@ class MainWindow(QMainWindow):
         self.state_menu = self.components_menu.addMenu("State")
         self.menu_actions['state_new'] = self.state_menu.addAction("New...", lambda: self._create_new_node("State"))
         self.menu_actions['state_edit'] = self.state_menu.addAction("Edit", lambda: self._edit_selected_component("State"))
+        self.menu_actions['state_duplicate'] = self.state_menu.addAction("Duplicate", lambda: self._duplicate_selected_component("State"))
         self.menu_actions['state_delete'] = self.state_menu.addAction("Delete", lambda: self._delete_selected_component("State"))
 
         # Event submenu (Type → Action)
         self.event_menu = self.components_menu.addMenu("Event")
         self.menu_actions['event_new'] = self.event_menu.addAction("New...", lambda: self._create_new_node("Event"))
         self.menu_actions['event_edit'] = self.event_menu.addAction("Edit", lambda: self._edit_selected_component("Event"))
+        self.menu_actions['event_duplicate'] = self.event_menu.addAction("Duplicate", lambda: self._duplicate_selected_component("Event"))
         self.menu_actions['event_delete'] = self.event_menu.addAction("Delete", lambda: self._delete_selected_component("Event"))
 
         self.relations_menu = self.project_menu.addMenu("Relations...")
@@ -489,8 +493,12 @@ class MainWindow(QMainWindow):
         has_deletable_state = (has_state and selected.entity.typ != "Initial")
 
         self.menu_actions['state_edit'].setEnabled(has_project and has_state)
+        # TSK28 (FN016): the initial state cannot be duplicated (RG062)
+        has_duplicable_state = (has_state and selected.entity.typ != "Initial")
+        self.menu_actions['state_duplicate'].setEnabled(has_project and has_duplicable_state)
         self.menu_actions['state_delete'].setEnabled(has_project and has_deletable_state)
         self.menu_actions['event_edit'].setEnabled(has_project and has_event)
+        self.menu_actions['event_duplicate'].setEnabled(has_project and has_event)
         self.menu_actions['event_delete'].setEnabled(has_project and has_event)
         self.menu_actions['relation_edit'].setEnabled(has_project and has_relation)
         self.menu_actions['relation_delete'].setEnabled(has_project and has_relation)
@@ -1490,6 +1498,45 @@ class MainWindow(QMainWindow):
             self._update_menu_state()
         else:
             self.info_bar.show_message(f"Cannot update {component_type}: invalid data")
+
+    def _duplicate_selected_component(self, component_type: str):
+        """Duplicate the currently selected component (State or Event)
+        (TSK28, FN016). The copy gets a new id and a distinct label
+        "{lb} (copy)", inherits note/content/typ, and is placed one grid
+        major step to the right of the source. No journey node is created
+        for the copy: it is an isolated component (RG024/RG052 revised)."""
+        item = self._get_selected_item()
+        if item is None:
+            self.info_bar.show_message("No component selected")
+            return
+        if isinstance(item, Connection) or not hasattr(item, 'entity'):
+            self.info_bar.show_message("Selected item is not a component")
+            return
+        entity = item.entity
+        actual_type = "State" if isinstance(entity, State) else "Event" if isinstance(entity, Event) else None
+        if actual_type != component_type:
+            self.info_bar.show_message(f"Selected component is not a {component_type}")
+            return
+        if not self.project_opened or not hasattr(self, 'workspace') or self.workspace is None:
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        result = self.duplicate_component_usecase.execute(
+            entity=entity,
+            source_layout=item.layout,
+            narrative_map=narrative_map
+        )
+        if result and result.get('success'):
+            node = self.workspace.create_node_from_data(result)
+            if node is not None:
+                self.node_count += 1
+                # TSK08: a state column may have appeared -> refresh the
+                # agents view matrix
+                self._refresh_agents_view()
+                self.info_bar.show_message(
+                    f"{component_type} duplicated: {result['entity'].lb}")
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message(f"Cannot duplicate {component_type}")
 
     def _edit_agent_entity(self, agent):
         """Edit a specific agent entity (TSK13, from the agents view

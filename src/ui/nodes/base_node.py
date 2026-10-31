@@ -66,9 +66,9 @@ class BaseNode(QGraphicsRectItem):
     _FONT_FAMILY = theme.FONT_FAMILY
     DEFAULT_FONT = QFont(_FONT_FAMILY, theme.NODE_LABEL_FONT_SIZE_PX)
     
-    # Port settings
-    PORT_SIZE = 8
-    PORT_MARGIN = 4
+    # Port settings (TSK16: sourced from config.json, events view)
+    PORT_SIZE = _get_config("events_view_port_size_px", 8)
+    PORT_MARGIN = _get_config("events_view_port_margin_px", 4)
     
     def __init__(self, entity: Any, layout: NodeLayout):
         """

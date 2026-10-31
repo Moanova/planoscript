@@ -347,13 +347,13 @@
                "type": "integer",
                "description": "Position ordinale dans la sequence du parcours"
             },
+            "state_to_event_id": {
+               "type": "integer",
+               "description": "Identifiant unique de l'arc sortant (reference a State_to_event.id) ; null pour l'etat final. List\u00e9 en premier : une carte commence toujours par l'\u00e9tat initial (TSK26)"
+            },
             "event_to_state_id": {
                "type": "integer",
                "description": "Identifiant unique de l'arc entrant (reference a Event_to_state.id) ; null pour l'etat initial"
-            },
-            "state_to_event_id": {
-               "type": "integer",
-               "description": "Identifiant unique de l'arc sortant (reference a State_to_event.id) ; null pour l'etat final"
             },
             "state_agent_rel_id": {
                "type": "integer",
