@@ -122,9 +122,17 @@ def spy_add(self, text):
     return action
 QMenu.addAction = spy_add
 try:
-    # replace menu.exec to return the annotate action without blocking
+    # replace menu.exec to return the annotate action without blocking.
+    # PySide6 exposes the blocking call as exec() AND the legacy exec_();
+    # _on_check_menu calls menu.exec(...), which on this binding resolves to
+    # the C++ slot and ignores the Python override -> patch exec_ too and
+    # alias exec to it so the monkeypatch actually takes effect.
     orig_exec = QMenu.exec
-    QMenu.exec = lambda self, pos=None: self.actions()[0] if self.actions() else None
+    orig_exec_ = getattr(QMenu, 'exec_', None)
+    def fake_exec(self, pos=None):
+        return self.actions()[0] if self.actions() else None
+    QMenu.exec_ = fake_exec
+    QMenu.exec = fake_exec
     # handler would open a dialog; stub _edit_association
     called = {}
     mw._edit_association = lambda agent, state: called.setdefault('args', (agent, state))
@@ -139,5 +147,7 @@ try:
 finally:
     QMenu.addAction = orig_add
     QMenu.exec = orig_exec
+    if orig_exec_ is not None:
+        QMenu.exec_ = orig_exec_
 
 print("OFFSCREEN TSK21 RELATION MENUS CHECKS PASSED")
