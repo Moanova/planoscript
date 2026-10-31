@@ -1,7 +1,7 @@
 # TSK16 — Paramétrer dans config.json les dimensions de la vue Events
 
 - **Épic** : aucune (hygiène technique)
-- **Statut** : Doing
+- **Statut** : Terminée (validée TSC 31-10-2026 : pytest 180 passed inchangé)
 - **Date de création** : 31-10-2026
 - **Dépendances** : aucune
 

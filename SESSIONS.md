@@ -1084,3 +1084,25 @@ les notes de conception, selon les décisions actées :
 - Restant en En revue : TSK16, TSK28 (FN016), TSK27 (conception FN029).
   Prochaine étape proposée : TSK29 = implémentation du filtre FN029 selon
   `docs/conception/journey_filter.md`.
+
+
+## 31-10-2026 — TSK16 validée (Done, kanban v20) ; évolution TSK28 demandée : duplication des agents
+
+- TSK16 passée en Terminé (validée TSC : pytest 180 passed inchangé).
+- **Évolution TSK28 (FN016)** : dupliquer aussi les **agents** (composants de
+  niveau projet, SU008). Plan acté :
+  1. Spécs : SU003 critère « dupliquer un composant » étendu à l'agent ;
+     FN016 état « Implémenté (TSK28) : State/Event + Agent » FR/EN ;
+     05_menu : entrée « Duplicate » dans Project > Components... > Agent.
+  2. Use case `DuplicateAgentUseCase` (project_management) : nouvel id
+     projet (RG020), libellé « {lb} (copy) », typ/note/content hérités,
+     **associations agent-état NON copiées** (la copie est un agent neuf,
+     sans association — cohérent avec RG024 : pas de rattachement implicite),
+     projet marqué modifié. Tests unitaires (tests/test_agents/).
+  3. UI : entrée « Duplicate » dans le sous-menu Agent (actif dès qu'un
+     agent existe, vue Events via dialogue de sélection comme Edit/Delete ;
+     vue Agents : duplication directe de la carte sélectionnée) + « Duplicate
+     Agent » dans le menu contextuel des cartes agent (vue Agents).
+  4. Rafraîchissements : `_refresh_agents_view()` (nouvelle ligne matrice) +
+     `_update_menu_state()`.
+  5. Validation : pytest offscreen + grep + test GUI.
