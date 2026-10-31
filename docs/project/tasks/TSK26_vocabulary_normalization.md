@@ -1,7 +1,7 @@
 # TSK26 — Normalisation du vocabulaire (arc / connection / association / relation)
 
 - **Épic** : transverse (déplacée hors EPC05 à sa clôture, 30-10-2026)
-- **Statut** : Doing
+- **Statut** : Terminée (validée TSC 31-10-2026 : 180 passed, grep de contrôle vide, test GUI OK)
 - **Date de création** : 30-10-2026 (déplacée du To do le 31-10-2026)
 - **Dépendances** : aucune
 
@@ -106,3 +106,14 @@ Audit de `src/` et `tests/` par rapport au vocabulaire acté :
 - 31-10-2026 : passée en Doing.
 
 - 31-10-2026 : travaux de la séance (voir kanban v18 → En revue).
+
+
+## Bilan de clôture (31-10-2026, validé TSC)
+
+- **Étape 1** (fait 31-10) : ordre des clés `Journey_node` inversé + `07_data_model-FR/EN.json` ; `UpdateRelationUseCase.execute(arc=...)`, `ArcService.attach_to_active_journey(arc_or_association=...)`.
+- **Étape 2 — code** : lot A (commit `dc1e4a4`) + lot B (commit `076c06d`, complété par `a139e19`/`bbd0fdc`) : `'relation'`→`'association'` (use cases + tests), `relation_entity`→`arc_or_association` (UI), `CreateRelationUseCase` supprimé (code mort), `set/get_description`→`set/get_note`, code mort `desc` supprimé, docstring FR→EN, `ARC_MAP`.
+  - Champs persistés JSON (`relation_id`/`relation_type`, `journey_node`) **inchangés** : rétrocompatibilité des fichiers projet assurée.
+  - Validation TSC 31-10 : `pytest` 180 passed / 3 skipped (inchangé), grep de contrôle vide, test GUI validé.
+- **Étape 3 — specs** (commit `47072f8`) : 01/02/03/04 FR+EN, 05_menu-EN.yaml, `conception/journey_attachment.md` §1 réalignés selon les décisions actées (composant vs nœud, arc vs ports prédécesseur/successeur, connexion = objet visuel + tracé temporaire, note/content, dialogue d'édition, 2 ports, badge, espace de travail (visualisation), parcours actif (sélectionné), SU005 sans barre latérale, 04_interface : JourneyList/2 ports/badge, 05_menu : View > Events).
+- **Lot C** : décision actée de ne PAS refactorer (`CreateNodeUseCase`, `Journey_node` vs `*Node`, `self.workspace`) — documenté ci-dessus comme correspondance assumée.
+- **Note** : `00_specifications-EN.json` invalide (échappement JSON ligne 6) préexistant, non touché — à traiter séparément si besoin.

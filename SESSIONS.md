@@ -1069,3 +1069,18 @@ les notes de conception, selon les décisions actées :
   validé par py_compile + grep uniquement.
 - **À valider sur poste de travail** (voir commandes dans la réponse agent) :
   suite pytest complète offscreen + py_compile global.
+
+
+## 31-10-2026 — TSK26 clôturée (validée TSC)
+
+- Validation TSC 31-10-2026 : pytest 180 passed / 3 skipped (inchangé),
+  grep de contrôle des renommages vide, test GUI validé. TSK26 passée en
+  Terminé (kanban v19) — étapes 1 (ordre clés Journey_node), 2 (lots A+B
+  code, champs JSON persistés inchangés), 3 (specs 01–05 FR/EN + conception
+  réalignés) faites ; lot C documenté sans refactor. Bilan dans la fiche
+  `docs/project/tasks/TSK26_vocabulary_normalization.md`.
+- Note restée ouverte : `00_specifications-EN.json` invalide (échappement
+  ligne 6) préexistant, hors TSK26.
+- Restant en En revue : TSK16, TSK28 (FN016), TSK27 (conception FN029).
+  Prochaine étape proposée : TSK29 = implémentation du filtre FN029 selon
+  `docs/conception/journey_filter.md`.

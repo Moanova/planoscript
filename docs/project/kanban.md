@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 18
+- **Version** : 19
 - **Date** : 31-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -41,11 +41,12 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [x] TSK16 — Dimensions de la vue Events dans config.json (`events_view_port_size_px`, `events_view_port_margin_px`, `events_view_badge_diameter_px`, `events_view_hit_area_width_px`) — `base_node.py`/`state_node.py`/`connection.py` lisent config avec défauts identiques — py_compile OK — fiche `tasks/TSK16_config_dimensions.md`
 - [x] TSK28 — Duplication d'un composant (SU003/FN016) : `DuplicateComponentUseCase` (nouvel id RG020, libellé « {lb} (copy) », attributs hérités, copie isolée sans Journey_node RG024/RG052, refus de l'état initial RG062, position +1 cran de grille à droite) + entrées « Duplicate » dans Project›Components...›State/Event et menus contextuels (désactivées pour l'état initial) — tests +15 (exécutés manuellement 15/15 PASS ; pytest non installable dans le sandbox) — fiche `tasks/TSK28_component_duplication.md`
-- [x] TSK26 — Normalisation du vocabulaire (étape 1) : ordre des clés `Journey_node` inversé (`state_to_event_id` avant `event_to_state_id`, vérifié en round-trip JSON) + `07_data_model-FR/EN.json` mis à jour ; audit partiel : paramètre `relation`→`arc` dans `UpdateRelationUseCase.execute`, `arc_or_association` dans `ArcService.attach_to_active_journey` — py_compile OK — fiche `tasks/TSK26_vocabulary_normalization.md` (audit complet à poursuivre)
+
 - [x] TSK27 — Conception du filtre d'affichage par parcours (FN029/RG042) : note `docs/conception/journey_filter.md` (visibilité dérivée RG026, état non persisté RG041, entrée « All journeys » dans Display›Journey›JourneyList, vue Agents non filtrée, comportements d'édition sous filtre) — FN029 « Conçu » FR/EN, 05_menu mis à jour — fiche `tasks/TSK27_journey_filter_conception.md`
 
 ## Done
 
+- [x] TSK26 — Normalisation du vocabulaire arc/connexion/association/relation **terminée** (validée TSC 31-10-2026 : pytest 180 passed, grep vide, test GUI OK) — étape 1 : ordre des clés `Journey_node` inversé + `07_data_model-FR/EN.json` ; étape 2 code (lots A+B) : `relation`→`association`/`arc`/`arc_or_association`, `CreateRelationUseCase` supprimé (code mort), `set/get_note`, code mort `desc` retiré, docstrings EN ; champs JSON persistés inchangés ; étape 3 specs : 01–05 FR/EN + conception réalignés (composant vs nœud, prédécesseur/successeur vs ports entrant/sortant, connexion = objet visuel, note/content, dialogue d'édition, 2 ports, badge, espace de travail, parcours actif) ; lot C documenté sans refactor (clés JSON persistées) — détail dans `tasks/TSK26_vocabulary_normalization.md`
 - [x] **EPC05 — Gérer un parcours narratif** (SU005, FN023 à FN027) — TSK21–TSK25 terminées — conception retenue et validée TSC 29-10-2026 : `Journey_node` est la table de liaison, le rattachement se fait sur les connexions (arcs) et non sur les composants, l'appartenance est dérivée des noeuds, aucun champ `journey_ids` sur State/Event, objets orphelins acceptés (invisibles sous filtre parcours) — note de conception : `docs/conception/journey_attachment.md` — validée TSC le 30-10-2026 (TSK26, normalisation du vocabulaire, déplacée en tâche autonome hors épic ; FN019 répositionnée sur la connexion, ligne SU003 retirée du To do)
 
 - [x] TSK25 — Suppression d'un parcours (FN027 : dernier parcours non supprimable (RG018), nœuds orphelins basculés vers le parcours par défaut incl. `state_agent_rel_id` (RG036/RG066), default/actif réattribués (RG055)) → #TSK22, #TSK24 — use case `DeleteJourneyUseCase` + entrée dédiée `Project › Journeys... › Delete...` (sélection Ok/Cancel + confirmation, refus du dernier parcours — UX review 30-10-2026 : plus de bouton Delete dans la sélection Edit) — tests +11 (165 passed, 3 skipped) + offscreen PASSED — détail dans `tasks/TSK25_journey_deletion.md` — validée TSC le 30-10-2026
