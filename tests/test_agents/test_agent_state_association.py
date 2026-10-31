@@ -89,7 +89,7 @@ class TestAssociateAgentState:
         second = associate_usecase.execute(agent=agent, state=state)
         assert second is not None and second['success']
         assert second['already_associated'] is True
-        assert second['relation'] is first['relation']
+        assert second['association'] is first['association']
         narrative_map = project_service.current_project.narrative_map[0]
         assert len(narrative_map.state_agent_rel) == 1
 

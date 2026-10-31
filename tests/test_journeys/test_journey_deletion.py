@@ -146,7 +146,7 @@ class TestOrphanNodes:
         AssociateAgentStateUseCase(project_service).execute(agent, s1)  # node in default
         j2 = CreateJourneyUseCase(project_service).execute(lb="J2")['entity']
         s2 = add_state(narrative_map, 2)
-        rel = AssociateAgentStateUseCase(project_service).execute(agent, s2)['relation']
+        rel = AssociateAgentStateUseCase(project_service).execute(agent, s2)['association']
         # rel's node is in j2 (active)
         assert any(n.state_agent_rel_id == rel.id and n.journey_id == j2.id
                    for n in narrative_map.journey_node)

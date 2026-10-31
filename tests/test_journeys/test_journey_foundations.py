@@ -163,7 +163,7 @@ class TestAutomaticAttachment:
         agent = CreateAgentUseCase(project_service).execute()['entity']
         state = narrative_map.state[0]  # initial state created with the project
         result = AssociateAgentStateUseCase(project_service).execute(agent, state)
-        rel = result['relation']
+        rel = result['association']
 
         nodes = [n for n in narrative_map.journey_node
                  if n.state_agent_rel_id == rel.id]
@@ -254,7 +254,7 @@ class TestCascades:
         """RG066 revised: dissociating removes the node of the association."""
         agent = CreateAgentUseCase(project_service).execute()['entity']
         state = narrative_map.state[0]
-        rel = AssociateAgentStateUseCase(project_service).execute(agent, state)['relation']
+        rel = AssociateAgentStateUseCase(project_service).execute(agent, state)['association']
         assert any(n.state_agent_rel_id == rel.id for n in narrative_map.journey_node)
 
         DissociateAgentStateUseCase(project_service).execute(agent, state)
@@ -274,7 +274,7 @@ class TestPersistence:
         e1 = add_event(narrative_map, 1)
         arc = ArcService.create_arc(narrative_map, s1, e1)
         agent = CreateAgentUseCase(project_service).execute()['entity']
-        rel = AssociateAgentStateUseCase(project_service).execute(agent, s1)['relation']
+        rel = AssociateAgentStateUseCase(project_service).execute(agent, s1)['association']
 
         data = project_service.current_project.to_dict()
         blob = json.dumps(data)

@@ -73,7 +73,7 @@ def build_source_journey(project_service, narrative_map):
     arc_se = ArcService.create_arc(narrative_map, s1, e1)   # State_to_event
     arc_es = ArcService.create_arc(narrative_map, e1, s2)   # Event_to_state
     agent = CreateAgentUseCase(project_service).execute()['entity']
-    rel = AssociateAgentStateUseCase(project_service).execute(agent, s2)['relation']
+    rel = AssociateAgentStateUseCase(project_service).execute(agent, s2)['association']
     return j2, arc_se, arc_es, rel
 
 

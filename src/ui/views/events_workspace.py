@@ -659,7 +659,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         """
         source_node = connection_data.get('source')
         target_node = connection_data.get('target')
-        relation_entity = connection_data.get('arc')
+        arc_or_association = connection_data.get('arc')
 
         if not (source_node and target_node):
             logger.warning("Invalid connection data format")
@@ -669,10 +669,10 @@ class EventsWorkspace(QGraphicsView, QObject):
         connection_layout = ConnectionLayout(
             source_node_id=source_node.entity.id,
             target_node_id=target_node.entity.id,
-            relation_id=relation_entity.id if relation_entity else None,
+            relation_id=arc_or_association.id if arc_or_association else None,
             relation_type=connection_data.get('relation_type', RelationType.STATE_TO_EVENT)
         )
-        connection = Connection(connection_layout, source_node, target_node, relation_entity)
+        connection = Connection(connection_layout, source_node, target_node, arc_or_association)
         self.scene.addItem(connection)
         connection.update_path()
         self._select_item_only(connection)
@@ -885,7 +885,7 @@ class EventsWorkspace(QGraphicsView, QObject):
                     logger.warning("Source or target node not found for connection")
                     continue
 
-                relation_entity = next(
+                arc_or_association = next(
                     (r for r in getattr(narrative_map, attr_name)
                      if r.id == conn_layout.relation_id),
                     None
@@ -894,7 +894,7 @@ class EventsWorkspace(QGraphicsView, QObject):
                 self.create_connection_from_data({
                     'source': source_node,
                     'target': target_node,
-                    'arc': relation_entity,
+                    'arc': arc_or_association,
                     'relation_type': rel_type
                 })
 

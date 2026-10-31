@@ -1045,3 +1045,27 @@ les notes de conception, selon les décisions actées :
   paramètre `relation`→`arc_or_association` dans
   attach/detach_relation_to_journey_usecase (appels tous positionnels,
   tests non impactés).
+
+
+## 31-10-2026 — TSK26 lot B appliqué (renommages d'interface)
+
+- **B1** : use cases agent-association — variable/paramètre `relation` →
+  `association`, clé de retour `'relation'` → `'association'`
+  (associate/dissociate/update_agent_state_association_usecase.py) ;
+  7 sites `['relation']` → `['association']` dans 5 fichiers de tests.
+- **B2** : `Connection.relation_entity` → `arc_or_association` (14 occ.
+  dans connection.py) + accesseurs `get/set_arc_or_association`,
+  `create/delete_arc_or_association` ; 6 occ. dans events_workspace.py,
+  2 dans main_window.py, 1 dans le test offscreen TSK21.
+  Champs persistés JSON `relation_id`/`relation_type` du layout
+  **inchangés** (rétrocompatibilité des fichiers projet).
+- **B3** : `CreateRelationUseCase` supprimé (code mort : instancié dans
+  main_window.py:108 mais jamais appelé) — fichier supprimé + références
+  retirées (import main_window, __init__ du package).
+- **Vérifications sandbox** : py_compile OK sur tous les fichiers touchés ;
+  imports OK des use cases métier ; harnais manuel sans pytest : **82/82
+  tests PASS** (test_agents, test_relations, test_journeys, test_components)
+  + round-trip JSON manuel PASS. UI PySide6 non importable ici → lot B2
+  validé par py_compile + grep uniquement.
+- **À valider sur poste de travail** (voir commandes dans la réponse agent) :
+  suite pytest complète offscreen + py_compile global.

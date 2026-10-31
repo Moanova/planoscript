@@ -36,7 +36,7 @@ class DissociateAgentStateUseCase:
             state: The State entity of the current narrative map
 
         Returns:
-            Dictionary with 'success' and 'relation' (the removed
+            Dictionary with 'success' and 'association' (the removed
             association).
             Or None if the dissociation failed (no project, invalid
             entities, or no existing association between them).
@@ -76,5 +76,5 @@ class DissociateAgentStateUseCase:
         logger.info("Agent %s dissociated from state %s", agent.id, state.id)
         return {
             'success': True,
-            'relation': existing
+            'association': existing
         }

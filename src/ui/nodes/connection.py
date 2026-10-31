@@ -53,7 +53,7 @@ class Connection(QGraphicsPathItem):
         target_node: The target BaseNode
         source_port: The port name on the source node
         target_port: The port name on the target node
-        relation_entity: Reference to the business relation entity (if any)
+        arc_or_association: Reference to the business relation entity (if any)
     """
     
     # Default settings (TSK12 point 05: passive = solid soft gray line;
@@ -82,7 +82,7 @@ class Connection(QGraphicsPathItem):
         layout: ConnectionLayout,
         source_node: BaseNode,
         target_node: BaseNode,
-        relation_entity: Optional[Any] = None
+        arc_or_association: Optional[Any] = None
     ):
         """
         Initialize a Connection with its layout, connected nodes, and optional relation entity.
@@ -91,7 +91,7 @@ class Connection(QGraphicsPathItem):
             layout: The ConnectionLayout containing visual properties
             source_node: The source BaseNode
             target_node: The target BaseNode
-            relation_entity: Optional business relation entity (e.g., State_agent_rel)
+            arc_or_association: Optional business relation entity (e.g., State_agent_rel)
         """
         super().__init__()
         
@@ -101,7 +101,7 @@ class Connection(QGraphicsPathItem):
         self.target_node = target_node
         self.source_port = layout.source_port
         self.target_port = layout.target_port
-        self.relation_entity = relation_entity
+        self.arc_or_association = arc_or_association
         
         # Set appearance from layout
         self._init_appearance()
@@ -595,7 +595,7 @@ class Connection(QGraphicsPathItem):
             self.setPen(self._hover_pen())
         # Immediate tooltip (AGENTS.md pattern): the workspace swallows
         # Qt's delayed automatic tooltip event
-        note = getattr(self.relation_entity, 'note', None) if self.relation_entity else None
+        note = getattr(self.arc_or_association, 'note', None) if self.arc_or_association else None
         if note:
             self.setToolTip(str(note))
             QToolTip.showText(event.screenPos(), str(note))
@@ -666,14 +666,14 @@ class Connection(QGraphicsPathItem):
         self.update_path()
 
 
-    def set_relation_entity(self, entity: Any) -> None:
+    def set_arc_or_association(self, entity: Any) -> None:
         """
         Set the business relation entity for this connection.
         
         Args:
             entity: The business relation entity
         """
-        self.relation_entity = entity
+        self.arc_or_association = entity
         if entity:
             self.layout.relation_id = entity.id
             # Set label from the entity's note if available
@@ -732,9 +732,9 @@ class Connection(QGraphicsPathItem):
         """
         self.layout.label = text
         # Also update the relation entity's note if it exists
-        if self.relation_entity:
-            if hasattr(self.relation_entity, 'note'):
-                self.relation_entity.note = text
+        if self.arc_or_association:
+            if hasattr(self.arc_or_association, 'note'):
+                self.arc_or_association.note = text
 
 
     def get_source_node(self) -> Optional[BaseNode]:
@@ -752,9 +752,9 @@ class Connection(QGraphicsPathItem):
         return self.layout.label
 
 
-    def get_relation_entity(self) -> Optional[Any]:
+    def get_arc_or_association(self) -> Optional[Any]:
         """Get the business relation entity."""
-        return self.relation_entity
+        return self.arc_or_association
 
 
     def get_relation_id(self) -> Optional[int]:
@@ -771,7 +771,7 @@ class Connection(QGraphicsPathItem):
     # Business relation helper methods
     # -------------------------------------------------------------------------
     
-    def create_relation_entity(self, narrative_map: Any) -> Optional[Any]:
+    def create_arc_or_association(self, narrative_map: Any) -> Optional[Any]:
         """
         Create a business relation entity based on the connected nodes.
 
@@ -799,16 +799,16 @@ class Connection(QGraphicsPathItem):
                 creation_date_time=datetime.now()
             )
             narrative_map.state_agent_rel.append(relation)
-            self.set_relation_entity(relation)
+            self.set_arc_or_association(relation)
         else:
             # Event_to_state and State_to_event arcs are created via
             # ArcService, not via this method.
             return None
 
-        return self.relation_entity
+        return self.arc_or_association
 
 
-    def delete_relation_entity(self, narrative_map: Any) -> bool:
+    def delete_arc_or_association(self, narrative_map: Any) -> bool:
         """
         Delete the business relation entity associated with this connection.
 
@@ -844,7 +844,7 @@ class Connection(QGraphicsPathItem):
         else:
             return False
 
-        self.relation_entity = None
+        self.arc_or_association = None
         self.layout.relation_id = None
         if hasattr(narrative_map, 'set_modified'):
             narrative_map.set_modified(True)

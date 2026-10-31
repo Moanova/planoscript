@@ -26,18 +26,18 @@ class UpdateAgentStateAssociationUseCase:
     def __init__(self, project_service: ProjectService):
         self.project_service = project_service
 
-    def execute(self, relation: State_agent_rel, note: Optional[str] = None,
+    def execute(self, association: State_agent_rel, note: Optional[str] = None,
                 narrative_map: Optional[NarrativeMap] = None) -> Optional[Dict]:
         """Update the note of an agent-state association.
 
         Args:
-            relation: The State_agent_rel to update
+            association: The State_agent_rel (association) to update
             note: New note (empty string clears it to None)
             narrative_map: Target NarrativeMap (optional, uses the first)
 
         Returns:
-            Dictionary with 'success' and 'relation'
-            Or None if the update failed (no project, invalid relation).
+            Dictionary with 'success' and 'association'
+            Or None if the update failed (no project, invalid association).
         """
         if narrative_map is None:
             if not self.project_service or not self.project_service.current_project:
@@ -45,17 +45,17 @@ class UpdateAgentStateAssociationUseCase:
                 return None
             narrative_map = self.project_service.current_project.narrative_map[0]
 
-        if not isinstance(relation, State_agent_rel) or relation not in narrative_map.state_agent_rel:
-            logger.warning("Invalid association for update: %s", relation)
+        if not isinstance(association, State_agent_rel) or association not in narrative_map.state_agent_rel:
+            logger.warning("Invalid association for update: %s", association)
             return None
 
-        relation.note = note if (note and note.strip()) else None
-        relation.modification_date_time = datetime.now()
+        association.note = note if (note and note.strip()) else None
+        association.modification_date_time = datetime.now()
         if self.project_service:
             self.project_service.set_modified(True)
 
-        logger.info("Association %s note updated", relation.id)
+        logger.info("Association %s note updated", association.id)
         return {
             'success': True,
-            'relation': relation
+            'association': association
         }

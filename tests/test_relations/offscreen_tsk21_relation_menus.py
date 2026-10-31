@@ -14,7 +14,7 @@ Checks:
 - RelationDialog: note field pre-filled, journeys list checkable with the
   attached journeys checked, validation rejects an empty journey list
 - Events view: the "Edit Relation" context entry is wired to
-  _edit_selected_relation (a Connection carries relation_entity)
+  _edit_selected_relation (a Connection carries arc_or_association)
 - Agents view: _on_check_menu offers "Annotate association..." enabled
   only on a checked cell
 - main_window._edit_relation applies note + journey diff (monkeypatched

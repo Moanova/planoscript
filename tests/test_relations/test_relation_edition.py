@@ -78,7 +78,7 @@ def make_arc(nm, state_id=1, event_id=1):
 def make_association(project_service, nm):
     agent = CreateAgentUseCase(project_service).execute()['entity']
     state = nm.state[0]  # initial state created with the project
-    return AssociateAgentStateUseCase(project_service).execute(agent, state)['relation']
+    return AssociateAgentStateUseCase(project_service).execute(agent, state)['association']
 
 
 # ---------------------------------------------------------------------

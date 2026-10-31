@@ -35,7 +35,7 @@ class AssociateAgentStateUseCase:
             state: The State entity of the current narrative map
 
         Returns:
-            Dictionary with 'success', 'relation' and
+            Dictionary with 'success', 'association' and
             'already_associated' (True when the association already
             existed and creation was skipped, RG063).
             Or None if the association failed (no project, invalid
@@ -54,26 +54,26 @@ class AssociateAgentStateUseCase:
                         agent.id, state.id)
             return {
                 'success': True,
-                'relation': existing,
+                'association': existing,
                 'already_associated': True
             }
 
         from core.models.data_model import State_agent_rel
         from core.services.arc_service import ArcService
-        relation = State_agent_rel(
+        association = State_agent_rel(
             id=narrative_map.get_next_id('state_agent_rel'),
             state_id=state.id,
             agent_id=agent.id
         )
-        narrative_map.state_agent_rel.append(relation)
+        narrative_map.state_agent_rel.append(association)
         # RG066 revised: the association is attached to the active journey
-        ArcService.attach_to_active_journey(narrative_map, relation)
+        ArcService.attach_to_active_journey(narrative_map, association)
         self.project_service.set_modified(True)
 
         logger.info("Agent %s associated with state %s", agent.id, state.id)
         return {
             'success': True,
-            'relation': relation,
+            'association': association,
             'already_associated': False
         }
 

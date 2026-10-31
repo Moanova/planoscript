@@ -51,7 +51,6 @@ from usecases.agent_association.associate_agent_state_usecase import AssociateAg
 from usecases.agent_association.dissociate_agent_state_usecase import DissociateAgentStateUseCase
 from usecases.agent_association.remove_state_associations_usecase import RemoveStateAssociationsUseCase
 from usecases.view_management.create_node_usecase import CreateNodeUseCase
-from usecases.view_management.create_relation_usecase import CreateRelationUseCase
 from usecases.view_management.update_component_usecase import UpdateComponentUseCase
 from usecases.view_management.duplicate_component_usecase import DuplicateComponentUseCase
 from usecases.view_management.update_relation_usecase import UpdateRelationUseCase
@@ -105,7 +104,6 @@ class MainWindow(QMainWindow):
         self.remove_state_associations_usecase = RemoveStateAssociationsUseCase(self.project_service)
         self.update_component_usecase = UpdateComponentUseCase(self.project_service)
         self.duplicate_component_usecase = DuplicateComponentUseCase(self.project_service)
-        self.create_relation_usecase = CreateRelationUseCase(self.project_service)
         # TSK23: journey management (EPC05)
         self.create_journey_usecase = CreateJourneyUseCase(self.project_service)
         self.update_journey_usecase = UpdateJourneyUseCase(self.project_service)
@@ -1758,7 +1756,7 @@ class MainWindow(QMainWindow):
         if item is None or not isinstance(item, Connection):
             self.info_bar.show_message("No relation selected")
             return
-        arc = getattr(item, 'relation_entity', None)
+        arc = getattr(item, 'arc_or_association', None)
         if arc is None:
             self.info_bar.show_message("Cannot edit relation: no business entity associated")
             return
@@ -1851,7 +1849,7 @@ class MainWindow(QMainWindow):
         narrative_map = self.project_service.current_project.narrative_map[0]
 
         # Delete the business relation entity (arc) from the data model
-        if not item.delete_relation_entity(narrative_map):
+        if not item.delete_arc_or_association(narrative_map):
             self.info_bar.show_message("Cannot delete relation: no business entity associated")
             return
 
