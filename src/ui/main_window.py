@@ -44,6 +44,7 @@ from usecases.project_management.create_project_usecase import CreateProjectUseC
 from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.update_agent_usecase import UpdateAgentUseCase
 from usecases.project_management.delete_agent_usecase import DeleteAgentUseCase
+from usecases.project_management.duplicate_agent_usecase import DuplicateAgentUseCase
 from usecases.file_management.load_project_usecase import LoadProjectUseCase
 from usecases.file_management.save_project_usecase import SaveProjectUseCase
 from usecases.file_management.quit_application_usecase import QuitApplicationUseCase
@@ -99,6 +100,8 @@ class MainWindow(QMainWindow):
         self.create_agent_usecase = CreateAgentUseCase(self.project_service)
         self.update_agent_usecase = UpdateAgentUseCase(self.project_service)
         self.delete_agent_usecase = DeleteAgentUseCase(self.project_service)
+        # TSK28 evolution: agent duplication (FN016)
+        self.duplicate_agent_usecase = DuplicateAgentUseCase(self.project_service)
         self.associate_agent_state_usecase = AssociateAgentStateUseCase(self.project_service)
         self.dissociate_agent_state_usecase = DissociateAgentStateUseCase(self.project_service)
         self.remove_state_associations_usecase = RemoveStateAssociationsUseCase(self.project_service)
@@ -522,9 +525,11 @@ class MainWindow(QMainWindow):
         self.menu_actions['agent_new'].setEnabled(has_project)
         if in_agents_view:
             self.menu_actions['agent_edit'].setEnabled(agent_card_selected)
+            self.menu_actions['agent_duplicate'].setEnabled(agent_card_selected)
             self.menu_actions['agent_delete'].setEnabled(agent_card_selected)
         else:
             self.menu_actions['agent_edit'].setEnabled(has_agent)
+            self.menu_actions['agent_duplicate'].setEnabled(has_agent)
             self.menu_actions['agent_delete'].setEnabled(has_agent)
 
 
@@ -1228,6 +1233,31 @@ class MainWindow(QMainWindow):
             self._update_menu_state()
         else:
             self.info_bar.show_message("Cannot update agent: invalid data")
+
+    def _duplicate_agent(self):
+        """Duplicate an agent from the "Project > Components... > Agent >
+        Duplicate" entry (TSK28 evolution, FN016). TSK28 decision
+        31-10-2026: the copy does NOT inherit the agent-state
+        associations of the source. Events view -> selection dialog;
+        agents view -> duplicates the selected agent card directly
+        (the entry is disabled when no agent card is selected)."""
+        if self.tab_bar.currentTab() == "Agents":
+            agent = self.agents_page.selected_agent()
+            if agent is None:
+                self.info_bar.show_message("No agent selected")
+                return
+        else:
+            agent = self._select_agent()
+            if agent is None:
+                return
+        result = self.duplicate_agent_usecase.execute(agent)
+        if result and result.get('success'):
+            self.info_bar.show_message(f"Agent duplicated: {result['entity'].lb}")
+            # A new agent row may have appeared -> refresh the matrix
+            self._refresh_agents_view()
+            self._update_menu_state()
+        else:
+            self.info_bar.show_message("Cannot duplicate agent")
 
     def _delete_agent(self):
         """Delete an agent from the "Project > Components... > Agent >

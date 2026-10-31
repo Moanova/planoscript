@@ -179,13 +179,13 @@
 - **Status** : Implemented (edit dialog, TSK13/TSK20). The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN016 : Duplicate a component
-- **Description** : Duplicate an existing component.
+- **Description** : Duplicate an existing component (state, event or agent).
 - **References** : SU003.
 - **Expected behavior** :
-  - The copy bears a distinct name and a new identifier.
-  - The copy is attached to the active journey.
+  - The copy bears a distinct name ("{label} (copy)") and a new identifier.
+  - The copy of a state/event is an isolated component (no journey node, RG024/RG052 revised); the copy of an agent inherits no agent-state association (TSC decision 31-10-2026).
   - Any duplication marks the map, and therefore the project, as modified.
-- **Status** : Not documented in the menu.
+- **Status** : Implemented (TSK28) — State/Event: `DuplicateComponentUseCase` + "Duplicate" entries (Project›Components...›State/Event, Events view context menus); Agent: `DuplicateAgentUseCase` + "Duplicate" entry (Project›Components...›Agent, agent card context menu in the Agents view).
 
 ## FN017 : Move a component
 - **Description** : Position or reposition a component in the workspace (visualization).

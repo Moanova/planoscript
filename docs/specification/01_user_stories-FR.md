@@ -76,7 +76,7 @@
 - **Critères d'acceptation** :
     - L'utilisateur peut créer un composant depuis le menu général ou le menu contextuel.
     - Lors de la création, le composant est automatiquement rattaché au parcours activé et positionné sur la grille à l'emplacement désigné par l'utilisateur.
-    - L'utilisateur peut dupliquer un composant ; la copie porte automatiquement un nom distinctif et un nouvel identifiant, et est rattachée au parcours activé.
+    - L'utilisateur peut dupliquer un composant (y compris l'agent, composant de niveau projet) ; la copie porte automatiquement un nom distinctif et un nouvel identifiant, et est rattachée au parcours actif (les états/événements) ou sans association (l'agent : les associations agent-état ne sont pas copiées, décision TSC 31-10-2026).
     - L'utilisateur peut modifier les attributs éditables d'un composant via un dialogue d'édition.
     - L'utilisateur peut modifier la liste des parcours auxquels un composant est rattaché, parmi les parcours existants de la carte.
     - L'utilisateur ne peut pas retirer un composant de son parcours s'il n'a qu'un rattachement unique ; l'application empêche cette action ou ne propose pas l'option.

@@ -1106,3 +1106,15 @@ les notes de conception, selon les décisions actées :
   4. Rafraîchissements : `_refresh_agents_view()` (nouvelle ligne matrice) +
      `_update_menu_state()`.
   5. Validation : pytest offscreen + grep + test GUI.
+
+
+## 31-10-2026 — TSK28 évolution : duplication des agents implémentée
+
+- `DuplicateAgentUseCase` (nouvel id RG020, « {lb} (copy) », attributs
+  hérités, **associations agent-état non copiées** — décision TSC) ;
+  entrée « Duplicate » dans Project > Components... > Agent (sélection en
+  vue Events, directe en vue Agents) + « Duplicate Agent » menu contextuel
+  carte agent ; refresh matrice. Tests +10 (10/10 PASS harnais manuel).
+- Specs : SU003/FN016 FR/EN « Implémenté (TSK28) : State/Event + Agent »,
+  05_menu entrée Duplicate (sous-menu Agent).
+- À valider chez TSC : pytest offscreen complet (180+10 attendu).

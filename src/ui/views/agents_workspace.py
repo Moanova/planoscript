@@ -633,6 +633,8 @@ class AgentsWorkspace(QWidget):
         handlers = {}
         handlers[menu.addAction("Edit Agent")] = (
             lambda: main_window._edit_agent())
+        handlers[menu.addAction("Duplicate Agent")] = (
+            lambda: main_window._duplicate_agent())
         handlers[menu.addAction("Delete Agent")] = (
             lambda: main_window._delete_agent())
         show_action = menu.addAction("Show in events view")

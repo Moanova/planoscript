@@ -5,7 +5,7 @@
 - **Date de création** : 31-10-2026
 - **Dépendances** : aucune (TSK22 Done : rattachement au parcours actif disponible)
 
-## Périmètre (SU003 / FN016)
+## Périmètre (SU003 / FN016) — évolution 31-10-2026 : duplication des agents ajoutée (décision TSC : la copie d'agent n'hérite d'aucune association agent-état)
 
 - Dupliquer un composant State ou Event existant (pas l'agent : les agents
   sont portés par le projet, pas par la carte — SU008 ; la duplication
@@ -47,3 +47,15 @@
 - 31-10-2026 : tâche passée en Doing (reprise de la ligne SU003/FN016 du To do).
 
 - 31-10-2026 : travaux de la séance (voir kanban v18 → En revue).
+
+
+## Évolution 31-10-2026 — duplication des agents (validée TSC)
+
+- `DuplicateAgentUseCase` (project_management) : nouvel id projet (RG020),
+  « {lb} (copy) », typ/note/content hérités, **associations non copiées** ;
+  tests +10 (`tests/test_agents/test_agent_duplication.py`, 10/10 PASS en
+  harnais manuel).
+- UI : entrée « Duplicate » dans `Project > Components... > Agent`
+  (vue Events : dialogue de sélection ; vue Agents : carte sélectionnée)
+  + « Duplicate Agent » dans le menu contextuel des cartes agent.
+- Specs : SU003 (FR/EN), FN016 (FR/EN) « Implémenté (TSK28) », 05_menu.

@@ -76,7 +76,7 @@
 - **Acceptance criteria**:
     - The user can create a component from the general menu or the context menu.
     - Upon creation, the component is automatically attached to the activated journey and positioned on the grid at the location designated by the user.
-    - The user can duplicate a component; the copy automatically carries a distinctive name and a new identifier, and is attached to the activated journey.
+    - The user can duplicate a component (including the agent, a project-level component); the copy automatically carries a distinctive name and a new identifier, and is attached to the activated journey (states/events) or unassociated (agent: agent-state associations are not copied, TSC decision 31-10-2026).
     - The user can modify the editable attributes of a component via an edit dialog.
     - The user can modify the list of journeys to which a component is attached, from among the existing journeys of the map.
     - The user cannot remove a component from its journey if it has only a single attachment; the application prevents this action or does not offer the option.

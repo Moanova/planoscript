@@ -179,13 +179,13 @@
 - **État** : Implémenté (dialogue d'édition, TSK13/TSK20). L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN016 : Dupliquer un composant
-- **Description** : Dupliquer un composant existant.
+- **Description** : Dupliquer un composant existant (état, événement ou agent).
 - **Références** : SU003.
 - **Comportement attendu** :
-    - La copie porte un nom distinct et un nouvel identifiant.
-    - La copie est rattachée au parcours actif.
+    - La copie porte un nom distinct (« {libellé} (copy) ») et un nouvel identifiant.
+    - La copie d'état/événement est un composant isolé (aucun nœud de parcours, RG024/RG052 révisées) ; la copie d'agent n'hérite d'aucune association agent-état (décision TSC 31-10-2026).
     - Toute duplication marque la carte, et donc le projet, comme modifié.
-- **État** : Non documenté dans le menu.
+- **État** : Implémenté (TSK28) — State/Event : `DuplicateComponentUseCase` + entrées « Duplicate » (Project›Components...›State/Event, menus contextuels vue Events) ; Agent : `DuplicateAgentUseCase` + entrée « Duplicate » (Project›Components...›Agent, menu contextuel carte agent vue Agents).
 
 ## FN017 : Déplacer un composant
 - **Description** : Positionner ou repositionner un composant dans l'espace de travail (visualisation).
