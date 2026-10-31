@@ -944,3 +944,49 @@ identiques et neutres, dialogues en thème sombre, typographie Segoe UI).
   occupés par d'autres projets) : impossible de créer un board planoscript.
 - Décision actée : `docs/project/kanban.md` devient la source unique de
   vérité du suivi ; la référence au board miro.com est retirée d'AGENTS.md.
+
+
+## 31-10-2026 — TSK26 étape 3 : audit des specs (SU/RG/FN) — décisions TSC enregistrées
+
+Décisions actées (vocabulaire normalisé) :
+
+- **Parcours actif** conservé ; « parcours sélectionné » mentionné entre
+  parenthèses quand pertinent. « fils alternatifs de mon récit » conservé
+  avec « parcours » entre parenthèses.
+- **Composant vs nœud** : nuance retenue — composant = objet métier (niveau
+  projet pour l'agent, niveau carte pour état/événement) ; nœud = objet
+  graphique. Normalisation à appliquer dans les specs et le code en ce sens.
+- **Note d'une relation** : références existantes conservées en l'état.
+- **Description** : terme à supprimer (ou entre parenthèses) au profit de
+  note/annotation et content/contenu.
+- **Direction d'un arc** : mesure FR (01/02/03) — « prédécesseur/successeur »
+  8+10 occurrences, « entrant/sortant » 10+12, mais « entrant/sortant » désigne
+  aussi les ports (gauche/droite) et RG050 les mêle aux arcs ; EN :
+  predecessor/successor 18, incoming/outgoing 12. Décision : aligner sur
+  **prédécesseur/successeur** pour les arcs (terme dominant, propre à la
+  séquence), réserver entrant/sortant aux ports.
+- **Espace de travail (visualisation)** : conserver « espace de travail »,
+  ajouter « visualisation » entre parenthèses quand pertinent.
+- **Libellé** conservé à la place de « nom ».
+- **Carte narrative** conservée, réductible à « carte » si la formulation
+  s'y prête.
+- **Dialogue d'édition** à utiliser au lieu de « panneau de propriétés ».
+- **Ports** conservés plutôt que « points d'accroche » ; 04_interface est
+  erroné (4 ports) : il n'y a que **deux** ports (gauche/droite).
+- **Badge** conservé à la place de « pastille ».
+- **Relation** : terme générique conservé en l'état (sauf type d'état
+  "Relation").
+- **Lien** (lien visuel temporaire de création) : à remplacer par
+  « connexion » (réservé à ce sens ; « lien hypertexte » reste pour l'export,
+  « connexion Internet » inchangé).
+- **Composant** : les agents sont des composants au même titre que états et
+  événements, de **niveau projet** (et non niveau carte narrative) — à
+  corriger dans SU003/FN014.
+- **Réalignement demandé** : 04_interface réaligné sur la réalité (EventsList
+  → JourneyList, 2 ports, badges) ; 05_menu réaligné (Project > View) ;
+  SU005 ne doit plus mentionner la barre d'outils latérale des parcours
+  (remplacée par le filtre de parcours FN029).
+
+Questions remontées à TSC : voir réponse de l'agent (fréquences direction
+arc, explication « connexion » = action de création vs objet visuel vs
+représentation graphique RG059).
