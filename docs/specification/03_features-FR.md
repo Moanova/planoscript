@@ -145,7 +145,7 @@
     - Le document est autonome : aucun serveur, aucune connexion Internet, aucune dépendance externe ; il s'affiche correctement dans Chrome, Firefox et Edge.
     - La page d'accueil propose le choix du mode de lecture ; en MVP, seul le mode "par parcours" est disponible.
     - En mode "parcours" : une page intermédiaire liste les parcours de la carte ; le choix d'un parcours affiche la séquence linéaire complète de ses composants.
-    - Chaque composant est rendu par son libellé (titre de paragraphe) et sa description (corps de texte) ; si la description est vide, seul le libellé est affiché.
+    - Chaque composant est rendu par son libellé (titre de paragraphe) et son contenu (corps du texte) ; si le contenu est vide, seul le libellé est affiché.
     - L'ordre de lecture est déterminé par la relation prédécesseur › successeur du modèle de données, indépendamment des positions graphiques.
     - Chaque page de lecture offre un lien de retour vers la table des matières.
     - L'export ne marque ni la carte ni le projet comme modifiés.
@@ -170,13 +170,13 @@
 - **État** : Partiellement implémenté (création via menu, positionnée au centre de l'espace de travail — à aligner sur le comportement attendu "emplacement désigné par l'utilisateur"). TSK13 : création d'un événement depuis la vue agents (menu global ou menu contextuel de la grille) bascule vers la vue Events et sélectionne le node créé ; « New Agent » est proposé dans le menu contextuel de la grille de la vue Events (création directe, sans bascule) et dans celui de la grille de la vue agents (reste dans la vue agents).
 
 ## FN015 : Modifier les attributs d'un composant
-- **Description** : Modifier les attributs éditables d'un composant via son panneau de propriétés.
+- **Description** : Modifier les attributs éditables d'un composant via un dialogue d'édition (panneau de propriétés).
 - **Références** : SU003 ; menu "Project › Components... › State › Edit" et "Project › Components... › Event › Edit".
 - **Comportement attendu** :
-    - Le panneau de propriétés présente les attributs éditables selon le type du composant (agent, état, événement) : libellé, type, **note** (quelques notes de résumé décrivant l'objet — zone de saisie compacte) et **content** (contenu narratif proprement dit — zone de saisie plus grande, TSK20, 29-10-2026).
+    - Le dialogue d'édition présente les attributs éditables selon le type du composant (agent, état, événement) : libellé, type, **note** (quelques notes de résumé décrivant l'objet — zone de saisie compacte) et **content** (contenu narratif proprement dit — zone de saisie plus grande, TSK20, 29-10-2026).
     - Le libellé n'est pas contraint à l'unicité au sein de la carte.
     - Toute modification d'attribut marque la carte, et donc le projet, comme modifié.
-- **État** : Non implémenté (panneau de propriétés non défini). L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
+- **État** : Implémenté (dialogue d'édition, TSK13/TSK20). L'option de menu est spécifiée mais non implémentée ; elle n'est active que si un node du type concerné est sélectionné dans l'espace de travail.
 
 ## FN016 : Dupliquer un composant
 - **Description** : Dupliquer un composant existant.
@@ -188,7 +188,7 @@
 - **État** : Non documenté dans le menu.
 
 ## FN017 : Déplacer un composant
-- **Description** : Positionner ou repositionner un composant dans l'espace de visualisation.
+- **Description** : Positionner ou repositionner un composant dans l'espace de travail (visualisation).
 - **Références** : SU003, SU006.
 - **Comportement attendu** :
     - Le déplacement s'effectue par glisser-déposer à la souris (PC), au stylet ou en mode tactile (tablette).
@@ -211,11 +211,11 @@
 - **Description** : Modifier la liste des parcours auxquels une relation (arc état-événement ou association agent-état) est rattachée. L'appartenance d'un composant aux parcours en est dérivée (RG026).
 - **Références** : SU004, SU005.
 - **Comportement attendu** :
-    - Le rattachement est géré via une liste à choix multiples des parcours, présentée dans le menu d'édition de la relation (connexion), parmi les parcours existants de la carte.
+    - Le rattachement est géré via une liste à choix multiples des parcours, présentée dans le dialogue d'édition de la connexion, parmi les parcours existants de la carte.
     - À la création d'une relation, celle-ci est automatiquement rattachée au parcours actuellement activé (RG052).
     - L'option est désactivée si la carte ne comporte qu'un seul parcours.
     - Toute modification de rattachement marque la carte, et donc le projet, comme modifié.
-- **État** : Implémenté (TSK22/TSK21) — liste cochable des parcours dans le dialogue d'édition de la relation : menu contextuel « Edit Relation » de la connexion (vue Events), « Project › Relations... › Edit », clic droit « Annotate association... » sur une case cochée (vue Agents) ; rattachement automatique au parcours actif à la création de la relation (RG052 révisée).
+- **État** : Implémenté (TSK22/TSK21) — liste cochable des parcours dans le dialogue d'édition de la connexion : menu contextuel « Edit Relation » de la connexion (vue Events), « Project › Relations... › Edit », clic droit « Annotate association... » sur une case cochée (vue Agents) ; rattachement automatique au parcours actif à la création de la relation (RG052 révisée).
 
 ---
 
@@ -226,8 +226,8 @@
 - **Références** : SU004 ; menu "Project › Relations... › Connect State and Event".
 - **Comportement attendu** :
     - En MVP, la création est initiée depuis le menu (pas de barre d'outils).
-    - L'utilisateur sélectionne un composant source ; si aucun composant n'est actif, il devient actif. Un lien visuel suit alors le curseur jusqu'au clic sur le port d'attache du composant cible.
-    - La relation est orientée : la sortie du composant source est connectée à l'entrée du composant cible.
+    - L'utilisateur sélectionne un composant source ; si aucun composant n'est actif, il devient actif. Une connexion (tracé temporaire) suit alors le curseur jusqu'au clic sur le port du composant cible.
+    - L'arc est orienté : le port sortant du composant source est relié au port entrant du composant cible.
     - L'application refuse la création si : source et cible sont identiques ; source et cible sont de même type (un état se connecte nécessairement à un événement, et réciproquement) ; une relation existe déjà entre les deux composants, dans le même sens ou dans le sens opposé.
     - La relation est représentée par une ligne ; elle suit les déplacements des composants qu'elle relie et n'est pas déplaçable en tant que telle.
     - Toute création marque la carte, et donc le projet, comme modifié.
@@ -260,19 +260,19 @@
 
 ## FN023 : Créer un parcours
 - **Description** : Créer un parcours narratif dans la carte.
-- **Références** : SU005 ; menu "Project" (la barre latérale de parcours n'existe pas en MVP).
+- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey › JourneyList).
 - **Comportement attendu** :
-    - Le nouveau parcours reçoit un identifiant unique, un nom par défaut et une description vide.
+    - Le nouveau parcours reçoit un identifiant unique, un libellé par défaut et une note vide.
     - Le nouveau parcours est automatiquement activé et devient le parcours courant.
     - Tout composant créé par la suite est rattaché à ce parcours.
     - Toute création marque la carte, et donc le projet, comme modifié.
 - **État** : Implémenté (TSK23) — menu « Project › Journeys... › New... » (dialogue) + « Display › Journey › JourneyList » ; nouveau parcours auto-activé (RG023).
 
 ## FN024 : Renommer et décrire un parcours
-- **Description** : Modifier le libellé et la description d'un parcours.
+- **Description** : Modifier le libellé et la note d'un parcours.
 - **Références** : SU005.
 - **Comportement attendu** :
-    - La modification s'effectue via une boîte de dialogue ou un panneau de propriétés.
+    - La modification s'effectue via un dialogue d'édition.
     - Toute modification marque la carte, et donc le projet, comme modifié.
 - **État** : Implémenté (TSK23) — menu « Project › Journeys... › Edit » (dialogue de sélection + dialogue d'édition : libellé + note).
 
@@ -287,7 +287,7 @@
 
 ## FN026 : Activer un parcours
 - **Description** : Activer un parcours comme parcours courant pour l'édition.
-- **Références** : SU005 ; menu "Project" (la barre latérale de parcours n'existe pas en MVP).
+- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey › JourneyList).
 - **Comportement attendu** :
     - L'activation s'effectue depuis la liste des parcours.
     - Le parcours activé devient le parcours courant : les nouveaux composants y sont rattachés et le filtrage d'affichage s'y applique (cf. FN029).
@@ -308,12 +308,12 @@
 
 # Visualisation
 
-## FN028 : Naviguer dans l'espace de visualisation
+## FN028 : Naviguer dans l'espace de travail (visualisation)
 - **Description** : Naviguer dans l'espace graphique de représentation de la carte narrative.
 - **Références** : SU006.
 - **Comportement attendu** :
     - La navigation s'effectue par les ascenseurs horizontal et vertical.
-    - L'espace de visualisation est virtuellement illimité (dans les limites du système d'exploitation).
+    - L'espace de travail (visualisation) est virtuellement illimité (dans les limites du système d'exploitation).
     - La grille d'alignement des composants est toujours visible et active.
     - Les positions des ascenseurs et le niveau de zoom ne constituent pas des données métier : ils ne sont pas conservés entre les sessions et ne marquent pas la carte comme modifiée.
     - L'interface reste pleinement fonctionnelle pour une fenêtre d'au moins 1280×720.
@@ -324,7 +324,7 @@
 - **Références** : SU006 ; RG026, RG042.
 - **Comportement attendu** :
     - Le filtre permet de basculer entre "tout afficher" et "parcours actif".
-    - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seules les relations rattachées au parcours sélectionné et les composants auxquels elles donnent appartenance (RG026) sont représentés ; les relations rattachées aux autres parcours, les composants auxquels elles donnent appartenance et les composants orphelins (sans aucune relation) ne sont visibles que lorsque le filtre est désactivé.
+    - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seules les relations rattachées au parcours actif (sélectionné) et les composants auxquels elles donnent appartenance (RG026) sont représentés ; les relations rattachées aux autres parcours, les composants auxquels elles donnent appartenance et les composants orphelins (sans aucune relation) ne sont visibles que lorsque le filtre est désactivé.
     - Le filtrage ne marque pas la carte comme modifiée.
     - Point d'entrée : entrée cochable « All journeys » en tête de « Display › Journey › JourneyList » (cochée = filtre désactivé) ; cocher un parcours active ce parcours et le filtre (TSK27).
     - L'état du filtre n'est pas persisté entre les sessions (état de visualisation, comme le zoom et les scrollbars, RG041 — conception `docs/conception/journey_filter.md` §3).
@@ -380,7 +380,7 @@
 - Import de carte narrative depuis un fichier autonome (SU002 — retiré du MVP par décision du 08-09-2026).
 - Export technique de carte destiné à la réimportation (SU007 — reporté, de fait de l'exclusion de l'import).
 - Export de lecture "par événements" et "par relations entre agents" (SU007 — relations d'agent à agent).
-- Zoom de l'espace de visualisation (SU006).
+- Zoom de l'espace de travail (visualisation) (SU006).
 - Barres d'outils "composants" et "parcours" (SU003, SU005 — actions par menu uniquement).
 - Analyse de cohérence des parcours (SU005).
 - Menu "Edit" (annuler, rétablir, historique, couper, copier, coller, supprimer) : absent des user stories et non implémenté ; à trancher (retrait du menu ou spécification ultérieure).

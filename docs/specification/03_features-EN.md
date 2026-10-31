@@ -145,7 +145,7 @@
   - The document is standalone: no server, no Internet connection, no external dependency; it displays correctly in Chrome, Firefox, and Edge.
   - The home page offers the choice of reading mode; in the MVP, only the "by journey" mode is available.
   - In "journey" mode: an intermediate page lists the journeys of the map; selecting a journey displays the complete linear sequence of its components.
-  - Each component is rendered by its label (paragraph heading) and its description (body text); if the description is empty, only the label is displayed.
+  - Each component is rendered by its label (paragraph heading) and its content (body text); if the content is empty, only the label is displayed.
   - The reading order is determined by the predecessor › successor relationship of the data model, regardless of graphical positions.
   - Each reading page offers a link back to the table of contents.
   - The export does not mark either the map or the project as modified.
@@ -164,19 +164,19 @@
   - The component is created with a unique integer identifier within the map, the default label for the type, and the icon corresponding to its type.
   - It is positioned at the location designated by the user, aligned on the alignment grid (always visible and active).
   - No journey attachment is created when the component is created: it belongs to a journey as soon as one of its relationships is attached to it (RG024 revised, RG026, RG052).
-  - It has two active attachment ports: incoming (left) and outgoing (right).
+  - It has two active ports: incoming (left) and outgoing (right).
   - It is not resizable.
   - Any creation marks the map, and therefore the project, as modified.
 - **Status** : Partially implemented (creation via menu, positioned at the center of the workspace — to be aligned with the expected behavior "location designated by the user"). TSK13: creating an event from the agents view (global menu or grid context menu) switches to the events view and selects the created node; "New Agent" is offered in the grid context menu of the events view (direct creation, no view switch) and in the grid context menu of the agents view (stays in the agents view).
 
 ## FN015 : Modify the attributes of a component
-- **Description** : Modify the editable attributes of a component via its properties panel.
+- **Description** : Modify the editable attributes of a component via an edit dialog (properties panel).
 - **References** : SU003 ; menu "Project › Components... › State › Edit" and "Project › Components... › Event › Edit".
 - **Expected behavior** :
-  - The properties panel presents the editable attributes according to the component type (agent, state, event): label, type, **note** (a few summary notes describing the object — compact input area) and **content** (the narrative content itself — larger input area, TSK20, 29-10-2026).
+  - The edit dialog presents the editable attributes according to the component type (agent, state, event): label, type, **note** (a few summary notes describing the object — compact input area) and **content** (the narrative content itself — larger input area, TSK20, 29-10-2026).
   - The label is not subject to uniqueness within the map.
   - Any attribute modification marks the map, and therefore the project, as modified.
-- **Status** : Not implemented (properties panel not defined). The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
+- **Status** : Implemented (edit dialog, TSK13/TSK20). The menu option is specified but not implemented; it is enabled only when a node of the relevant type is selected in the workspace.
 
 ## FN016 : Duplicate a component
 - **Description** : Duplicate an existing component.
@@ -188,7 +188,7 @@
 - **Status** : Not documented in the menu.
 
 ## FN017 : Move a component
-- **Description** : Position or reposition a component in the visualization space.
+- **Description** : Position or reposition a component in the workspace (visualization).
 - **References** : SU003, SU006.
 - **Expected behavior** :
   - Moving is performed by drag-and-drop with the mouse (PC), with a stylus, or in touch mode (tablet).
@@ -211,7 +211,7 @@
 - **Description** : Modify the list of journeys to which a relationship (state-event arc or agent-state association) is attached. A component's membership to journeys is derived from it (RG026).
 - **References** : SU004, SU005.
 - **Expected behavior** :
-  - The attachment is managed via a multiple-choice list of journeys, presented in the relationship edit menu (connection), among the existing journeys of the map.
+  - The attachment is managed via a multiple-choice list of journeys, presented in the connection edit dialog, among the existing journeys of the map.
   - When a relationship is created, it is automatically attached to the currently activated journey (RG052).
   - The option is disabled if the map contains only one journey.
   - Any attachment modification marks the map, and therefore the project, as modified.
@@ -226,8 +226,8 @@
 - **References** : SU004 ; menu "Project › Relations... › Connect State and Event".
 - **Expected behavior** :
   - In the MVP, creation is initiated from the menu (no toolbar).
-  - The user selects a source component; if no component is active, it becomes active. A visual link then follows the cursor until clicking on the attachment port of the target component.
-  - The relation is directed: the output of the source component is connected to the input of the target component.
+  - The user selects a source component; if no component is active, it becomes active. A connection (temporary trace) then follows the cursor until clicking on the port of the target component.
+  - The arc is directed: the outgoing port of the source component is linked to the incoming port of the target component.
   - The application refuses creation if: source and target are identical; source and target are of the same type (a state necessarily connects to an event, and vice versa); a relation already exists between the two components, in the same direction or in the opposite direction.
   - The relation is represented by a line; it follows the movements of the components it connects and is not movable as such.
   - Any creation marks the map, and therefore the project, as modified.
@@ -262,17 +262,17 @@
 - **Description** : Create a narrative journey in the map.
 - **References** : SU005 ; menu "Project" (the journey sidebar does not exist in the MVP).
 - **Expected behavior** :
-  - The new journey receives a unique identifier, a default name, and an empty description.
+  - The new journey receives a unique identifier, a default label, and an empty note.
   - The new journey is automatically activated and becomes the current journey.
   - Any component created thereafter is attached to this journey.
   - Any creation marks the map, and therefore the project, as modified.
 - **Status** : Implemented (TSK23) - menu "Project > Journeys... > New..." (dialog) + "Display > Journey > JourneyList"; new journey auto-activated (RG023).
 
 ## FN024 : Rename and describe a journey
-- **Description** : Modify the label and description of a journey.
+- **Description** : Modify the label and note of a journey.
 - **References** : SU005.
 - **Expected behavior** :
-  - The modification is performed via a dialog box or a properties panel.
+  - The modification is performed via an edit dialog.
   - Any modification marks the map, and therefore the project, as modified.
 - **Status** : Implemented (TSK23) - menu "Project > Journeys... > Edit" (selection dialog + edition dialog: label + note).
 
@@ -308,12 +308,12 @@
 
 # Visualization
 
-## FN028 : Navigate in the visualization space
-- **Description** : Navigate in the graphical representation space of the narrative map.
+## FN028 : Navigate in the workspace (visualization)
+- **Description** : Navigate in the workspace (graphical representation) of the narrative map.
 - **References** : SU006.
 - **Expected behavior** :
   - Navigation is performed via the horizontal and vertical scrollbars.
-  - The visualization space is virtually unlimited (within the limits of the operating system).
+  - The workspace (visualization) is virtually unlimited (within the limits of the operating system).
   - The component alignment grid is always visible and active.
   - Scrollbar positions and zoom level do not constitute business data: they are not preserved between sessions and do not mark the map as modified.
   - The interface remains fully functional for a window of at least 1280×720.
@@ -324,7 +324,7 @@
 - **References** : SU006 ; RG026, RG042.
 - **Expected behavior** :
   - The filter allows switching between "show all" and "active journey".
-  - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the selected journey and the components to which they give membership (RG026) are represented; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are visible only when the filter is disabled.
+  - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the active (selected) journey and the components to which they give membership (RG026) are represented; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are visible only when the filter is disabled.
   - Filtering does not mark the map as modified.
   - Entry point: checkable "All journeys" entry at the top of "Display › Journey › JourneyList" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
   - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3).
@@ -379,7 +379,7 @@
 - Import of a narrative map from a standalone file (SU002 — removed from the MVP by decision of 08-09-2026).
 - Technical map export intended for re-import (SU007 — postponed, due to the exclusion of import).
 - Reading export "by events" and "by agent relationships" (SU007 — agent-to-agent relations).
-- Zoom of the visualization space (SU006).
+- Zoom of the workspace (visualization) (SU006).
 - "Components" and "journeys" toolbars (SU003, SU005 — menu actions only).
 - Journey consistency analysis (SU005).
 - "Edit" menu (undo, redo, history, cut, copy, paste, delete): absent from user stories and not implemented; to be decided (menu removal or later specification).

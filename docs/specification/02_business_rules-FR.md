@@ -122,7 +122,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG033
-- **Description** : La séquence constitutive d'un parcours est définie par la succession d'état à évènement à état. Chaque relation orientée entre un état et un évènement est matérialisée par un arc état-évènement qui renseigne l'identifiant de l'état, l'identifiant de l'évènement et le sens de la relation (prédécesseur ou successeur). La succession d'état à évènement à état se reconstitue par chaînage des arcs à travers les états et les évènements qu'ils relient.
+- **Description** : La séquence constitutive d'un parcours est définie par la succession d'état à évènement à état. Chaque relation orientée entre un état et un évènement est matérialisée par un arc état-évènement qui renseigne l'identifiant de l'état, l'identifiant de l'évènement et le sens de l'arc (prédécesseur ou successeur). La succession d'état à événement à état se reconstitue par chaînage des arcs à travers les états et les évènements qu'ils relient.
 - **Classification** : Structure des cartes narratives.
 
 ## RG034
@@ -142,7 +142,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG038
-- **Description** : Un état de type final ne possède aucun arc état-évènement sortant, c'est-à-dire aucun arc le reliant à un évènement en tant que successeur.
+- **Description** : Un état de type final ne possède aucun arc état-évènement en tant que successeur (aucun arc sortant).
 - **Classification** : Structure des cartes narratives.
 
 ## RG060
@@ -182,7 +182,7 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG027
-- **Description** : Le rattachement d'une relation (arc ou association agent-état) à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans les propriétés de la connexion (menu d'édition de la relation), et non dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
+- **Description** : Le rattachement d'une relation (arc ou association agent-état) à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans le dialogue d'édition de la connexion (menu « Éditer » de la relation), et non dans les propriétés du composant. L'option est désactivée si un seul parcours existe dans la carte.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG029
@@ -190,11 +190,11 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG052
-- **Description** : Aucun noeud de parcours n'est créé pour un composant isolé (état ou événement sans relation). Le rattachement d'une relation à un parcours s'effectue à la création de la connexion (ou de l'association agent-état) : un noeud de parcours référençant l'arc (ou l'association) est alors créé dans le parcours actuellement activé. Il peut également être ajouté ou retiré ultérieurement via le menu d'édition de la relation (RG027).
+- **Description** : Aucun noeud de parcours n'est créé pour un composant isolé (état ou événement sans relation). Le rattachement d'une relation à un parcours s'effectue à la création de l'arc (ou de l'association agent-état) : un noeud de parcours référençant l'arc (ou l'association) est alors créé dans le parcours actuellement activé. Il peut également être ajouté ou retiré ultérieurement via le menu d'édition de la relation (RG027).
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG054
-- **Description** : Lorsqu'un utilisateur établit une relation entre un état et un évènement, l'application crée un nouvel arc état-évènement renseignant l'état, l'évènement et le sens de la relation (prédécesseur ou successeur). Deux arcs identiques ne peuvent exister pour le même état, le même évènement et le même sens.
+- **Description** : Lorsqu'un utilisateur établit une relation entre un état et un évènement, l'application crée un nouvel arc état-évènement renseignant l'état, l'évènement et le sens de l'arc (prédécesseur ou successeur). Deux arcs identiques ne peuvent exister pour le même état, le même évènement et le même sens.
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG055
@@ -222,7 +222,7 @@
 - **Classification** : Visualisation et interaction.
 
 ## RG042
-- **Description** : À tout moment, soit tous les parcours, soit un seul parcours sont/est visualisé dans l'espace de représentation, selon l'activation ou non du filtre de parcours.
+- **Description** : À tout moment, soit tous les parcours, soit un seul parcours sont/est visualisé dans l'espace de travail (représentation), selon l'activation ou non du filtre de parcours.
 - **Classification** : Visualisation et interaction.
 
 ## RG043
@@ -230,7 +230,7 @@
 - **Classification** : Visualisation et interaction.
 
 ## RG044
-- **Description** : Un composant ne peut être créé à des coordonnées qui chevauchent celles d'un composant existant. L'application vérifie la position avant la création et ajuste les coordonnées du nouveau composant pour éviter tout chevauchement, en appliquant une translation latérale ou verticale selon les caractéristiques de l'espace de représentation graphique.
+- **Description** : Un composant ne peut être créé à des coordonnées qui chevauchent celles d'un composant existant. L'application vérifie la position avant la création et ajuste les coordonnées du nouveau composant pour éviter tout chevauchement, en appliquant une translation latérale ou verticale selon les caractéristiques de l'espace de travail (représentation graphique).
 - **Classification** : Visualisation et interaction.
 
 ## RG045
@@ -238,7 +238,7 @@
 - **Classification** : Visualisation et interaction.
 
 ## RG059
-- **Description** : La représentation visuelle d'une connexion (relation) entre deux composants ne doit jamais chevaucher un composant qui n'en est ni la source ni la cible. À la création d'une connexion, l'application détecte si le tracé de la connexion est susceptible de traverser un composant tiers et, le cas échéant, ajuste automatiquement le routage de la connexion pour contourner ce composant. Cette détection et ce réajustement sont également effectués lorsqu'un composant est déplacé par l'utilisateur et que sa nouvelle position provoque le chevauchement d'une connexion existante dont il n'est pas extrémité. L'ajustement du routage ne modifie ni les coordonnées des composants ni les données du projet ; il ne porte que sur la représentation graphique de la connexion.
+- **Description** : La représentation visuelle d'une connexion (objet graphique) entre deux composants ne doit jamais chevaucher un composant qui n'en est ni la source ni la cible. À la création d'une connexion, l'application détecte si le tracé de la connexion est susceptible de traverser un composant tiers et, le cas échéant, ajuste automatiquement le routage de la connexion pour contourner ce composant. Cette détection et ce réajustement sont également effectués lorsqu'un composant est déplacé par l'utilisateur et que sa nouvelle position provoque le chevauchement d'une connexion existante dont il n'est pas extrémité. L'ajustement du routage ne modifie ni les coordonnées des composants ni les données du projet ; il ne porte que sur la représentation graphique de la connexion.
 - **Classification** : Visualisation et interaction.
 
 ---
@@ -246,7 +246,7 @@
 ## 5. Architecture technique et modèle de données
 
 ## RG050
-- **Description** : L'absence de prédécesseur ou de successeur pour un état est matérialisée par l'absence d'arc état-évènement dans le sens correspondant. Un état sans arc entrant est le premier élément d'une séquence ; un état sans arc sortant est le dernier élément.
+- **Description** : L'absence de prédécesseur ou de successeur pour un état est matérialisée par l'absence d'arc état-évènement dans le sens correspondant. Un état sans arc prédécesseur est le premier élément d'une séquence ; un état sans arc successeur est le dernier élément.
 - **Classification** : Architecture technique et modèle de données.
 
 ## RG051

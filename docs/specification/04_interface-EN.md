@@ -53,8 +53,8 @@
     - Delete (Del) - Not implemented
 
   - **Display**:
-    - **Events**:
-      - EventsList - Not implemented
+    - **Journey**:
+      - JourneyList - Implemented (TSK23: dynamic checkable list of journeys, the checked item is the active journey; an "All journeys" entry is planned for the FN029 filter, TSK27)
     - **Zoom**:
       - Zoom in (Ctrl+=) - Not implemented
       - Zoom out (Ctrl+-) - Not implemented
@@ -247,9 +247,8 @@
     - **Badge on State nodes** (TSK05):
       - **Agent badge** (bottom-right corner of the card, two thirds inside and one third outside the outline — TSK17, TSC 28-10-2026): pill with a counter of the agents associated with the state (FN030); fill `#E5C07B`, border `#F0F0F0`, text `#1E1E1E`; tooltip "Agents: ...".
       - *No event badge in the events view* (TSC review 28-10-2026, feedback n°1: the connections are visible there, the badges would overload the nodes) — the event badges are displayed on the state cards of the **agents view** (see section 6.bis).
-    - **Anchor Points**:
-      - 4 points (top, bottom, left, right) - *Not yet visually implemented*.
-      - Should be visible on hover (8px squares, color `#4CAF50`).
+    - **Ports**:
+      - 2 ports (left = incoming, right = outgoing) - active 8px squares, always visible.
 
   - **Relations (Connections)**:
     - **File**: `./src/ui/nodes/connection.py`
@@ -380,14 +379,14 @@
 ### Partially Implemented
 - [ ] Components bar (exists but not integrated)
 - [ ] Journeys bar (exists but not integrated)
-- [ ] Tab bar (both "Journeys" and "Agents" tabs are active)
+- [ ] Tab bar (both "Events" and "Agents" tabs are active)
 - [ ] Zoom bar (exists but not connected)
 - [ ] Time Reference nodes (class not implemented)
 - [ ] Spatial Reference nodes (class not implemented)
 
 ### Not Implemented
 - [ ] Grid snap
-- [ ] Visible anchor points on nodes
+- [x] Ports visible on nodes (left/right, 8px squares)
 - [x] Annotation (note) on relations — edition via "Edit Relation" (connection, Events view), "Annotate association..." (checked cell, Agents view) and "Project › Relations... › Edit"; tooltip on hover over the connection (TSK21, SU004/FN021, RG027 revised)
 - [ ] Functional zoom (shortcuts and controls)
 - [ ] Complete infinite scrolling (limited to 4000x4000)
@@ -449,6 +448,6 @@
 1. **Integrate the sidebars** into `main_window.py`
 2. **Connect the zoom** between `ZoomBar` and `EventsWorkspace`
 3. **Implement grid snap**
-4. **Add anchor points** on nodes
+4. (TSK16) Events view dimensions parameterized in config.json (ports, badge, hit area)
 5. **Connect the tab bar** to switch views
 6. **Add the missing features** (multiple selection, copy/paste, etc.)

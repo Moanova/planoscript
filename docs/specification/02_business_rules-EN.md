@@ -114,7 +114,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG031
-- **Description** : Each narrative map has one and only one initial state. This state is automatically created by the application and can never be deleted. The initial state participates in all existing journeys of the map through its attachments: each of its outgoing arcs attached to a journey makes the initial state part of that journey (RG026). In a consistent map, all journeys begin at this initial state; the application does not check this consistency (out of MVP scope, SU005).
+- **Description** : Each narrative map has one and only one initial state. This state is automatically created by the application and can never be deleted. The initial state participates in all existing journeys of the map through its attachments: each of its successor arcs attached to a journey makes the initial state part of that journey (RG026). In a consistent map, all journeys begin at this initial state; the application does not check this consistency (out of MVP scope, SU005).
 - **Classification** : Narrative Map Structure.
 
 ## RG032
@@ -142,7 +142,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG038
-- **Description**: A state of type final has no outgoing state-event edge, that is, no edge linking it to an event as a successor.
+- **Description**: A state of type final has no successor state-event arc (no outgoing arc).
 - **Classification**: Narrative Map Structure.
 
 ## RG060
@@ -182,7 +182,7 @@
 - **Classification** : Journey Logic and Membership.
 
 ## RG027
-- **Description** : Attaching a relationship (arc or agent-state association) to one or more journeys is managed via a multiple-choice list of journeys, presented in the properties of the connection (relation edit menu), not in the component's properties. The option is disabled if only one journey exists in the map.
+- **Description** : Attaching a relationship (arc or agent-state association) to one or more journeys is managed via a multiple-choice list of journeys, presented in the connection edit dialog (relation edit menu), not in the component's properties. The option is disabled if only one journey exists in the map.
 - **Classification** : Journey Logic and Membership.
 
 ## RG029
@@ -190,7 +190,7 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG052
-- **Description** : No journey node is created for an isolated component (state or event with no relationship). Attaching a relationship to a journey happens when the connection (or agent-state association) is created: a journey node referencing the arc (or the association) is then created in the currently active journey. It can also be added or removed later via the relationship edit menu (RG027).
+- **Description** : No journey node is created for an isolated component (state or event with no relationship). Attaching a relationship to a journey happens when the arc (or agent-state association) is created: a journey node referencing the arc (or the association) is then created in the currently active journey. It can also be added or removed later via the relationship edit menu (RG027).
 - **Classification** : Journey Logic and Membership.
 
 ## RG054
@@ -222,7 +222,7 @@
 - **Classification**: Visualization and Interaction.
 
 ## RG042
-- **Description**: At any time, either all journeys or a single journey are/is displayed in the representation space, depending on whether the journey filter is activated or not.
+- **Description**: At any time, either all journeys or a single journey are/is displayed in the workspace (representation), depending on whether the journey filter is activated or not.
 - **Classification**: Visualization and Interaction.
 
 ## RG043
@@ -230,7 +230,7 @@
 - **Classification**: Visualization and Interaction.
 
 ## RG044
-- **Description**: A component cannot be created at coordinates that overlap those of an existing component. The application checks the position before creation and adjusts the new component's coordinates to avoid any overlap, applying a lateral or vertical translation according to the characteristics of the graphical representation space.
+- **Description**: A component cannot be created at coordinates that overlap those of an existing component. The application checks the position before creation and adjusts the new component's coordinates to avoid any overlap, applying a lateral or vertical translation according to the characteristics of the workspace (graphical representation).
 - **Classification**: Visualization and Interaction.
 
 ## RG045
@@ -238,7 +238,7 @@
 - **Classification**: Visualization and Interaction.
 
 ## RG059
-- **Description**: The visual representation of a connection (relation) between two components must never overlap a component that is neither its source nor its target. Upon creation of a connection, the application detects whether the connection path is likely to cross a third-party component and, if so, automatically adjusts the connection routing to circumvent that component. This detection and readjustment are also performed when a component is moved by the user and its new position causes an existing connection, of which it is not an endpoint, to be overlapped. The routing adjustment modifies neither component coordinates nor project data; it affects only the graphical representation of the connection.
+- **Description**: The visual representation of a connection (graphical object) between two components must never overlap a component that is neither its source nor its target. Upon creation of a connection, the application detects whether the connection path is likely to cross a third-party component and, if so, automatically adjusts the connection routing to circumvent that component. This detection and readjustment are also performed when a component is moved by the user and its new position causes an existing connection, of which it is not an endpoint, to be overlapped. The routing adjustment modifies neither component coordinates nor project data; it affects only the graphical representation of the connection.
 - **Classification**: Visualization and Interaction.
 
 ---
@@ -246,7 +246,7 @@
 ## 5. Technical Architecture and Data Model
 
 ## RG050
-- **Description**: The absence of a predecessor or successor for a state is materialized by the absence of a state-event edge in the corresponding direction. A state with no incoming edge is the first element of a sequence; a state with no outgoing edge is the last element.
+- **Description**: The absence of a predecessor or successor for a state is materialized by the absence of a state-event edge in the corresponding direction. A state with no predecessor arc is the first element of a sequence; a state with no successor arc is the last element.
 - **Classification**: Technical Architecture and Data Model.
 
 ## RG051

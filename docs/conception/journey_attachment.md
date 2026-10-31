@@ -17,16 +17,18 @@
 
 La direction d'un arc est portée par la table, pas par un champ : depuis un état S, `State_to_event.state_id = S` donne les événements suivants, `Event_to_state.state_id = S` les événements précédents (et symétriquement depuis un événement). Aucun champ de direction supplémentaire n'est nécessaire.
 
-### Normalisation des termes (actée TSC 29-10-2026, audit complet dans TSK26)
+### Normalisation des termes (actée TSC 29-10-2026, complétée TSC 31-10-2026 ; audit complet dans TSK26)
 
 - **arc** : objet métier directionnel du modèle de données (`State_to_event` / `Event_to_state`) — terme des règles RG054+ ; utilisé dans le code (`ArcService`).
-- **connection** : objet visuel de la couche UI (classe `Connection`, `ConnectionLayout`) — la ligne entre deux nodes.
+- **connexion** : objet visuel de la couche UI (classe `Connection`, `ConnectionLayout`) — la ligne entre deux nœuds ; « connexion (tracé temporaire) » désigne aussi le tracé en cours de création (SU004/FN020).
 - **association** : objet métier `State_agent_rel` (code : `AssociateAgentStateUseCase`...).
-- **relation** : terme chapeau réservé aux spécifications et aux menus (arc ∪ association) ; à ne plus utiliser pour désigner un objet précis dans le code.
+- **relation** : terme chapeau réservé aux spécifications et aux menus (arc ∪ association) ; à ne plus utiliser pour désigner un objet précis dans le code. Exception : le type d'état "Relation" (`State.typ`) conserve ce terme.
+- **composant / nœud** (TSC 31-10-2026) : composant = objet métier (agent au niveau projet ; état/événement au niveau carte narrative) ; nœud = objet graphique (classe `*Node`).
+- **arc / ports** (TSC 31-10-2026) : prédécesseur/successeur pour la direction d'un arc ; entrant/sortant pour les ports (gauche/droite).
 
 ## 2. Principes retenus
 
-1. **Les arcs ne sont créés que par connexion utilisateur.** Pas de création implicite d'arc à la création d'un State/Event (l'ancien mécanisme `State_node(from_event_id=0, …)` a été supprimé le 03-10-2026, commit 5ddbcb1).
+1. **Les arcs ne sont créés que par connexion utilisateur** (tracé temporaire sur la connexion). Pas de création implicite d'arc à la création d'un State/Event (l'ancien mécanisme `State_node(from_event_id=0, …)` a été supprimé le 03-10-2026, commit 5ddbcb1).
 2. **Objets orphelins acceptés** : un composant non connecté n'a aucun arc, donc aucun `Journey_node` ; il est invisible quand le filtre parcours est actif (FN029), visible sinon.
 3. **`Journey_node` est la seule table de liaison** vers les parcours. Aucun champ `journey_ids` sur State/Event : l'appartenance d'un composant à un parcours est **dérivée** (un composant appartient à un parcours ssi au moins un de ses arcs y est rattaché par un nœud).
 4. **Rattachement explicite par l'utilisateur sur la connexion** (menu Edit de la connexion, liste à choix multiple des parcours — RG027/FN019 repositionnées de la propriété du composant vers la connexion). Un arc peut appartenir à **1 ou n parcours** : n `Journey_node` référençant le même arc.

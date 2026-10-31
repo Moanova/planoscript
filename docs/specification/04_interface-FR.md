@@ -53,8 +53,8 @@
     - Supprimer (Suppr) — Non implémenté
 
   - **Affichage** :
-    - **Events** :
-      - EventsList — Non implémenté
+    - **Journey** :
+      - JourneyList — Fonctionnel (TSK23 : liste cochable dynamique des parcours, l'élément coché est le parcours actif ; une entrée « All journeys » est prévue pour le filtre FN029, TSK27)
     - **Zoom** :
       - Zoom avant (Ctrl+=) — Non implémenté
       - Zoom arrière (Ctrl+-) — Non implémenté
@@ -245,11 +245,10 @@
       - **Nom** : Texte en haut, Arial 10 pt **gras**.
       - **Description** : *Non affichée* — à implémenter.
     - **Badge sur les nœuds État** (TSK05) :
-      - **Badge d'agents** (coin bas-droit de la carte, 2/3 dedans et 1/3 dehors du contour — TSK17, TSC 28-10-2026) : pastille avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
+      - **Badge d'agents** (coin bas-droit de la carte, 2/3 dedans et 1/3 dehors du contour — TSK17, TSC 28-10-2026) : badge avec compteur des agents associés à l'état (FN030) ; remplissage `#E5C07B`, contour `#F0F0F0`, texte `#1E1E1E` ; infobulle « Agents: ... ».
       - *Pas de badge d'évènement en vue Events* (revue TSC 28-10-2026, retour n°1 : les connexions y sont visibles, les badges surchargeraient les nœuds) — les badges d'évènement sont affichés sur les cartes d'état de la **vue agents** (voir section 6.bis).
-    - **Points d'accroche** :
-      - 4 points (haut, bas, gauche, droite) — *Pas encore visuellement implémentés*.
-      - Devraient être visibles au survol (carrés de 8 px, couleur `#4CAF50`).
+    - **Ports** :
+      - 2 ports (gauche = entrant, droite = sortant) — carrés actifs de 8 px visibles en permanence.
 
   - **Relations (Connexions)** :
     - **Fichier** : `./src/ui/nodes/connection.py`
@@ -274,7 +273,7 @@
   - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
 - **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue Events, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
-- **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux pastilles avec compteur, même style que le badge d'agents de la vue Events mais en cuivre `#D19A66` (teinte du type Événement), **centrés verticalement, et sur l'axe horizontal 2/3 dedans / 1/3 dehors du contour** de la carte (5 px dehors sur un diamètre de 16 — TSK18, TSC 29-10-2026, même règle horizontale que le badge d'agents de la vue Events, TSK17) — toujours du même côté que les ports de connexion (entrant/sortant) des états en vue Events (côtés TSC 28-10-2026) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue Events, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
+- **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux badges avec compteur, même style que le badge d'agents de la vue Events mais en cuivre `#D19A66` (teinte du type Événement), **centrés verticalement, et sur l'axe horizontal 2/3 dedans / 1/3 dehors du contour** de la carte (5 px dehors sur un diamètre de 16 — TSK18, TSC 29-10-2026, même règle horizontale que le badge d'agents de la vue Events, TSK17) — toujours du même côté que les ports de connexion (entrant/sortant) des états en vue Events (côtés TSC 28-10-2026) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue Events, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
 - **Contrat de focus (navigation croisée, TSK10/RG067, étendu par TSK13)** :
   - Méthode commune aux vues : « mettre le focus sur une entité » (état cible → surbrillance + défilement de la colonne, bande translucide sur la cellule ; agent cible → surbrillance des nodes des états associés dans la vue Events avec atténuation du reste du graphe ; état cible depuis la vue agents → bascule vers la vue Events et focus du node de l'état, TSK13).
   - Le focus est un état visuel temporaire (RG067) : ni marquage modifié, ni persistance. Un clic dans le vide ou la touche Échap le relâche.
@@ -387,7 +386,7 @@
 
 ### Non implémentées
 - [ ] Aimantation sur la grille
-- [ ] Points d'accroche visibles sur les nœuds
+- [x] Ports visibles sur les nœuds (gauche/droite, carrés de 8 px)
 - [x] Annotation (note) sur les relations — édition via « Edit Relation » (connexion, vue Events), « Annotate association... » (case cochée, vue Agents) et « Project › Relations... › Edit » ; infobulle au survol de la connexion (TSK21, SU004/FN021, RG027 révisée)
 - [ ] Zoom fonctionnel (raccourcis et contrôles)
 - [ ] Défilement infini complet (limité à 4000×4000)
@@ -449,6 +448,6 @@
 1. **Intégrer les barres latérales** dans `main_window.py`
 2. **Connecter le zoom** entre `ZoomBar` et `EventsWorkspace`
 3. **Implémenter l'aimantation sur la grille**
-4. **Ajouter les points d'accroche** sur les nœuds
+4. (TSK16) Dimensions de la vue Events paramétrées dans config.json (ports, badge, zone cliquable)
 5. **Connecter la barre d'onglets** pour basculer entre les vues
 6. **Ajouter les fonctionnalités manquantes** (sélection multiple, copier/coller, etc.)

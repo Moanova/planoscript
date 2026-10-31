@@ -990,3 +990,34 @@ Décisions actées (vocabulaire normalisé) :
 Questions remontées à TSC : voir réponse de l'agent (fréquences direction
 arc, explication « connexion » = action de création vs objet visuel vs
 représentation graphique RG059).
+
+
+## 31-10-2026 — TSK26 étape 3 appliquée : réalignement des specs et notes de conception
+
+Passe de normalisation appliquée sur 01/02/03/04 (FR+EN), 05_menu-EN.yaml et
+les notes de conception, selon les décisions actées :
+
+- SU003/FN014 : agent = composant de **niveau projet** ; état/événement =
+  composants de niveau carte narrative.
+- SU004/FN020 + RG052/RG059 : « lien visuel » → « connexion (tracé
+  temporaire) » ; arc directionnel avec ports entrant/sortant ; RG059
+  « connexion (objet graphique) ».
+- RG033/RG038/RG050/RG054 + EN : prédécesseur/successeur pour les arcs ;
+  entrant/sortant réservé aux ports (gauche/droite).
+- SU005 : plus de barre d'outils latérale des parcours → menu Projet +
+  liste JourneyList (Display › Journey) ; « parcours actif (sélectionné) ».
+- SU001/SU005 : « fils (parcours) alternatifs ».
+- description → note (parcours) / content (composants, export) ; libellé
+  conservé ; « panneau de propriétés » → « dialogue d'édition ».
+- 04_interface FR/EN : EventsList → JourneyList (TSK23) ; 4 points
+  d'accroche → **2 ports** (gauche/droite) ; pastille → badge ; onglet
+  « Journeys » → « Events ».
+- 05_menu-EN.yaml : Project > View > Journey → Events (TSK19).
+- Espace de visualisation/représentation → « espace de travail
+  (visualisation / représentation graphique) ».
+- conception/journey_attachment.md §1 : vocabulaire complété (connexion =
+  objet visuel + tracé temporaire ; composant vs nœud ; arc vs ports ;
+  exception type d'état "Relation").
+- Vérifications : YAML OK, JSON 07 OK (00_specifications-EN.json invalide
+  **avant** la séance — non touché), aucun « lien visuel » / « pastille » /
+  « EventsList » / « barre latérale des parcours » restant dans 01-05.

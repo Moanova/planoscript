@@ -90,8 +90,8 @@ menu:
       items:
         - name: View
           items:
-            - name: Journey
-              note: "Not implemented - Tab present in TabBar, active via the tab bar (not via this menu)"
+            - name: Events
+              note: "Not implemented - Tab present in TabBar, active via the tab bar (not via this menu; renamed from 'Journey' by TSK19)"
             - name: Agents
               note: "Not implemented - The view is active via the tab bar (SU009, TSK07–TSK15: agents × states matrix in graphical view); the former 'Relations' tab is a leftover from an earlier version and is removed from the MVP"
         - name: Components...
