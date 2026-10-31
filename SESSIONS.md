@@ -1134,3 +1134,10 @@ les notes de conception, selon les décisions actées :
 - Leçon retenue (déjà dans AGENTS.md) : ne jamais supposer — ici un test
   d'instanciation MainWindow offscreen aurait révélé le KeyError
   immédiatement (impossible dans le sandbox, PySide6 absent).
+
+
+## 31-10-2026 — TSK28 passée en Terminé (kanban v21, validée TSC : 190 passed, lancement OK, GUI OK)
+
+Reste en En revue : TSK27 (conception filtre parcours FN029, faite cette
+séance — voir `docs/conception/journey_filter.md`). Prochaine étape
+proposée : TSK29 = implémentation du filtre FN029.

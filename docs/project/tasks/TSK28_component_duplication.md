@@ -1,7 +1,7 @@
 # TSK28 — Duplication d'un composant (SU003, FN016)
 
 - **Épic** : aucune (SU003, hors EPC05)
-- **Statut** : Doing
+- **Statut** : Terminée (validée TSC 31-10-2026 : pytest 190 passed, lancement OK après correctif KeyError, test GUI OK)
 - **Date de création** : 31-10-2026
 - **Dépendances** : aucune (TSK22 Done : rattachement au parcours actif disponible)
 
