@@ -1,7 +1,7 @@
 # TSK27 — Conception du filtre d'affichage par parcours (FN029, RG042, SU006)
 
 - **Épic** : EPC05 (SU005/SU006, gestion des parcours) — tâche de conception
-- **Statut** : Doing
+- **Statut** : Terminée (conception validée TSC 31-10-2026)
 - **Date de création** : 31-10-2026
 - **Dépendances** : TSK22–TSK25 Done (fondations parcours en place)
 
@@ -44,3 +44,15 @@ le filtre d'affichage par parcours (FN029, RG042, SU006) :
 - 31-10-2026 : tâche créée et passée en Doing (séance du 31-10).
 
 - 31-10-2026 : travaux de la séance (voir kanban v18 → En revue).
+
+
+## Validation TSC 31-10-2026
+
+- Décision : la **vue Agents est filtrée comme la vue Events** (colonnes
+  des états du parcours actif + associations rattachées ; lignes agents
+  toutes visibles) — consigné dans `docs/conception/journey_filter.md` §5.
+- Le filtre par menu (« All journeys » dans JourneyList) suffit dans
+  l'immédiat ; une **conception supplémentaire** sera nécessaire pour une
+  barre latérale de filtre (hors TSK29) — note §5bis de la conception.
+- Prochaine étape : TSK29 = implémentation du filtre FN029 (vue Events +
+  vue Agents) selon cette conception.

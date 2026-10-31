@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 21
+- **Version** : 22
 - **Date** : 31-10-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -39,11 +39,11 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
-
-- [x] TSK27 — Conception du filtre d'affichage par parcours (FN029/RG042) : note `docs/conception/journey_filter.md` (visibilité dérivée RG026, état non persisté RG041, entrée « All journeys » dans Display›Journey›JourneyList, vue Agents non filtrée, comportements d'édition sous filtre) — FN029 « Conçu » FR/EN, 05_menu mis à jour — fiche `tasks/TSK27_journey_filter_conception.md`
+- (aucune tâche en cours)
 
 ## Done
 
+- [x] TSK27 — Conception du filtre d'affichage par parcours (FN029/RG042), **validée TSC 31-10-2026** — note `docs/conception/journey_filter.md` : visibilité dérivée RG026, état non persisté RG041, entrée « All journeys » dans Display›Journey›JourneyList, **vue Agents filtrée comme la vue Events** (décision TSC), comportements d'édition sous filtre, note §5bis : barre latérale de filtre en conception ultérieure séparée — FN029 « Conçu » FR/EN, 05_menu — fiche `tasks/TSK27_journey_filter_conception.md` — prochaine étape : TSK29 (implémentation FN029)
 - [x] TSK28 — Duplication d'un composant (SU003/FN016), **terminée et validée TSC 31-10-2026** (pytest 190 passed, lancement OK, test GUI OK) — State/Event : `DuplicateComponentUseCase` (nouvel id RG020, « {lb} (copy) », attributs hérités, copie isolée sans Journey_node RG024/RG052, refus état initial RG062, +1 cran de grille) + entrées « Duplicate » menus State/Event + contextuels vue Events ; **Agent** (évolution) : `DuplicateAgentUseCase` (associations non copiées, décision TSC) + entrée « Duplicate » sous-menu Agent + « Duplicate Agent » contextuel vue Agents — tests +15 +10 — specs SU003/FN016 FR/EN + 05_menu — fiche `tasks/TSK28_component_duplication.md`
 - [x] TSK16 — Dimensions de la vue Events dans config.json (`events_view_port_size_px`, `events_view_port_margin_px`, `events_view_badge_diameter_px`, `events_view_hit_area_width_px`) — `base_node.py`/`state_node.py`/`connection.py` lisent config avec défauts identiques — validée TSC 31-10-2026 (pytest 180 passed inchangé) — fiche `tasks/TSK16_config_dimensions.md`
 - [x] TSK26 — Normalisation du vocabulaire arc/connexion/association/relation **terminée** (validée TSC 31-10-2026 : pytest 180 passed, grep vide, test GUI OK) — étape 1 : ordre des clés `Journey_node` inversé + `07_data_model-FR/EN.json` ; étape 2 code (lots A+B) : `relation`→`association`/`arc`/`arc_or_association`, `CreateRelationUseCase` supprimé (code mort), `set/get_note`, code mort `desc` retiré, docstrings EN ; champs JSON persistés inchangés ; étape 3 specs : 01–05 FR/EN + conception réalignés (composant vs nœud, prédécesseur/successeur vs ports entrant/sortant, connexion = objet visuel, note/content, dialogue d'édition, 2 ports, badge, espace de travail, parcours actif) ; lot C documenté sans refactor (clés JSON persistées) — détail dans `tasks/TSK26_vocabulary_normalization.md`

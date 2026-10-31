@@ -1,7 +1,7 @@
 # Conception — Filtre d'affichage par parcours (FN029, RG042, SU006)
 
 - **Date** : 31-10-2026
-- **Statut** : conception proposée (TSK27) — à valider TSC
+- **Statut** : conception **validée TSC 31-10-2026** (décisions en §3/§5)
 - **Contexte** : EPC05 (SU005/SU006), fondations en place (TSK22–TSK25) ;
   rattachement des relations aux parcours via `Journey_node`
   (`docs/conception/journey_attachment.md`)
@@ -66,15 +66,26 @@ un état purement visuel de la scène.
   c'est le parcours actif qui est coché.
 - Aucun raccourci clavier ajouté en MVP.
 
-## 5. Interaction avec la vue Agents
+## 5. Interaction avec la vue Agents — décision TSC 31-10-2026
 
-- La matrice agents × états affiche **toutes** les associations de la carte,
-  quel que soit le filtre (SU009 : la vue agents est un espace de travail
-  indépendant du graphe des enchaînements). Les associations restent
-  rattachées aux parcours (RG066) mais la matrice n'est pas filtrée.
-  *Question ouverte TSC* : filtrer les colonnes (états) de la matrice sous
-  filtre actif ? Recommandation : non — la matrice sert justement à voir
-  l'ensemble des associations hors contexte de parcours.
+- **La vue Agents est filtrée de la même façon que la vue Events** : sous
+  filtre actif, seules les colonnes des états appartenant au parcours actif
+  (appartenance dérivée RG026) et les associations rattachées à ce parcours
+  (Journey_node.state_agent_rel_id) sont affichées ; les lignes (agents)
+  restent toutes visibles (un agent est un composant de niveau projet, il
+  n'appartient à aucun parcours — SU008). Les cases non rattachées au
+  parcours actif sont masquées avec leur colonne.
+- Implémentation prévue : `setVisible()` sur les cartes d'état et les cases
+  de la matrice, même mécanisme que la vue Events (§2).
+
+## 5bis. Barre latérale de filtre (hors périmètre immédiat)
+
+- Le filtre par menu (entrée « All journeys » dans Display › Journey ›
+  JourneyList) est **suffisant dans l'immédiat** (décision TSC 31-10-2026).
+- Une **conception supplémentaire sera nécessaire** pour l'ajout d'une
+  barre latérale de filtre (TSK14 barre latérale gauche / futur panneau
+  latéral droit « Journey Filter ») : à prévoir dans une tâche dédiée,
+  hors périmètre de TSK29.
 
 ## 6. Interaction avec l'édition sous filtre actif
 

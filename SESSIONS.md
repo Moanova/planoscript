@@ -1141,3 +1141,24 @@ les notes de conception, selon les décisions actées :
 Reste en En revue : TSK27 (conception filtre parcours FN029, faite cette
 séance — voir `docs/conception/journey_filter.md`). Prochaine étape
 proposée : TSK29 = implémentation du filtre FN029.
+
+
+## 31-10-2026 — Fin de séance
+
+- TSK27 (conception filtre parcours FN029) **validée et passée en Terminé**
+  (kanban v22) : décision TSC — la vue Agents est filtrée comme la vue
+  Events (colonnes des états du parcours actif + associations rattachées ;
+  lignes agents toutes visibles), consignée dans
+  `docs/conception/journey_filter.md` §5 ; §5bis : barre latérale de filtre
+  = conception supplémentaire ultérieure (filtre par menu suffisant dans
+  l'immédiat). FN029 « Conçu » FR/EN, 05_menu.
+- TSK28 (duplication composant State/Event + Agent) passée en Terminé
+  (kanban v21) : validée TSC (190 passed, lancement OK après correctif
+  KeyError agent_duplicate, test GUI OK).
+- Kanban v22 : En revue vide ; Done = TSK16, TSK26, TSK27, TSK28.
+- **Prochaine séance : TSK29 — implémentation du filtre FN029** (vue Events
+  + vue Agents) selon `docs/conception/journey_filter.md` ; entrée « All
+  journeys » dans Display > Journey > JourneyList.
+- Rappels : pytest/PySide6 non installables dans le sandbox (validation
+  chez TSC) ; `00_specifications-EN.json` invalide (préexistant) ; TSK14
+  (barre latérale) en To do, hors périmètre MVP.
