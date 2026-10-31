@@ -83,11 +83,13 @@ cela dispense de relire la section ciblée au moment d'une modification) :
 
 - L'avancement est suivi dans `docs/project/kanban.md` (épiques EPCnn,
   tâches TSKnn, dépendances `→ #TSKnn` déclarées uniquement sur la tâche
-  dépendante).
+  dépendante). `docs/project/kanban.md` est la source unique de vérité :
+  aucun report externe (décision 31-10-2026 : le compte miro.com utilisé
+  est un compte gratuit limité à 3 boards, insuffisant pour un board
+  planoscript dédié).
 - Le détail d'une tâche TSKnn (analyse, décisions, journal) est consigné dans
   `docs/project/tasks/TSKnn_*.md`, créé au passage en Doing.
 - Une tâche ne passe en Doing que si ses dépendances sont en Done.
-- L'avancement décrit dans `docs/project/kanban.md` est aussi reporté dans le board planoscript du service miro.com.
 
 ## Conventions
 
