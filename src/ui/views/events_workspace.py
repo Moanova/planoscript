@@ -351,7 +351,17 @@ class EventsWorkspace(QGraphicsView, QObject):
         active filter, or when a focus is active and the item is not
         part of it; full opacity otherwise. The focused state nodes take
         precedence over the filter so the focus target stays readable
-        (TSK29 review 01-11-2026)."""
+        (TSK29 review 01-11-2026).
+
+        Only top-level items are set explicitly: Qt composes opacities
+        down the parent chain (effective opacity = product), so setting
+        a child (label, ports, badge) as well would dim it twice and make
+        the focused node look partially dimmed (bug seen on "Show in
+        events view": the focused state appeared dimmed, less than the
+        others). Children keep their own 1.0 and inherit the parent's.
+        """
+        if item.parentItem() is not None:
+            return
         if (self.has_focus() and isinstance(item, StateNode)
                 and item.entity.id in self._focused_state_ids):
             item.setOpacity(1.0)

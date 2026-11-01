@@ -1196,3 +1196,19 @@ proposée : TSK29 = implémentation du filtre FN029.
   mis à jour. Code mort `_relation_is_visible` retiré (aucun appelant).
 - **Vérifications** : py_compile OK (3 fichiers UI) ; pytest 199 passed ;
   script offscreen TSK29 mis à jour (assertions opacité/enabled).
+
+
+## 01-11-2026 — Correctif focus RG067 : le nœud focalisé apparaissait partiellement estompé
+
+- **Anomalie TSC** (« Show in events view ») : tous les éléments hors état
+  ciblé sont estompés (OK), mais l'état ciblé lui-même est « estompé, moins ».
+- **Cause racine** : `EventsWorkspace.set_focus()/clear_focus()` parcourent
+  `scene.items()` (tous les items, enfants compris : label, ports, badge) et
+  posent `setOpacity(0.25)` sur chacun. Qt compose les opacités parent→enfant
+  (produit) : le `StateNode` focalisé passait à 1.0 mais ses enfants restaient
+  à 0.25 → rendu « partiellement estompé ». Bug présent depuis TSK10, non
+  remarqué avant.
+- **Correctif** (`_apply_item_opacity`, events_workspace.py) : seuls les items
+  de premier niveau (`parentItem() is None`) reçoivent une opacité explicite ;
+  les enfants gardent 1.0 et héritent de celle du parent.
+- **Vérifications** : py_compile OK ; pytest 199 passed.
