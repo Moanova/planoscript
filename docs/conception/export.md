@@ -112,9 +112,12 @@ RG031) :
   annotant chaque relation de son/ses parcours (via `Journey_node`). Sous
   filtre actif, seules les relations du parcours actif sont listées.
 - **Événements pendants** (arc entrant sans arc sortant) : ignorés dans le
-  déroulé, MAIS avec la convention RG « toute branche se termine par un
-  état (Final) » + filet de sécurité : les événements sans état successeur
-  sont listés en fin de déroulé avec un marqueur (sinon perte silencieuse).
+  déroulé et listés **en fin de déroulé avec un marqueur** (option b seule,
+  décision TSC 01-11-2026). **Aucune contrainte de modélisation** : les
+  utilisateurs peuvent générer des aperçus et exporter des cartes à tout
+  stade d'avancement (pas de RG « branche terminée par un état Final »).
+  Le **contrôle de cohérence** (signaler les branches non terminées) est une
+  fonctionnalité **post-MVP**, hors périmètre de TSK31.
 - **Vocabulaire** : pas de « description » dans le modèle — la note en
   infobulle porte la clé **`note`** (TSK26).
 - **Nommage du dossier d'export** : hors périmètre de l'aperçu UI (niveau

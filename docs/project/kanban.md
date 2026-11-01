@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 26
+- **Version** : 27
 - **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -33,6 +33,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - [ ] TSK32 — Ordre de succession réel des parcours : révision de la sémantique de `Journey_node.sequence_order` (recalcul par parcours en profondeur depuis l'état initial, aux points de modification du graphe : create_arc, delete_related_arcs, attach/detach RG027, cascades, chargement) — pas de second champ, clé JSON conservée — RG + 07_data_model FR/EN + tests — prerequisite de l'implémentation de l'aperçu d'export (TSK31 suite) — fiche `tasks/TSK32_sequence_order.md` — créée 01-11-2026 (décision TSC)
 
 - [ ] SU006 — Zoom de l'espace de visualisation
+- [ ] Post-MVP — Contrôle de cohérence de la carte narrative (signaler les branches non terminées : événements sans état successeur) — décision TSC 01-11-2026, hors TSK31 ; les aperçus/exports restent possibles à tout stade d'avancement (pas de contrainte de modélisation)
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
 
