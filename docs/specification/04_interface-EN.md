@@ -54,7 +54,7 @@
 
   - **Display**:
     - **Journey**:
-      - JourneyList - Implemented (TSK23/TSK29: dynamic checkable list of journeys with an "All journeys" entry on top - checked = journey filter disabled (default on opening, TSC decision 01-11-2026); active filter = the checked item is the active journey, checking a journey activates that journey and the filter FN029/RG042; state not persisted RG041)
+      - Journey - Implemented (TSK23/TSK29: dynamic checkable list of journeys directly under this submenu, the former "JourneyList" placeholder removed 01-11-2026 - "All journeys" entry on top: checked = journey filter disabled (default on opening, TSC decision 01-11-2026); active filter = the checked item is the active journey, checking a journey activates that journey and the filter FN029/RG042; state not persisted RG041)
     - **Zoom**:
       - Zoom in (Ctrl+=) - Not implemented
       - Zoom out (Ctrl+-) - Not implemented

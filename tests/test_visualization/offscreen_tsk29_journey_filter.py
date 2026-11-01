@@ -12,7 +12,7 @@ Requires a Qt runtime with libGL (not available in the build sandbox).
 
 Checks:
 - filter disabled by default on project opening ("All journeys" checked)
-- JourneyList: "All journeys" entry on top, journeys below; checking a
+- Journey: "All journeys" entry on top, journeys below; checking a
   journey activates it AND the filter
 - Events view: setVisible() on nodes/connections follows RG026
   (orphans hidden under filter, visible when off)
@@ -45,10 +45,10 @@ nm = mw.project_service.current_project.narrative_map[0]
 ws = mw.workspace
 
 def menu_action(label):
-    """Find a JourneyList action by its label (robust to the dynamic
+    """Find a Journey menu action by its label (robust to the dynamic
     rebuilds: never cache the actions list)."""
-    mw._rebuild_journey_list_menu()
-    for a in mw.journey_list_menu.actions():
+    mw._rebuild_journey_menu()
+    for a in mw.journey_menu.actions():
         if a.text() == label:
             return a
     raise AssertionError(f"menu action not found: {label}")

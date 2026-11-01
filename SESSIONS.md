@@ -1212,3 +1212,15 @@ proposée : TSK29 = implémentation du filtre FN029.
   de premier niveau (`parentItem() is None`) reçoivent une opacité explicite ;
   les enfants gardent 1.0 et héritent de celle du parent.
 - **Vérifications** : py_compile OK ; pytest 199 passed.
+
+
+## 01-11-2026 — Évolution mineure TSC : suppression du sous-menu placeholder « JourneyList »
+
+- `Display > Journey > JourneyList` aplati : les entrées (« All journeys » +
+  parcours cochables) sont directement sous `Display > Journey`
+  (`journey_menu`, rebuild sur `aboutToShow` ; `_rebuild_journey_menu`).
+- Specs mises à jour : 05_menu-EN.yaml (JourneyList → Journey, dynamic),
+  04_interface FR/EN, 01_user_stories FR/EN, 03_features FR/EN, conception
+  journey_filter.md, kanban.md ; scripts offscreen TSK23/TSK24/TSK25/TSK29
+  renommés en conséquence.
+- Vérifications : py_compile OK ; YAML OK ; pytest 199 passed.

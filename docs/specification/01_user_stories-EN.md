@@ -137,7 +137,7 @@
     - The user can create a new journey from the "Project" menu. The new journey is automatically activated and becomes the current journey.
     - The user can rename a journey and modify its note via an edit dialog.
     - The user can duplicate a journey; the copy automatically carries a distinctive name and a new identifier. The relationships attached to the source journey are also attached to the duplicated journey (their journey nodes are copied).
-    - The user can activate a journey by selecting it from the journey list (Display › Journey › JourneyList) or from the "Project" menu. The activated (selected) journey becomes the current journey for editing.
+    - The user can activate a journey by selecting it from the journey list (Display › Journey) or from the "Project" menu. The activated (selected) journey becomes the current journey for editing.
     - The user can delete a journey with prior confirmation, provided it is not the last journey of the map.
     - Upon deletion of a journey, if the deleted journey was the default journey, the oldest remaining journey becomes the new default (RG055).
     - The attachment of a relationship to one or more journeys is managed via a multiple-choice list of journeys, presented in the connection edit menu (relation edit dialog). The option is disabled if only one journey exists in the map.
@@ -159,7 +159,7 @@
     - The application adapts to the window size without loss of functionality; the toolbars (components and journeys) remain accessible.
     - The user can navigate within the workspace (visualization) using the horizontal and vertical scroll bars.
     - The workspace (visualization) supports extended deployment without stability degradation.
-    - If the journey filter is activated, the user can switch from one journey to another via the journey list (Display › Journey › JourneyList) or the "Project" menu; the display updates instantly.
+    - If the journey filter is activated, the user can switch from one journey to another via the journey list (Display › Journey) or the "Project" menu; the display updates instantly.
     - The components and relationships of the displayed journey are rendered according to their coordinates and graphical representation defined in the project metadata.
     - Components align to the alignment grid upon creation and movement.
     - Changes in scroll bar position do not mark the map as modified.

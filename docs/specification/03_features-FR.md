@@ -260,13 +260,13 @@
 
 ## FN023 : Créer un parcours
 - **Description** : Créer un parcours narratif dans la carte.
-- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey › JourneyList).
+- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey).
 - **Comportement attendu** :
     - Le nouveau parcours reçoit un identifiant unique, un libellé par défaut et une note vide.
     - Le nouveau parcours est automatiquement activé et devient le parcours courant.
     - Tout composant créé par la suite est rattaché à ce parcours.
     - Toute création marque la carte, et donc le projet, comme modifié.
-- **État** : Implémenté (TSK23) — menu « Project › Journeys... › New... » (dialogue) + « Display › Journey › JourneyList » ; nouveau parcours auto-activé (RG023).
+- **État** : Implémenté (TSK23) — menu « Project › Journeys... › New... » (dialogue) + « Display › Journey » ; nouveau parcours auto-activé (RG023).
 
 ## FN024 : Renommer et décrire un parcours
 - **Description** : Modifier le libellé et la note d'un parcours.
@@ -287,12 +287,12 @@
 
 ## FN026 : Activer un parcours
 - **Description** : Activer un parcours comme parcours courant pour l'édition.
-- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey › JourneyList).
+- **Références** : SU005 ; menu "Project" (pas de barre latérale de parcours en MVP ; liste des parcours dans Display › Journey).
 - **Comportement attendu** :
     - L'activation s'effectue depuis la liste des parcours.
     - Le parcours activé devient le parcours courant : les nouveaux composants y sont rattachés et le filtrage d'affichage s'y applique (cf. FN029).
     - L'activation marque la carte, et donc le projet, comme modifié.
-- **État** : Implémenté (TSK23) — élément coché dans « Display › Journey › JourneyList » (FN026).
+- **État** : Implémenté (TSK23) — élément coché dans « Display › Journey » (FN026).
 
 ## FN027 : Supprimer un parcours
 - **Description** : Supprimer un parcours de la carte narrative.
@@ -326,7 +326,7 @@
     - Le filtre permet de basculer entre "tout afficher" et "parcours actif".
     - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seules les relations rattachées au parcours actif (sélectionné) et les composants auxquels elles donnent appartenance (RG026) restent à pleine opacité ; les relations rattachées aux autres parcours, les composants auxquels elles donnent appartenance et les composants orphelins (sans aucune relation) sont estompés (opacité 0.25, comme le focus RG067) et non interactifs tant que le filtre est activé (révision TSC 01-11-2026 : estompage au lieu de masquage).
     - Le filtrage ne marque pas la carte comme modifiée.
-    - Point d'entrée : entrée cochable « All journeys » en tête de « Display › Journey › JourneyList » (cochée = filtre désactivé) ; cocher un parcours active ce parcours et le filtre (TSK27).
+    - Point d'entrée : entrée cochable « All journeys » en tête de « Display › Journey » (cochée = filtre désactivé) ; cocher un parcours active ce parcours et le filtre (TSK27).
     - L'état du filtre n'est pas persisté entre les sessions (état de visualisation, comme le zoom et les scrollbars, RG041 — conception `docs/conception/journey_filter.md` §3). Valeur par défaut à l'ouverture d'un projet : **filtre désactivé** (« tous les parcours », décision TSC 01-11-2026).
     - La vue agents est filtrée comme la vue Events (décision TSC 31-10-2026) : sous filtre actif, seules les colonnes des états appartenant au parcours actif et les associations rattachées à ce parcours sont affichées ; les lignes (agents) restent toutes visibles.
 - **État** : Implémenté (TSK29, 01-11-2026) — conception `docs/conception/journey_filter.md` ; `JourneyFilterService` + `apply_journey_filter()` vue Events et vue agents.

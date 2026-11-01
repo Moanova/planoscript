@@ -368,10 +368,12 @@ class MainWindow(QMainWindow):
 
         # Display menu
         self.display_menu = self.menu_bar.addMenu("Display")
-        # TSK23: dynamic checkable list of journeys (active journey is checked)
+        # TSK23 + TSK29: dynamic checkable list of journeys directly under
+        # "Journey" (active journey is checked; "All journeys" entry on top
+        # toggles the journey filter, FN029). The intermediate "JourneyList"
+        # placeholder submenu was removed 01-11-2026 (TSC review)
         self.journey_menu = self.display_menu.addMenu("Journey")
-        self.journey_list_menu = self.journey_menu.addMenu("JourneyList")
-        self.journey_list_menu.aboutToShow.connect(self._rebuild_journey_list_menu)
+        self.journey_menu.aboutToShow.connect(self._rebuild_journey_menu)
         self.zoom_menu = self.display_menu.addMenu("Zoom")
         self.menu_actions['zoom_in'] = self.zoom_menu.addAction("Zoom in", lambda: None, "Ctrl+=")
         self.menu_actions['zoom_out'] = self.zoom_menu.addAction("Zoom out", lambda: None, "Ctrl+-")
@@ -1440,12 +1442,12 @@ class MainWindow(QMainWindow):
             return None
         return dialog.get_selected_journey()
 
-    def _rebuild_journey_list_menu(self):
-        """Rebuild the "Display > Journey > JourneyList" dynamic menu (TSK23,
-        TSK29): a checkable "All journeys" entry on top (checked = journey
+    def _rebuild_journey_menu(self):
+        """Rebuild the "Display > Journey" dynamic menu (TSK23, TSK29):
+        a checkable "All journeys" entry on top (checked = journey
         filter disabled, FN029), then one checkable action per journey,
         checked for the active journey when the filter is active."""
-        self.journey_list_menu.clear()
+        self.journey_menu.clear()
         narrative_map = self._current_narrative_map()
         if narrative_map is None:
             return
@@ -1453,15 +1455,15 @@ class MainWindow(QMainWindow):
         filter_active = bool(
             isinstance(self.workspace, EventsWorkspace)
             and self.workspace.journey_filter_active)
-        all_action = self.journey_list_menu.addAction(
+        all_action = self.journey_menu.addAction(
             _get_config("journey_list_all_label", "All journeys"))
         all_action.setCheckable(True)
         all_action.setChecked(not filter_active)
         all_action.triggered.connect(
             lambda checked=False: self._set_journey_filter_active(False))
-        self.journey_list_menu.addSeparator()
+        self.journey_menu.addSeparator()
         for journey in narrative_map.journey:
-            action = self.journey_list_menu.addAction(journey.lb)
+            action = self.journey_menu.addAction(journey.lb)
             action.setCheckable(True)
             action.setChecked(
                 filter_active and active is not None and journey.id == active.id)
@@ -1469,7 +1471,7 @@ class MainWindow(QMainWindow):
                 lambda checked=False, j=journey: self._activate_journey(j))
 
     def _activate_journey(self, journey):
-        """Activate a journey from the JourneyList menu (TSK23, FN026).
+        """Activate a journey from the Display > Journey menu (TSK23, FN026).
         TSK29 (FN029): checking a journey also activates the journey
         filter, and the display is recomputed."""
         result = self.activate_journey_usecase.execute(journey)

@@ -58,12 +58,12 @@ visuel de la scène.
   (état applicatif global) pour rouvrir l'application dans le même mode ?
   Recommandation : non (RG041 élargi aux états de visualisation).
 - **Activation/désactivation** : le filtre s'applique au **parcours actif** ;
-  activer un autre parcours (JourneyList, FN026) met à jour l'affichage si
+  activer un autre parcours (menu Display › Journey, FN026) met à jour l'affichage si
   le filtre est actif.
 
 ## 4. Point d'entrée UI (décision proposée)
 
-- `Display > Journey > JourneyList` (TSK23) : ajouter en tête de la liste
+- `Display > Journey` (TSK23) : ajouter en tête de la liste
   dynamique une entrée cochable **« All journeys »** (checkable, cochée
   quand le filtre est désactivé). Cocher un parcours de la liste =
   activer ce parcours **et** le filtre ; cocher « All journeys » =
@@ -89,7 +89,7 @@ visuel de la scène.
 ## 5bis. Barre latérale de filtre (hors périmètre immédiat)
 
 - Le filtre par menu (entrée « All journeys » dans Display › Journey ›
-  JourneyList) est **suffisant dans l'immédiat** (décision TSC 31-10-2026).
+  menu Display › Journey) est **suffisant dans l'immédiat** (décision TSC 31-10-2026).
 - Une **conception supplémentaire sera nécessaire** pour l'ajout d'une
   barre latérale de filtre (TSK14 barre latérale gauche / futur panneau
   latéral droit « Journey Filter ») : à prévoir dans une tâche dédiée,

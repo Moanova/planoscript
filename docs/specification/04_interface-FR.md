@@ -54,7 +54,7 @@
 
   - **Affichage** :
     - **Journey** :
-      - JourneyList — Implémenté (TSK23/TSK29 : liste cochable dynamique des parcours avec une entrée « All journeys » en tête — cochée = filtre de parcours désactivé (défaut à l'ouverture, décision TSC 01-11-2026) ; filtre actif = l'élément coché est le parcours actif, cocher un parcours active ce parcours et le filtre FN029/RG042 ; état non persisté RG041)
+      - Journey — Implémenté (TSK23/TSK29 : liste cochable dynamique des parcours directement sous ce sous-menu, l'ancien placeholder « JourneyList » supprimé 01-11-2026 — entrée « All journeys » en tête : cochée = filtre de parcours désactivé (défaut à l'ouverture, décision TSC 01-11-2026) ; filtre actif = l'élément coché est le parcours actif, cocher un parcours active ce parcours et le filtre FN029/RG042 ; état non persisté RG041)
     - **Zoom** :
       - Zoom avant (Ctrl+=) — Non implémenté
       - Zoom arrière (Ctrl+-) — Non implémenté

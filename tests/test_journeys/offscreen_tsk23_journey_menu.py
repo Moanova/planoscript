@@ -11,7 +11,7 @@ Not part of the pytest suite: run it locally with:
 Requires a Qt runtime with libGL (not available in the build sandbox).
 
 Checks:
-- Display > Journey > JourneyList exists (replaces Display > Events)
+- Display > Journey exists (replaces Display > Events)
 - the default journey is listed and checked after project creation (RG022)
 - creating a journey via the use case adds a checked item (RG023)
 - activating another journey moves the check (FN026)
@@ -49,28 +49,28 @@ assert mw.menu_actions['journey_edit'].isEnabled()
 
 nm = mw.project_service.current_project.narrative_map[0]
 
-# JourneyList: default journey checked (RG022)
-mw._rebuild_journey_list_menu()
-actions = mw.journey_list_menu.actions()
+# Journey: default journey checked (RG022)
+mw._rebuild_journey_menu()
+actions = mw.journey_menu.actions()
 assert len(actions) == 1
 assert actions[0].isCheckable() and actions[0].isChecked()
 assert nm.active_journey_id == nm.journey[0].id
 
 # Create a second journey via the use case: it becomes active (RG023)
 j2 = CreateJourneyUseCase(mw.project_service).execute(lb="J2")['entity']
-mw._rebuild_journey_list_menu()
-actions = mw.journey_list_menu.actions()
+mw._rebuild_journey_menu()
+actions = mw.journey_menu.actions()
 assert len(actions) == 2
 assert [a.isChecked() for a in actions] == [False, True]
 assert nm.active_journey_id == j2.id
 
 # Activate the first journey back (FN026)
 ActivateJourneyUseCase(mw.project_service).execute(nm.journey[0])
-mw._rebuild_journey_list_menu()
-actions = mw.journey_list_menu.actions()
+mw._rebuild_journey_menu()
+actions = mw.journey_menu.actions()
 assert [a.isChecked() for a in actions] == [True, False]
 
-# Triggering the JourneyList action activates that journey
+# Triggering the Journey menu action activates that journey
 actions[1].trigger()
 app.processEvents()
 assert nm.active_journey_id == j2.id

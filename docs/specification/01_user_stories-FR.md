@@ -137,7 +137,7 @@
     - L'utilisateur peut créer un nouveau parcours depuis le menu "Projet". Le nouveau parcours est automatiquement activé et devient le parcours courant.
     - L'utilisateur peut renommer un parcours et modifier sa note via un dialogue d'édition.
     - L'utilisateur peut dupliquer un parcours ; la copie porte automatiquement un nom distinctif et un nouvel identifiant. Les relations rattachées au parcours source sont également rattachées au parcours dupliqué (leurs nœuds de parcours sont copiés).
-    - L'utilisateur peut activer un parcours en le sélectionnant dans la liste des parcours (Display › Journey › JourneyList) ou depuis le menu "Projet". Le parcours activé (sélectionné) devient le parcours courant pour l'édition.
+    - L'utilisateur peut activer un parcours en le sélectionnant dans la liste des parcours (Display › Journey) ou depuis le menu "Projet". Le parcours activé (sélectionné) devient le parcours courant pour l'édition.
     - L'utilisateur peut supprimer un parcours avec confirmation préalable, sous réserve qu'il ne s'agisse pas du dernier parcours de la carte.
     - Lors de la suppression d'un parcours, si le parcours supprimé était le parcours par défaut, le plus ancien parcours restant le devient (RG055).
     - Le rattachement d'une relation à un ou plusieurs parcours est géré via une liste à choix multiples des parcours, présentée dans le dialogue d'édition de la connexion (menu « Éditer » de la relation). L'option est désactivée si un seul parcours existe dans la carte.
@@ -159,7 +159,7 @@
     - L'application s'adapte à la taille de la fenêtre sans perte de fonctionnalité ; les barres d'outils (composants et parcours) restent accessibles.
     - L'utilisateur peut naviguer dans l'espace de travail (visualisation) au moyen des barres de défilement horizontal et vertical.
     - L'espace de travail (visualisation) supporte un déploiement étendu sans dégradation de stabilité.
-    - Si le filtre de parcours est activé, l'utilisateur peut basculer d'un parcours à un autre via la liste des parcours (Display › Journey › JourneyList) ou le menu "Projet" ; l'affichage se met à jour instantanément.
+    - Si le filtre de parcours est activé, l'utilisateur peut basculer d'un parcours à un autre via la liste des parcours (Display › Journey) ou le menu "Projet" ; l'affichage se met à jour instantanément.
     - Les composants et les relations du parcours affiché sont rendus selon leurs coordonnées et leur représentation graphique définies dans les métadonnées du projet.
     - Les composants s'alignent sur la grille d'alignement lors de leur création et de leur déplacement.
     - les modifications de position des barres de défilement ne marquent pas la carte comme modifiée.

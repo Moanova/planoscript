@@ -17,7 +17,7 @@ Checks:
 - the copy gets a new id, is not default (RG055), does not become active
   (RG023 revised), and receives a copy of the source journey nodes (FN025)
 - the relations themselves are not duplicated; the map is marked modified
-- the JourneyList menu reflects the new journey after rebuild
+- the Journey menu reflects the new journey after rebuild
 """
 import os
 import sys
@@ -106,9 +106,9 @@ assert copy_nodes[0].sequence_order == source_nodes[0].sequence_order
 assert len(nm.journey_node) == 3  # 1 default + 1 j2 + 1 copy
 assert len(nm.state_to_event) == 2  # relations shared, not duplicated
 
-# JourneyList reflects the new journey after rebuild
-mw._rebuild_journey_list_menu()
-actions = mw.journey_list_menu.actions()
+# Journey menu reflects the new journey after rebuild
+mw._rebuild_journey_menu()
+actions = mw.journey_menu.actions()
 assert len(actions) == 3
 assert [a.isChecked() for a in actions] == [False, True, False]
 

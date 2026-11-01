@@ -22,7 +22,7 @@ Checks:
   reactivates the default journey if the deleted one was active (FN027),
   preserves components/relations, marks the project modified
 - the last journey of the map is refused without confirmation (RG018)
-- the JourneyList menu reflects the deletion after rebuild
+- the Journey menu reflects the deletion after rebuild
 """
 import os
 import sys
@@ -102,9 +102,9 @@ assert len(nm.state_to_event) == 2
 assert nm.active_journey_id == default.id
 assert mw.project_service.is_modified is True
 
-# JourneyList reflects the deletion after rebuild
-mw._rebuild_journey_list_menu()
-actions = mw.journey_list_menu.actions()
+# Journey menu reflects the deletion after rebuild
+mw._rebuild_journey_menu()
+actions = mw.journey_menu.actions()
 assert len(actions) == 1 and actions[0].isChecked()
 
 # Last journey: refused without asking confirmation (RG018)

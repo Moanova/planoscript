@@ -266,7 +266,7 @@
   - The new journey is automatically activated and becomes the current journey.
   - Any component created thereafter is attached to this journey.
   - Any creation marks the map, and therefore the project, as modified.
-- **Status** : Implemented (TSK23) - menu "Project > Journeys... > New..." (dialog) + "Display > Journey > JourneyList"; new journey auto-activated (RG023).
+- **Status** : Implemented (TSK23) - menu "Project > Journeys... > New..." (dialog) + "Display > Journey"; new journey auto-activated (RG023).
 
 ## FN024 : Rename and describe a journey
 - **Description** : Modify the label and note of a journey.
@@ -292,7 +292,7 @@
   - Activation is performed from the journey list.
   - The activated journey becomes the current journey: new components are attached to it and the display filtering applies to it (cf. FN029).
   - Activation marks the map, and therefore the project, as modified.
-- **Status** : Implemented (TSK23) - checkable item in "Display > Journey > JourneyList" (FN026).
+- **Status** : Implemented (TSK23) - checkable item in "Display > Journey" (FN026).
 
 ## FN027 : Delete a journey
 - **Description** : Delete a journey from the narrative map.
@@ -326,7 +326,7 @@
   - The filter allows switching between "show all" and "active journey".
   - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the active (selected) journey and the components to which they give membership (RG026) stay at full opacity; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are dimmed (opacity 0.25, like the RG067 focus) and non-interactive while the filter is active (TSC review 01-11-2026: dimming instead of hiding).
   - Filtering does not mark the map as modified.
-  - Entry point: checkable "All journeys" entry at the top of "Display › Journey › JourneyList" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
+  - Entry point: checkable "All journeys" entry at the top of "Display › Journey" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
   - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3). Default on project opening: **filter disabled** ("all journeys", TSC decision 01-11-2026).
   - The agents view is filtered like the events view (TSC decision 31-10-2026): under an active filter, only the columns of the states belonging to the active journey and the associations attached to it are displayed; the rows (agents) all stay visible.
 - **Status** : Implemented (TSK29, 01-11-2026) — design `docs/conception/journey_filter.md` ; `JourneyFilterService` + `apply_journey_filter()` in the events and agents views.
