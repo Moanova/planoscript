@@ -1,7 +1,7 @@
 # TSK29 — Implémentation du filtre d'affichage par parcours (FN029, RG042, SU006)
 
 - **Épic** : EPC05 (SU005/SU006, gestion des parcours) — tâche d'implémentation
-- **Statut** : En revue (01-11-2026)
+- **Statut** : Terminée — validée TSC 01-11-2026 (kanban v25)
 - **Date de création** : 01-11-2026
 - **Dépendances** : → #TSK27 (Done, conception validée TSC 31-10-2026)
 - **Conception** : `docs/conception/journey_filter.md` (validée TSC 31-10-2026, amendée 01-11-2026 : filtre **désactivé par défaut** à l'ouverture d'un projet)

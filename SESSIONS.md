@@ -1224,3 +1224,19 @@ proposée : TSK29 = implémentation du filtre FN029.
   journey_filter.md, kanban.md ; scripts offscreen TSK23/TSK24/TSK25/TSK29
   renommés en conséquence.
 - Vérifications : py_compile OK ; YAML OK ; pytest 199 passed.
+
+
+## 01-11-2026 — Kanban v25 : TSK29 validée (Terminé) ; création TSK30 (To do) et TSK31 (En cours)
+
+- **TSK29 validée TSC 01-11-2026** (filtre FN029 conforme après correctif
+  estompage + correctif opacité focus RG067 + aplatissement menu Journey) →
+  section Terminé du kanban ; fiche TSK29 mise à jour.
+- **TSK30 créée en To do** : barre latérale de filtres (parcours, type
+  d'états, types d'agents) — panneau latéral « Journey Filter » prévu en
+  conception `journey_filter.md` §5bis, conception séparée ultérieure,
+  dépendance → #TSK29. À traiter ultérieurement.
+- **TSK31 créée en En cours (Doing)** : conception de l'export de la carte
+  narrative (SU007) — fiche `docs/project/tasks/TSK31_export_conception.md`
+  (périmètre MVP = export de lecture « par parcours » HTML autonome ;
+  export technique réimport et vue « par événements » hors MVP ; point
+  d'entrée `Files > Export Map` stub). Enchaînée pour la prochaine séance.

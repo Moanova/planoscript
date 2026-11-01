@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 24
+- **Version** : 25
 - **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -28,6 +28,8 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 
+- [ ] TSK30 — Barre latérale de filtres (parcours, type d'états, types d'agents) — panneau latéral droit « Journey Filter » envisagé dans la conception `docs/conception/journey_filter.md` §5bis, à concevoir séparément (sélection de parcours à afficher, filtres par type) → #TSK29 — à traiter ultérieurement (décision TSC 01-11-2026)
+
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
 - [ ] SU007 — Export technique pour réimport → #import de carte (hors périmètre)
@@ -35,14 +37,14 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## Doing
 
-- (aucune tâche en cours)
+- [ ] TSK31 — Conception de l'export de la carte narrative (SU007 : export de lecture « par événements » et/ou export technique pour réimport) — périmètre, format(s), contenu exporté, point d'entrée UI (menu Files > Export Map, actuellement stub) — fiche `tasks/TSK31_export_conception.md` — créée et passée en Doing 01-11-2026 (décision TSC)
 
 ## En revue
 
-- [ ] TSK29 — Implémentation du filtre d'affichage par parcours (FN029/RG042, SU006) → #TSK27 — conception `docs/conception/journey_filter.md` (amendée 01-11-2026 : **filtre désactivé par défaut** à l'ouverture d'un projet, décision TSC ; état toujours non persisté RG041) : `JourneyFilterService` (visibilité dérivée RG026) + `EventsWorkspace.apply_journey_filter()` + `AgentsWorkspace` filtrée comme Events (colonnes états du parcours actif + associations rattachées, lignes agents toutes visibles) + entrée cochable « All journeys » en tête de `Display›Journey` (cochée = filtre off ; cocher un parcours active ce parcours et le filtre) + comportements d'édition sous filtre (message barre d'info à la création d'un composant orphelin, recalcul à la création/suppression de relation, RG067 bascule « All journeys » avant focus sur élément masqué) — implémenté 01-11-2026 : pytest 199 passed (+9 `tests/test_visualization/test_journey_filter.py`), py_compile OK, script offscreen `tests/test_visualization/offscreen_tsk29_journey_filter.py` à valider en GUI (libGL absent du sandbox) — FN029 « Implémenté » FR/EN, 05_menu, 04_interface — fiche `tasks/TSK29_journey_filter_implementation.md`
 
 ## Done
 
+- [x] TSK29 — Implémentation du filtre d'affichage par parcours (FN029/RG042, SU006) → #TSK27, **validée TSC 01-11-2026** — conception `docs/conception/journey_filter.md` (amendée 01-11-2026 : **filtre désactivé par défaut** à l'ouverture d'un projet, décision TSC ; état toujours non persisté RG041) : `JourneyFilterService` (visibilité dérivée RG026) + `EventsWorkspace.apply_journey_filter()` + `AgentsWorkspace` filtrée comme Events (colonnes états du parcours actif + associations rattachées, lignes agents toutes visibles) + entrée cochable « All journeys » en tête de `Display›Journey` (cochée = filtre off ; cocher un parcours active ce parcours et le filtre) + comportements d'édition sous filtre (message barre d'info à la création d'un composant orphelin, recalcul à la création/suppression de relation, RG067 bascule « All journeys » avant focus sur élément masqué) — implémenté 01-11-2026 : pytest 199 passed (+9 `tests/test_visualization/test_journey_filter.py`), py_compile OK, script offscreen `tests/test_visualization/offscreen_tsk29_journey_filter.py` à valider en GUI (libGL absent du sandbox) — FN029 « Implémenté » FR/EN, 05_menu, 04_interface — fiche `tasks/TSK29_journey_filter_implementation.md`
 - [x] TSK27 — Conception du filtre d'affichage par parcours (FN029/RG042), **validée TSC 31-10-2026** — note `docs/conception/journey_filter.md` : visibilité dérivée RG026, état non persisté RG041, entrée « All journeys » dans Display›Journey, **vue Agents filtrée comme la vue Events** (décision TSC), comportements d'édition sous filtre, note §5bis : barre latérale de filtre en conception ultérieure séparée — FN029 « Conçu » FR/EN, 05_menu — fiche `tasks/TSK27_journey_filter_conception.md` — prochaine étape : TSK29 (implémentation FN029)
 - [x] TSK28 — Duplication d'un composant (SU003/FN016), **terminée et validée TSC 31-10-2026** (pytest 190 passed, lancement OK, test GUI OK) — State/Event : `DuplicateComponentUseCase` (nouvel id RG020, « {lb} (copy) », attributs hérités, copie isolée sans Journey_node RG024/RG052, refus état initial RG062, +1 cran de grille) + entrées « Duplicate » menus State/Event + contextuels vue Events ; **Agent** (évolution) : `DuplicateAgentUseCase` (associations non copiées, décision TSC) + entrée « Duplicate » sous-menu Agent + « Duplicate Agent » contextuel vue Agents — tests +15 +10 — specs SU003/FN016 FR/EN + 05_menu — fiche `tasks/TSK28_component_duplication.md`
 - [x] TSK16 — Dimensions de la vue Events dans config.json (`events_view_port_size_px`, `events_view_port_margin_px`, `events_view_badge_diameter_px`, `events_view_hit_area_width_px`) — `base_node.py`/`state_node.py`/`connection.py` lisent config avec défauts identiques — validée TSC 31-10-2026 (pytest 180 passed inchangé) — fiche `tasks/TSK16_config_dimensions.md`
