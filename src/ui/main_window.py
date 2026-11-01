@@ -40,7 +40,6 @@ from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
 from core.services.arc_service import ArcService
 from core.services.layout_service import LayoutService
-from core.services.journey_filter_service import JourneyFilterService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.update_agent_usecase import UpdateAgentUseCase
@@ -260,17 +259,6 @@ class MainWindow(QMainWindow):
         The focus is temporary: no modification flag, no persistence
         (RG067).
         """
-        # TSK29 (FN029, conception §6): when the journey filter hides the
-        # target state, switch to "All journeys" first so the focus is
-        # actually visible, then apply it
-        if (isinstance(self.workspace, EventsWorkspace)
-                and self.workspace.journey_filter_active):
-            component_ids = JourneyFilterService.visible_component_ids(
-                self._current_narrative_map(),
-                self._current_narrative_map().get_active_journey(),
-                True)
-            if component_ids is not None and state_id not in component_ids[0]:
-                self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Agents")
         # _on_tab_changed has refreshed the matrix: apply the focus on
         # the rebuilt columns
@@ -289,17 +277,6 @@ class MainWindow(QMainWindow):
             None)
         if state is None:
             return
-        # TSK29 (FN029, conception §6): when the journey filter hides the
-        # target state node, switch to "All journeys" first so the focus
-        # is actually visible
-        if (isinstance(self.workspace, EventsWorkspace)
-                and self.workspace.journey_filter_active):
-            component_ids = JourneyFilterService.visible_component_ids(
-                project.narrative_map[0],
-                project.narrative_map[0].get_active_journey(),
-                True)
-            if component_ids is not None and state_id not in component_ids[0]:
-                self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Events")
         if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus([state_id])
@@ -325,18 +302,6 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message(
                 f"Agent '{agent.lb}' has no associated state")
             return
-        # TSK29 (FN029, conception §6): under an active journey filter,
-        # switch to "All journeys" first when some target state is hidden,
-        # so the focus is actually visible
-        if (isinstance(self.workspace, EventsWorkspace)
-                and self.workspace.journey_filter_active):
-            component_ids = JourneyFilterService.visible_component_ids(
-                narrative_map, narrative_map.get_active_journey(), True)
-            if component_ids is not None:
-                hidden = [sid for sid in state_ids
-                          if sid not in component_ids[0]]
-                if hidden:
-                    self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Events")
         if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus(state_ids)

@@ -324,7 +324,7 @@
 - **References** : SU006 ; RG026, RG042.
 - **Expected behavior** :
   - The filter allows switching between "show all" and "active journey".
-  - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the active (selected) journey and the components to which they give membership (RG026) are represented; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are visible only when the filter is disabled.
+  - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the active (selected) journey and the components to which they give membership (RG026) stay at full opacity; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are dimmed (opacity 0.25, like the RG067 focus) and non-interactive while the filter is active (TSC review 01-11-2026: dimming instead of hiding).
   - Filtering does not mark the map as modified.
   - Entry point: checkable "All journeys" entry at the top of "Display › Journey › JourneyList" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
   - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3). Default on project opening: **filter disabled** ("all journeys", TSC decision 01-11-2026).

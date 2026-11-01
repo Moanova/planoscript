@@ -403,41 +403,64 @@ class AgentsWorkspace(QWidget):
     # Journey display filter (TSK29, FN029/RG042)
     # ------------------------------------------------------------------
 
-    def apply_journey_filter(self) -> None:
-        """Recompute the visibility of the matrix from the model (TSK29).
-
-        Decision TSC 31-10-2026: the agents view is filtered like the
-        events view. Under an active filter, only the state columns
-        belonging to the active journey (membership derived from RG026)
-        and the associations attached to it (Journey_node.state_agent_rel_id)
-        are shown; the agent rows stay all visible (an agent is a
-        project-level component, it belongs to no journey, SU008).
-        Filter disabled ("All journeys"): everything is visible.
-        """
+    def _card_in_filter(self, card) -> bool:
+        """True when the state card belongs to the active journey under
+        the current filter (TSK29, RG026). Always True when the filter
+        is disabled ("All journeys")."""
         if not self.project_service or not self.project_service.current_project:
-            return
+            return True
         narrative_map = self.project_service.current_project.narrative_map[0]
         active = narrative_map.get_active_journey()
-        relation_keys = JourneyFilterService.visible_relation_keys(
-            narrative_map, active, self.journey_filter_active)
         component_ids = JourneyFilterService.visible_component_ids(
             narrative_map, active, self.journey_filter_active)
-        visible_state_ids = component_ids[0] if component_ids is not None else None
+        if component_ids is None:
+            return True
+        return card.entity.id in component_ids[0]
 
-        for state_id, card in self._state_cards.items():
-            card.setVisible(visible_state_ids is None or state_id in visible_state_ids)
-        for (agent_id, state_id), check in self._check_items.items():
-            if visible_state_ids is not None and state_id not in visible_state_ids:
-                # The whole column is hidden, checkbox included
-                check.setVisible(False)
-            elif relation_keys is None:
-                check.setVisible(True)
-            else:
-                rel = AssociateAgentStateUseCase.find_association(
-                    narrative_map, agent_id, state_id)
-                check.setVisible(
-                    rel is not None
-                    and ('state_agent_rel', rel.id) in relation_keys)
+    def _check_in_filter(self, check) -> bool:
+        """True when the matrix cell is inside the active filter (TSK29):
+        its state column belongs to the active journey (RG026) and the
+        association is attached to it (Journey_node.state_agent_rel_id).
+        """
+        if not self.project_service or not self.project_service.current_project:
+            return True
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        active = narrative_map.get_active_journey()
+        component_ids = JourneyFilterService.visible_component_ids(
+            narrative_map, active, self.journey_filter_active)
+        if component_ids is None:
+            return True
+        if check.state.id not in component_ids[0]:
+            return False
+        relation_keys = JourneyFilterService.visible_relation_keys(
+            narrative_map, active, self.journey_filter_active)
+        rel = AssociateAgentStateUseCase.find_association(
+            narrative_map, check.agent.id, check.state.id)
+        return (rel is not None
+                and ('state_agent_rel', rel.id) in relation_keys)
+
+    def apply_journey_filter(self) -> None:
+        """Recompute the appearance of the matrix from the model (TSK29).
+
+        Decisions TSC 31-10-2026 / 01-11-2026: the agents view is
+        filtered like the events view, and items outside the filter are
+        not hidden but **dimmed** (opacity 0.25, like the cross-view
+        focus RG067) and disabled. Under an active filter, only the
+        state columns belonging to the active journey (membership
+        derived from RG026) and the associations attached to it
+        (Journey_node.state_agent_rel_id) stay at full opacity; the
+        agent rows stay all visible (an agent is a project-level
+        component, it belongs to no journey, SU008). Filter disabled
+        ("All journeys"): everything at full opacity.
+        """
+        for card in self._state_cards.values():
+            in_filter = self._card_in_filter(card)
+            card.setEnabled(in_filter)
+            card.setOpacity(0.25 if not in_filter else 1.0)
+        for check in self._check_items.values():
+            in_filter = self._check_in_filter(check)
+            check.setEnabled(in_filter)
+            check.setOpacity(0.25 if not in_filter else 1.0)
 
     def set_journey_filter_active(self, active: bool) -> None:
         """Enable/disable the journey filter and refresh the matrix
@@ -857,21 +880,25 @@ class _MatrixGraphicsView(QGraphicsView):
 
     def _card_at(self, pos):
         """Return the MatrixCardItem at the viewport position, walking
-        up the parent chain (the label is a child of the card)."""
+        up the parent chain (the label is a child of the card).
+        TSK29 (FN029): a card outside the journey filter is disabled and
+        behaves as empty area."""
         item = self.itemAt(pos)
         while item is not None:
             if isinstance(item, MatrixCardItem):
-                return item
+                return item if item.isEnabled() else None
             item = item.parentItem()
         return None
 
     def _check_at(self, pos):
         """Return the MatrixCheckItem at the viewport position, or None
-        (TSK21: right-click on a checkbox)."""
+        (TSK21: right-click on a checkbox). TSK29 (FN029): a cell
+        outside the journey filter is disabled and behaves as empty
+        area."""
         item = self.itemAt(pos)
         while item is not None:
             if isinstance(item, MatrixCheckItem):
-                return item
+                return item if item.isEnabled() else None
             item = item.parentItem()
         return None
 

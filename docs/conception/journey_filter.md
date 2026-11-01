@@ -31,9 +31,13 @@ La visibilité est **dérivée du modèle** (RG026), jamais stockée :
 - **Filtre désactivé (« tous les parcours »)** : tout est visible, y compris
   les orphelins.
 
-Implémentation UI : `setVisible(bool)` sur les `BaseNode` et `Connection`
-de la vue Events. Aucun changement du modèle ni des layouts : le filtre est
-un état purement visuel de la scène.
+Implémentation UI (révision TSC 01-11-2026 : les éléments hors filtre ne
+sont pas masqués mais **estompés**, comme le focus de la navigation
+croisée RG067) : opacité 0.25 + `setEnabled(False)` sur les `BaseNode` et
+`Connection` de la vue Events qui n'appartiennent pas au parcours actif
+(les nœuds d'état focalisés RG067 gardent la pleine opacité). Aucun
+changement du modèle ni des layouts : le filtre est un état purement
+visuel de la scène.
 
 ## 3. État du filtre et persistance (décision proposée)
 
@@ -78,8 +82,9 @@ un état purement visuel de la scène.
   restent toutes visibles (un agent est un composant de niveau projet, il
   n'appartient à aucun parcours — SU008). Les cases non rattachées au
   parcours actif sont masquées avec leur colonne.
-- Implémentation prévue : `setVisible()` sur les cartes d'état et les cases
-  de la matrice, même mécanisme que la vue Events (§2).
+- Implémentation (révision TSC 01-11-2026, même visualisation que la vue
+  Events) : opacité 0.25 + `setEnabled(False)` sur les cartes d'état et
+  les cases de la matrice hors parcours actif.
 
 ## 5bis. Barre latérale de filtre (hors périmètre immédiat)
 
@@ -104,9 +109,11 @@ un état purement visuel de la scène.
   instantanément (ils appartiennent désormais au parcours actif).
 - **Suppression d'une relation / d'un composant** : recalcul de la
   visibilité (un composant peut redevenir orphelin → masqué sous filtre).
-- **Navigation croisée (RG067)** : le focus reste un état visuel temporaire ;
-  s'il cible un élément masqué par le filtre, basculer d'abord sur « tous
-  les parcours » puis appliquer le focus (sinon le focus serait invisible).
+- **Navigation croisée (RG067)** : le focus reste un état visuel temporaire.
+  Révision TSC 01-11-2026 : comme les éléments hors filtre sont estompés et
+  non masqués, plus de bascule automatique sur « tous les parcours » — le
+  focus s'applique directement, et les nœuds d'état focalisés gardent la
+  pleine opacité même sous filtre actif.
 
 ## 7. Rafraîchissement
 

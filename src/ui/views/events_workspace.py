@@ -292,72 +292,81 @@ class EventsWorkspace(QGraphicsView, QObject):
     # Journey display filter (TSK29, FN029/RG042)
     # ------------------------------------------------------------------
 
-    def apply_journey_filter(self) -> None:
-        """Recompute the visibility of every node and connection from
-        the model (TSK29, FN029/RG042).
-
-        Single refresh entry point. Visibility is derived from the
-        active journey (RG026): filter active -> only the relations
-        attached to it and the components they belong to are visible;
-        filter disabled ("All journeys") -> everything is visible,
-        including orphan components. The filter is a purely visual
-        state: it changes no model data, no layout and does not mark
-        the project as modified (RG041).
-        """
+    def _item_in_filter(self, item) -> bool:
+        """True when the item belongs to the active journey under the
+        current filter (TSK29, RG026). Always True when the filter is
+        disabled ("All journeys")."""
         if not self.narrative_map:
-            return
+            return True
         active = self.narrative_map.get_active_journey()
         relation_keys = JourneyFilterService.visible_relation_keys(
             self.narrative_map, active, self.journey_filter_active)
-        component_ids = JourneyFilterService.visible_component_ids(
-            self.narrative_map, active, self.journey_filter_active)
+        if relation_keys is None:
+            return True
+        if isinstance(item, Connection):
+            arc = getattr(item, 'arc_or_association', None)
+            if arc is None:
+                return True
+            if isinstance(arc, State_to_event):
+                return ('state_to_event', arc.id) in relation_keys
+            if isinstance(arc, Event_to_state):
+                return ('event_to_state', arc.id) in relation_keys
+            if isinstance(arc, State_agent_rel):
+                return ('state_agent_rel', arc.id) in relation_keys
+            return True
+        if hasattr(item, 'entity') and hasattr(item, 'layout'):
+            component_ids = JourneyFilterService.visible_component_ids(
+                self.narrative_map, active, self.journey_filter_active)
+            state_ids, event_ids = component_ids
+            if isinstance(item.entity, State):
+                return item.entity.id in state_ids
+            if isinstance(item.entity, Event):
+                return item.entity.id in event_ids
+        return True
 
+    def apply_journey_filter(self) -> None:
+        """Recompute the appearance of every node and connection from
+        the model (TSK29, FN029/RG042).
+
+        Single refresh entry point. TSC review 01-11-2026: items outside
+        the filter are not hidden but **dimmed** (opacity 0.25, like the
+        cross-view focus RG067) and disabled (not clickable); items of
+        the active journey stay at full opacity. Visibility is derived
+        from the active journey (RG026); filter disabled ("All
+        journeys") -> everything at full opacity, including orphan
+        components. The filter is a purely visual state: it changes no
+        model data, no layout and does not mark the project as
+        modified (RG041).
+        """
         for item in self.scene.items():
-            if isinstance(item, Connection):
-                arc = getattr(item, 'arc_or_association', None)
-                if relation_keys is None or arc is None:
-                    item.setVisible(True)
-                    continue
-                if isinstance(arc, State_to_event):
-                    item.setVisible(('state_to_event', arc.id) in relation_keys)
-                elif isinstance(arc, Event_to_state):
-                    item.setVisible(('event_to_state', arc.id) in relation_keys)
-                elif isinstance(arc, State_agent_rel):
-                    item.setVisible(('state_agent_rel', arc.id) in relation_keys)
-                else:
-                    item.setVisible(True)
-            elif hasattr(item, 'entity') and hasattr(item, 'layout'):
-                if component_ids is None:
-                    item.setVisible(True)
-                    continue
-                state_ids, event_ids = component_ids
-                if isinstance(item.entity, State):
-                    item.setVisible(item.entity.id in state_ids)
-                elif isinstance(item.entity, Event):
-                    item.setVisible(item.entity.id in event_ids)
+            if isinstance(item, Connection) or (
+                    hasattr(item, 'entity') and hasattr(item, 'layout')):
+                in_filter = self._item_in_filter(item)
+                item.setEnabled(in_filter)
+                self._apply_item_opacity(item)
+
+    def _apply_item_opacity(self, item) -> None:
+        """Compose the journey filter dimming with the cross-view focus
+        (TSK10/RG067): an item is dimmed (0.25) when it is outside the
+        active filter, or when a focus is active and the item is not
+        part of it; full opacity otherwise. The focused state nodes take
+        precedence over the filter so the focus target stays readable
+        (TSK29 review 01-11-2026)."""
+        if (self.has_focus() and isinstance(item, StateNode)
+                and item.entity.id in self._focused_state_ids):
+            item.setOpacity(1.0)
+            return
+        dimmed = (self.journey_filter_active
+                  and not self._item_in_filter(item))
+        if self.has_focus():
+            dimmed = True
+        item.setOpacity(0.25 if dimmed else 1.0)
 
     def set_journey_filter_active(self, active: bool) -> None:
         """Enable/disable the journey filter and refresh the view
         (TSK29, FN029)."""
         self.journey_filter_active = active
         self.apply_journey_filter()
-
-    def _relation_is_visible(self, arc_or_association) -> bool:
-        """True when the relation is visible under the current filter
-        (TSK29). Used to decide whether a freshly created component
-        would be visible."""
-        active = self.narrative_map.get_active_journey() if self.narrative_map else None
-        keys = JourneyFilterService.visible_relation_keys(
-            self.narrative_map, active, self.journey_filter_active)
-        if keys is None:
-            return True
-        if isinstance(arc_or_association, State_to_event):
-            return ('state_to_event', arc_or_association.id) in keys
-        if isinstance(arc_or_association, Event_to_state):
-            return ('event_to_state', arc_or_association.id) in keys
-        if isinstance(arc_or_association, State_agent_rel):
-            return ('state_agent_rel', arc_or_association.id) in keys
-        return True
 
     # ------------------------------------------------------------------
     # Cross-view navigation focus (TSK10, RG067)
@@ -378,13 +387,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         self.clear_focus()
         self._focused_state_ids = set(state_ids)
         for item in self.scene.items():
-            # Entity IDs are unique per type, not globally (State.id=1
-            # and Event.id=1 can coexist): only state nodes may stay
-            # highlighted, so the lookup must filter on StateNode
-            if isinstance(item, StateNode) and item.entity.id in self._focused_state_ids:
-                item.setOpacity(1.0)
-            else:
-                item.setOpacity(0.25)
+            self._apply_item_opacity(item)
 
     def clear_focus(self) -> None:
         """
@@ -392,7 +395,7 @@ class EventsWorkspace(QGraphicsView, QObject):
         """
         self._focused_state_ids = set()
         for item in self.scene.items():
-            item.setOpacity(1.0)
+            self._apply_item_opacity(item)
 
     def has_focus(self) -> bool:
         """
@@ -407,9 +410,9 @@ class EventsWorkspace(QGraphicsView, QObject):
         - Relation mode: handle port selection for rubber band connection
         """
         item = self.itemAt(event.position().toPoint())
-        # TSK29 (FN029): an item hidden by the journey filter is not
-        # clickable
-        if item is not None and not item.isVisible():
+        # TSK29 (FN029): an item outside the journey filter is disabled
+        # and is not clickable
+        if item is not None and not item.isEnabled():
             item = None
 
         # RG067: clicking empty space releases the navigation focus
@@ -479,11 +482,11 @@ class EventsWorkspace(QGraphicsView, QObject):
         for candidate in reversed(all_items):  # Check from top to bottom
             if candidate == self.temp_connection:
                 continue  # Skip the temporary connection line
-            # TSK29 (FN029): items hidden by the journey filter are not ports
-            if not candidate.isVisible():
+            # TSK29 (FN029): items outside the journey filter are not ports
+            if not candidate.isEnabled():
                 continue
             parent = candidate.parentItem()
-            if parent is not None and not parent.isVisible():
+            if parent is not None and not parent.isEnabled():
                 continue
             
             if isinstance(candidate, QGraphicsEllipseItem):
@@ -506,8 +509,8 @@ class EventsWorkspace(QGraphicsView, QObject):
             for scene_item in self.scene.items():
                 if scene_item == self.temp_connection:
                     continue
-                # TSK29 (FN029): items hidden by the journey filter are not ports
-                if not scene_item.isVisible():
+                # TSK29 (FN029): items outside the journey filter are not ports
+                if not scene_item.isEnabled():
                     continue
                 if hasattr(scene_item, 'entity') and hasattr(scene_item, 'output_port') and hasattr(scene_item, 'input_port'):
                     if scene_item.output_port and scene_item.input_port:
@@ -1133,9 +1136,9 @@ class EventsWorkspace(QGraphicsView, QObject):
         # mapToScene expects viewport coordinates.
         scene_pos = self.mapToScene(self.viewport().mapFrom(self, pos))
         item = self.scene.itemAt(scene_pos, self.transform())
-        # TSK29 (FN029): an item hidden by the journey filter behaves as
-        # empty area
-        if item is not None and not item.isVisible():
+        # TSK29 (FN029): an item outside the journey filter is disabled
+        # and behaves as empty area
+        if item is not None and not item.isEnabled():
             item = None
 
         # If the clicked item is a child of a node (e.g., a port), get the parent node

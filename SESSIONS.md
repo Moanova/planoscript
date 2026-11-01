@@ -1176,3 +1176,23 @@ proposée : TSK29 = implémentation du filtre FN029.
 - **Vérifications** : py_compile OK (6 fichiers) ; `QT_QPA_PLATFORM=offscreen python -m pytest tests/ -q --ignore=tests/test_application` : **199 passed** (+9 `tests/test_visualization/test_journey_filter.py` : visibilité dérivée, orphelins, 1..n parcours, attach/detach, suppression d'arc, association agent-état, non-persistance RG041) ; YAML valide, config.json valide. Script offscreen `tests/test_visualization/offscreen_tsk29_journey_filter.py` écrit — **non exécutable dans le sandbox** (libGL.so.1 et libs système Qt absentes, non installables sans root ; PySide6/pytest installés via pip cette séance) → à valider en séance GUI.
 - **Kanban v24** : TSK29 Doing → En revue. Fiche `docs/project/tasks/TSK29_journey_filter_implementation.md` journalisée.
 - Non committé (pas d'instruction de commit).
+
+
+## 01-11-2026 — TSK29 : retours de test TSC (2 points traités)
+
+- **Point 1 (bug script offscreen, pas l'app)** : `IndexError` ligne 104 de
+  `offscreen_tsk29_journey_filter.py` — la liste `actions` était périmée après
+  un `_rebuild_journey_list_menu()` (création de J2) ; `actions[3]` n'existait
+  plus. Corrigé : helper `menu_action(label)` qui relit le menu à chaque appel
+  et retrouve les entrées par libellé (« All journeys », « J2 », …).
+- **Point 2 (révision visualisation, décision TSC)** : les éléments hors filtre
+  ne sont plus **masqués** mais **estompés** — opacité 0.25 + `setEnabled(False)`,
+  même rendu que le focus RG067 « Show in events view » — dans la vue Events
+  (nœuds + connexions) et la vue Agents (cartes d'état + cases). Priorité
+  focus > filtre : les nœuds d'état focalisés gardent la pleine opacité sous
+  filtre actif, et la bascule auto « All journeys » avant focus (conception §6)
+  est retirée. Éléments estompés non cliquables (ports, menus contextuels,
+  `_card_at`/`_check_at`). Conception §2/§5/§6, FN029 FR/EN, 04_interface FR/EN
+  mis à jour. Code mort `_relation_is_visible` retiré (aucun appelant).
+- **Vérifications** : py_compile OK (3 fichiers UI) ; pytest 199 passed ;
+  script offscreen TSK29 mis à jour (assertions opacité/enabled).
