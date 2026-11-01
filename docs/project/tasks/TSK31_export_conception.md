@@ -45,6 +45,15 @@ couvrant :
 
 - 01-11-2026 : tâche créée et passée en Doing (décision TSC 01-11-2026, enchaînée après validation de TSK29).
 - 01-11-2026 : cadrage en séance — note `docs/conception/export.md` initialisée.
+- 01-11-2026 (décisions actées suite) : liens **inertes** dans l'aperçu
+  (le filtre FN029 commande le rendu, l'inverse impossible — aperçu
+  strictement passif) ; export fichier **indépendant du filtre** ; aperçu =
+  carte annotée par parcours, états uniques listés une seule fois (événements
+  prédécesseurs + agents associés annotés de leur parcours via Journey_node) ;
+  `sequence_order` révisé en tâche dédiée **TSK32** (recalcul par parcours à
+  la construction, pas de second champ) ; événements pendants ignorés dans le
+  déroulé + convention RG « branche terminée par un état Final » + marqueur en
+  fin de déroulé en filet de sécurité ; infobulle = clé `note`.
 - 01-11-2026 (suite) : retour critique TSC sur la restitution — structure
   centrée sur les états depuis l'état initial (événements prédécesseurs +
   agents associés par état, libellé + content + type + note en infobulle) ;

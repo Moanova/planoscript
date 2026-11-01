@@ -83,41 +83,48 @@ RG031) :
 4. **Section composants orphelins** (après parcours et agents) : listés
    explicitement.
 
-### Règles de gestion à écrire (TSK31 suite)
+### Décisions actées (TSC 01-11-2026, suite)
 
-- **Ordre de succession** : ne PAS utiliser `Journey_node.sequence_order`
-  (simple max+1 à la création, non maintenu — point laissé ouvert par la
-  conception TSK22 §5). Recalculer par **parcours en profondeur depuis
-  l'état initial** en ne suivant que les arcs rattachés au parcours
-  concerné (ordre topologique) ; à un embranchement, lister les branches.
-- **Cycles longs** : RG058 n'interdit que les cycles de longueur 2 ; un
-  cycle long est possible dans le modèle → l'export mémorise les états déjà
-  visités et ne reboucle pas (marqués « déjà vu »).
-- **Composants pendants** : un événement sans état successeur et un état
-  sans événement sortant (fin de branche) doivent être restitués
-  explicitement, sinon perdus dans un déroulé centré sur les états.
-- **Appartenance parcours d'un état** : dérivée (RG026), calculée depuis les
-  `Journey_node` référençant ses arcs — aucun champ à ajouter.
-
-### Points à décider
-
-- **Liens cliquables dans l'aperçu readOnly** : désactivés (texte pur) ou
-  clic sur un lien de parcours = pilotage du filtre FN029 + régénération
-  (navigation, pas édition — compatible avec « lecture seule » mais
-  interaction à assumer).
-- **Filtre vs export** : l'export fichier exporte toute la carte
-  (indépendant du filtre, RG041) ; l'aperçu in-app reflète le filtre actif.
-- **Nommage du dossier d'export** : hors périmètre de l'aperçu UI ; à
-  traiter avec l'implémentation de `Files > Export Map`.
+- **Ordre de succession** : la sémantique de `Journey_node.sequence_order`
+  est révisée — ordre **réel** de succession, recalculé **par parcours** à
+  la construction/modification de la carte (pas à la génération de
+  l'export). Tâche dédiée **TSK32** (à traiter avant l'implémentation de
+  l'aperçu d'export) : recalcul par parcours en profondeur depuis l'état
+  initial, restreint aux arcs rattachés au parcours, aux points
+  `ArcService.create_arc` / `delete_related_arcs` / attach-detach RG027 /
+  cascades. **Pas de second champ** : la clé JSON `sequence_order` est
+  conservée, seule sa sémantique change (les anciennes valeurs sont
+  recalculées au chargement).
+- **Rendu de l'aperçu** : QTextEdit/QTextBrowser render un sous-ensemble
+  HTML 4 (titres, gras, paragraphes, ancres, listes) → l'aperçu est un
+  rendu HTML léger, pas du texte brut. Infobulle sur les ancres : mécanisme
+  custom (`anchorAt` + `QToolTip.showText`, pattern des nœuds du workspace).
+- **Liens inertes (acté)** : le filtre FN029 commande le rendu de l'aperçu ;
+  aucun clic dans l'aperçu ne modifie le filtre ni ne régénère rien —
+  l'aperçu est strictement passif (lecture seule).
+- **Export fichier vs aperçu** : l'export sur le système de fichiers est
+  **indépendant du filtre** (carte complète, RG041) ; l'aperçu in-app
+  reflète le filtre actif.
+- **Restitution centrée états, carte annotée** : les états sont uniques
+  (IDs uniques par type) et listés une seule fois, dans l'ordre
+  topologique depuis l'état initial ; pour chaque état (sauf l'initial),
+  on liste ses **événements prédécesseurs** et ses **agents associés**, en
+  annotant chaque relation de son/ses parcours (via `Journey_node`). Sous
+  filtre actif, seules les relations du parcours actif sont listées.
+- **Événements pendants** (arc entrant sans arc sortant) : ignorés dans le
+  déroulé, MAIS avec la convention RG « toute branche se termine par un
+  état (Final) » + filet de sécurité : les événements sans état successeur
+  sont listés en fin de déroulé avec un marqueur (sinon perte silencieuse).
+- **Vocabulaire** : pas de « description » dans le modèle — la note en
+  infobulle porte la clé **`note`** (TSK26).
+- **Nommage du dossier d'export** : hors périmètre de l'aperçu UI (niveau
+  gestion de fichiers projet, traité avec `Files > Export Map`).
 
 ## 5. Points ouverts restants
 
-1. **Contenu de l'aperçu** : texte de lecture rendu (recommandé, structure
-   §4) vs HTML brut ; l'export HTML dossier reste produit à la demande par
-   `Files > Export Map`.
-2. **Format de l'export de lecture** : HTML autonome statique conforme à
-   SU007 — gabarits, CSS embarqué, UTF-8.
-3. **Point d'entrée UI de l'export fichier** : `Files > Export Map` (stub) —
+1. **Format de l'export de lecture (fichier)** : HTML autonome statique
+   conforme à SU007 — gabarits, CSS embarqué, UTF-8.
+2. **Point d'entrée UI de l'export fichier** : `Files > Export Map` (stub) —
    boîte de dialogue de choix du dossier + confirmation.
 
 ## 6. Hors périmètre (acté)

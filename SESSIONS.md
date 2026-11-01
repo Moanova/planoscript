@@ -1289,3 +1289,27 @@ proposée : TSK29 = implémentation du filtre FN029.
     pilotage du filtre FN029) ;
   - export fichier = carte complète (indépendant du filtre RG041), aperçu =
     filtre actif.
+
+
+## 01-11-2026 — TSK31 (suite) : décisions actées + création TSK32
+
+- **TSK32 créée (To do, kanban v26)** : révision de la sémantique de
+  `Journey_node.sequence_order` — ordre réel recalculé **par parcours** à la
+  construction/modification de la carte (create_arc, delete_related_arcs,
+  attach/detach RG027, cascades, chargement) ; **pas de second champ**, clé
+  JSON conservée (rétrocompatible, recalcul au load). Prerequisite de
+  l'implémentation de l'aperçu d'export.
+- **Décisions TSC actées pour l'aperçu/export** (note `export.md` §4) :
+  - liens **inertes** dans l'aperçu readOnly — le filtre FN029 commande le
+    rendu, aucun clic ne modifie le filtre (aperçu strictement passif) ;
+  - export fichier **indépendant du filtre** (carte complète), aperçu =
+    filtre actif ;
+  - restitution = carte annotée par parcours : états uniques (une seule
+    occurrence), événements prédécesseurs + agents associés annotés de leur
+    parcours via `Journey_node` ;
+  - événements pendants (arc entrant sans arc sortant) ignorés dans le déroulé,
+    avec convention RG « branche terminée par un état Final » + marqueur en
+    fin de déroulé (filet de sécurité contre la perte silencieuse) ;
+  - infobulle au survol = clé **`note`** (confirmé, pas de « description ») ;
+  - aperçu = rendu HTML léger via QTextEdit/QTextBrowser (sous-ensemble HTML 4),
+    infobulle sur ancres en custom (`anchorAt` + QToolTip).
