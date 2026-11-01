@@ -53,7 +53,9 @@ couvrant :
   `sequence_order` révisé en tâche dédiée **TSK32** (recalcul par parcours à
   la construction, pas de second champ) ; événements pendants ignorés dans le
   déroulé + convention RG « branche terminée par un état Final » + marqueur en
-  fin de déroulé en filet de sécurité ; infobulle = clé `note`.
+  fin de déroulé (option b seule, décision TSC 01-11-2026 : aucune
+  contrainte de modélisation — aperçus/exports possibles à tout stade ;
+  contrôle de cohérence = post-MVP) ; infobulle = clé `note`.
 - 01-11-2026 (suite) : retour critique TSC sur la restitution — structure
   centrée sur les états depuis l'état initial (événements prédécesseurs +
   agents associés par état, libellé + content + type + note en infobulle) ;

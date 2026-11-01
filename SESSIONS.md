@@ -1313,3 +1313,17 @@ proposée : TSK29 = implémentation du filtre FN029.
   - infobulle au survol = clé **`note`** (confirmé, pas de « description ») ;
   - aperçu = rendu HTML léger via QTextEdit/QTextBrowser (sous-ensemble HTML 4),
     infobulle sur ancres en custom (`anchorAt` + QToolTip).
+
+
+## 01-11-2026 — TSK31 (finalisation) : option b seule pour les événements pendants (kanban v27)
+
+- Décision TSC : les événements pendants (arc entrant sans arc sortant) sont
+  **ignorés dans le déroulé et listés en fin de déroulé avec un marqueur**
+  (option b seule). **Aucune contrainte de modélisation** : pas de RG « branche
+  terminée par un état Final » — les aperçus et exports restent possibles à
+  tout stade d'avancement de la carte. Le **contrôle de cohérence** (signaler
+  les branches non terminées) est noté **post-MVP** au kanban (v27), hors
+  TSK31.
+- `sequence_order` : confirmé à traiter dans TSK32 (To do), avant
+  l'implémentation de l'aperçu d'export.
+- Note `docs/conception/export.md` §4 finalisée ; fiche TSK31 journalisée.

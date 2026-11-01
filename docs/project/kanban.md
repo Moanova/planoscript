@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 25
+- **Version** : 26
 - **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -29,6 +29,8 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 
 - [ ] TSK30 — Barre latérale de filtres (parcours, type d'états, types d'agents) — panneau latéral droit « Journey Filter » envisagé dans la conception `docs/conception/journey_filter.md` §5bis, à concevoir séparément (sélection de parcours à afficher, filtres par type) → #TSK29 — à traiter ultérieurement (décision TSC 01-11-2026)
+
+- [ ] TSK32 — Ordre de succession réel des parcours : révision de la sémantique de `Journey_node.sequence_order` (recalcul par parcours en profondeur depuis l'état initial, aux points de modification du graphe : create_arc, delete_related_arcs, attach/detach RG027, cascades, chargement) — pas de second champ, clé JSON conservée — RG + 07_data_model FR/EN + tests — prerequisite de l'implémentation de l'aperçu d'export (TSK31 suite) — fiche `tasks/TSK32_sequence_order.md` — créée 01-11-2026 (décision TSC)
 
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] SU007 — Export de lecture « par événements »
