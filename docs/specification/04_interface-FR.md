@@ -54,7 +54,7 @@
 
   - **Affichage** :
     - **Journey** :
-      - JourneyList — Fonctionnel (TSK23 : liste cochable dynamique des parcours, l'élément coché est le parcours actif ; une entrée « All journeys » est prévue pour le filtre FN029, TSK27)
+      - JourneyList — Implémenté (TSK23/TSK29 : liste cochable dynamique des parcours avec une entrée « All journeys » en tête — cochée = filtre de parcours désactivé (défaut à l'ouverture, décision TSC 01-11-2026) ; filtre actif = l'élément coché est le parcours actif, cocher un parcours active ce parcours et le filtre FN029/RG042 ; état non persisté RG041)
     - **Zoom** :
       - Zoom avant (Ctrl+=) — Non implémenté
       - Zoom arrière (Ctrl+-) — Non implémenté
@@ -225,6 +225,13 @@
     - Sur une relation : « Edit Relation » (TSK21/FN021 : ouvre le dialogue d'édition de la relation — note + liste cochable des parcours, RG027 révisée), « Delete Relation ».
     - Le clic sélectionne l'élément sous le curseur avant d'ouvrir le menu, de sorte que les actions s'appliquent à l'élément cliqué.
 
+  - **Filtre d'affichage par parcours** (TSK29, FN029/RG042) :
+    - **État** : `EventsWorkspace.journey_filter_active`, état purement visuel non persisté (RG041), **désactivé par défaut** à l'ouverture d'un projet (décision TSC 01-11-2026).
+    - **Visibilité dérivée** (RG026, via `JourneyFilterService`) : filtre actif → seules les relations rattachées au parcours actif et les composants auxquels elles donnent appartenance sont visibles (`setVisible`) ; composants orphelins et relations des autres parcours masqués. Filtre désactivé (« All journeys ») → tout est visible.
+    - **Rafraîchissement** : `apply_journey_filter()` appelé après activation d'un parcours, bascule du filtre, création/suppression de relation, édition des rattachements (RG027), suppression de composant, chargement de projet.
+    - **édition sous filtre** : un composant créé reste orphelin donc masqué sous filtre actif (message dans la barre d'info) ; une relation créée devient visible instantanément (rattachement auto au parcours actif, RG052) ; la navigation croisée (RG067) bascule d'abord sur « All journeys » si la cible est masquée.
+    - Les éléments masqués ne sont pas cliquables (ports, menus contextuels les ignorent).
+
 - **Éléments visuels** :
 
   - **Nœuds (Composants)** :
@@ -272,6 +279,7 @@
   - Grille de fond 120×80 (config `agents_view_cell_width`/`_height`) : chaque carte et chaque case est centrée dans sa cellule (marges 20 px pour les cartes, 50/30 px pour les cases). La grille est redessinée sur la zone visible (pattern vue Events) et la scène s'étend vers la droite/le bas uniquement : la matrice reste ancrée au coin haut-gauche.
   - L'ordre des colonnes suit la règle de gestion RG068 (ordre de création par défaut, réordonnancement manuel par glisser-déposer persistant, état initial épinglé en première colonne avec message de rejet dans la barre d'info).
   - Une cellule cochée matérialise une association agent-état (SU008). L'édition s'effectue en cliquant la case (TSK09).
+  - **Filtre d'affichage par parcours (TSK29, FN029/RG042, décision TSC 31-10-2026)** : la vue agents est filtrée comme la vue Events — sous filtre actif, seules les colonnes des états appartenant au parcours actif (appartenance dérivée RG026) et les associations rattachées à ce parcours (`Journey_node.state_agent_rel_id`) sont visibles ; les lignes (agents, composants de niveau projet) restent toutes visibles.
 - **Sélection des cartes (revue TSC 28-10-2026)** : comme dans la vue Events, un clic sur une carte la sélectionne (une seule carte sélectionnée à la fois, agents et états confondus) ; la sélection se matérialise par un **contour pointillé de la teinte du type** (charte 98 : sélection > survol > type). Le clic dans le vide désélectionne. Le glisser-déposer de réordonnancement (RG068) est maintenu : le clic sélectionne, le déplacement réordonne. Le clic droit sur une carte la sélectionne avant d'ouvrir le menu contextuel. La sélection pilote l'activation des entrées « Éditer »/« Supprimer » du sous-menu Agent en vue « Agents ».
 - **Badges d'évènement sur les cartes état (TSK13, vue agents uniquement)** : deux badges avec compteur, même style que le badge d'agents de la vue Events mais en cuivre `#D19A66` (teinte du type Événement), **centrés verticalement, et sur l'axe horizontal 2/3 dedans / 1/3 dehors du contour** de la carte (5 px dehors sur un diamètre de 16 — TSK18, TSC 29-10-2026, même règle horizontale que le badge d'agents de la vue Events, TSK17) — toujours du même côté que les ports de connexion (entrant/sortant) des états en vue Events (côtés TSC 28-10-2026) : badge de **gauche** = nombre d'événements **sources** (arcs `Event_to_state` pointant vers cet état), badge de **droite** = nombre d'événements **cibles** (arcs `State_to_event` partant de cet état). Infobulle « Events (in): ... » / « Events (out): ... ». Masqués à 0 ; rafraîchis dynamiquement à la création/suppression d'une relation et au rafraîchissement de la matrice. Les cartes agent ne portent pas de badge d'évènement. En vue Events, les nœuds État ne portent que le badge d'agents (revue TSC 28-10-2026, retour n°1).
 - **Contrat de focus (navigation croisée, TSK10/RG067, étendu par TSK13)** :

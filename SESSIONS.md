@@ -1162,3 +1162,17 @@ proposée : TSK29 = implémentation du filtre FN029.
 - Rappels : pytest/PySide6 non installables dans le sandbox (validation
   chez TSC) ; `00_specifications-EN.json` invalide (préexistant) ; TSK14
   (barre latérale) en To do, hors périmètre MVP.
+
+
+## 01-11-2026 — TSK29 : implémentation du filtre d'affichage par parcours (FN029/RG042)
+
+- **Décision TSC 01-11-2026** : filtre **désactivé par défaut** à l'ouverture d'un projet (en début de construction, l'appartenance des composants aux parcours n'est pas claire — il faut pouvoir tout voir) ; l'état du filtre reste **non rémanent** (RG041). Conception `docs/conception/journey_filter.md` amendée en §3, kanban v23 (TSK29 en Doing).
+- **Implémentation** :
+  - `src/core/services/journey_filter_service.py` (nouveau) : visibilité dérivée RG026 — relations visibles = arcs/associations référencés par un `Journey_node` du parcours actif ; composants visibles = ceux auxquels ces relations donnent appartenance ; filtre off → `None` (tout visible).
+  - `EventsWorkspace` : `journey_filter_active` (défaut False) + `apply_journey_filter()` (`setVisible` sur nodes/connections), appelée à la création de nœud/connexion, suppression de nœud/connexion, `populate_from_layout`/`populate_default` ; éléments masqués non cliquables (ports, menus contextuels).
+  - `AgentsWorkspace` : `apply_journey_filter()` — colonnes des états du parcours actif + cases d'association rattachées masquées/visibles, lignes agents toutes visibles (décision TSC 31-10-2026) ; appelée en fin de `refresh()`.
+  - `MainWindow` : entrée cochable « All journeys » en tête de `Display > Journey > JourneyList` (libellé `journey_list_all_label` dans config.json) ; cocher un parcours = activer ce parcours **et** le filtre ; `_refresh_journey_filter()` après activation de parcours, création/suppression de relation, édition de relation (RG027), suppression de composant, suppression de parcours, édition de cellule matrice ; reset filtre off dans `_init_workspace` ; RG067 : bascule « All journeys » avant focus si la cible est masquée ; message barre d'info quand un composant créé reste orphelin sous filtre actif.
+- **Specs** : FN029 « Implémenté » FR/EN (+ défaut filtre off, vue agents filtrée), `05_menu-EN.yaml`, `04_interface` FR/EN (sections menu, 6, 6.bis).
+- **Vérifications** : py_compile OK (6 fichiers) ; `QT_QPA_PLATFORM=offscreen python -m pytest tests/ -q --ignore=tests/test_application` : **199 passed** (+9 `tests/test_visualization/test_journey_filter.py` : visibilité dérivée, orphelins, 1..n parcours, attach/detach, suppression d'arc, association agent-état, non-persistance RG041) ; YAML valide, config.json valide. Script offscreen `tests/test_visualization/offscreen_tsk29_journey_filter.py` écrit — **non exécutable dans le sandbox** (libGL.so.1 et libs système Qt absentes, non installables sans root ; PySide6/pytest installés via pip cette séance) → à valider en séance GUI.
+- **Kanban v24** : TSK29 Doing → En revue. Fiche `docs/project/tasks/TSK29_journey_filter_implementation.md` journalisée.
+- Non committé (pas d'instruction de commit).

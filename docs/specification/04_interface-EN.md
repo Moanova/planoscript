@@ -54,7 +54,7 @@
 
   - **Display**:
     - **Journey**:
-      - JourneyList - Implemented (TSK23: dynamic checkable list of journeys, the checked item is the active journey; an "All journeys" entry is planned for the FN029 filter, TSK27)
+      - JourneyList - Implemented (TSK23/TSK29: dynamic checkable list of journeys with an "All journeys" entry on top - checked = journey filter disabled (default on opening, TSC decision 01-11-2026); active filter = the checked item is the active journey, checking a journey activates that journey and the filter FN029/RG042; state not persisted RG041)
     - **Zoom**:
       - Zoom in (Ctrl+=) - Not implemented
       - Zoom out (Ctrl+-) - Not implemented
@@ -225,6 +225,13 @@
     - On a relation: "Edit Relation" (TSK21/FN021: opens the relation edition dialog — note + checkable journey list, RG027 revised), "Delete Relation".
     - The click selects the item under the cursor before the menu opens, so the actions apply to the clicked item.
 
+  - **Journey display filter** (TSK29, FN029/RG042):
+    - **State**: `EventsWorkspace.journey_filter_active`, purely visual state, not persisted (RG041), **disabled by default** on project opening (TSC decision 01-11-2026).
+    - **Derived visibility** (RG026, via `JourneyFilterService`): active filter -> only the relations attached to the active journey and the components they give membership to are visible (`setVisible`); orphan components and relations of other journeys are hidden. Filter off ("All journeys") -> everything is visible.
+    - **Refresh**: `apply_journey_filter()` called after journey activation, filter toggle, relation creation/deletion, attachment edition (RG027), component deletion, project loading.
+    - **Edition under filter**: a created component stays orphan and hidden under an active filter (info bar message); a created relation becomes visible instantly (auto-attach to the active journey, RG052); cross-view navigation (RG067) switches to "All journeys" first when the target is hidden.
+    - Hidden items are not clickable (ports, context menus skip them).
+
 - **Visual Elements**:
 
   - **Nodes (Components)**:
@@ -272,6 +279,7 @@
   - Background grid 120×80 (config `agents_view_cell_width`/`_height`): each card and each checkbox is centered in its cell (20 px margins for cards, 50/30 px for checkboxes). The grid is redrawn over the visible area (events view pattern) and the scene extends right/down only: the matrix stays anchored at the top-left corner.
   - The column order follows business rule RG068 (creation order by default, manual reordering persisted by drag and drop, initial state pinned to the first column with a rejection message in the info bar).
   - A checked cell materializes an agent-state association (SU008). Editing is done by clicking the checkbox (TSK09).
+  - **Journey display filter (TSK29, FN029/RG042, TSC decision 31-10-2026)**: the agents view is filtered like the events view — under an active filter, only the columns of the states belonging to the active journey (membership derived from RG026) and the associations attached to it (`Journey_node.state_agent_rel_id`) are visible; the rows (agents, project-level components) all stay visible.
 - **Card selection (TSC review 28-10-2026)**: like in the events view, a click on a card selects it (a single card selected at a time, across agents and states); the selection is shown by a **dashed outline in the type color** (charter 98: selection > hover > type). A click on empty space clears the selection. Drag-and-drop reordering (RG068) is preserved: the click selects, the drag reorders. A right-click on a card selects it before opening the context menu. The selection drives the activation of the "Edit"/"Delete" entries of the Agent submenu in the "Agents" view.
 - **Event badges on state cards (TSK13, agents view only)**: two pills with counters, same style as the events agent badge but in copper `#D19A66` (Event type tint), **vertically centered, and on the horizontal axis 2/3 inside / 1/3 outside the outline** of the card (5 px out on a 16 px diameter — TSK18, TSC 29-10-2026, same horizontal rule as the events agent badge, TSK17) — still on the same side as the connection ports (incoming/outgoing) of states in the events view (sides set 28-10-2026): **left** badge = number of **source** events (arcs `Event_to_state` pointing to this state), **right** badge = number of **target** events (arcs `State_to_event` leaving this state). Tooltip "Events (in): ..." / "Events (out): ...". Hidden at 0; refreshed dynamically on relation creation/deletion and on matrix refresh. Agent cards carry no event badge. In the events view, state nodes carry only the agent badge (TSC review 28-10-2026, feedback n°1).
 - **Focus contract (cross-view navigation, TSK10/RG067, extended by TSK13)** :

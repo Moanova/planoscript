@@ -40,6 +40,7 @@ from PySide6.QtWidgets import (
 
 from config.config_loader import get as _get_config
 from core.services.layout_service import resolve_matrix_order
+from core.services.journey_filter_service import JourneyFilterService
 from ui.nodes.matrix_card import MatrixCardItem, MatrixCheckItem
 from ui.utils import theme
 from usecases.agent_association.associate_agent_state_usecase import (
@@ -172,6 +173,10 @@ class AgentsWorkspace(QWidget):
         self._drag_press_pos = None
         # Background grid lines (redrawn on refresh)
         self._grid_lines = []
+        # Journey display filter (TSK29, FN029/RG042): purely visual
+        # state, not persisted (RG041), disabled by default (TSC
+        # decision 01-11-2026); kept in sync with the events view
+        self.journey_filter_active = False
 
         self.scene.setBackgroundBrush(QBrush(QColor(_BG_PRIMARY)))
 
@@ -300,6 +305,10 @@ class AgentsWorkspace(QWidget):
         # from the arcs of the current narrative map
         self.refresh_all_event_badges()
 
+        # TSK29 (FN029/RG042, decision TSC 31-10-2026): the agents view
+        # is filtered like the events view
+        self.apply_journey_filter()
+
         self._update_scene_rect()
         self._draw_grid()
 
@@ -389,6 +398,52 @@ class AgentsWorkspace(QWidget):
             line.setZValue(-2)
             self.scene.addItem(line)
             self._grid_lines.append(line)
+
+    # ------------------------------------------------------------------
+    # Journey display filter (TSK29, FN029/RG042)
+    # ------------------------------------------------------------------
+
+    def apply_journey_filter(self) -> None:
+        """Recompute the visibility of the matrix from the model (TSK29).
+
+        Decision TSC 31-10-2026: the agents view is filtered like the
+        events view. Under an active filter, only the state columns
+        belonging to the active journey (membership derived from RG026)
+        and the associations attached to it (Journey_node.state_agent_rel_id)
+        are shown; the agent rows stay all visible (an agent is a
+        project-level component, it belongs to no journey, SU008).
+        Filter disabled ("All journeys"): everything is visible.
+        """
+        if not self.project_service or not self.project_service.current_project:
+            return
+        narrative_map = self.project_service.current_project.narrative_map[0]
+        active = narrative_map.get_active_journey()
+        relation_keys = JourneyFilterService.visible_relation_keys(
+            narrative_map, active, self.journey_filter_active)
+        component_ids = JourneyFilterService.visible_component_ids(
+            narrative_map, active, self.journey_filter_active)
+        visible_state_ids = component_ids[0] if component_ids is not None else None
+
+        for state_id, card in self._state_cards.items():
+            card.setVisible(visible_state_ids is None or state_id in visible_state_ids)
+        for (agent_id, state_id), check in self._check_items.items():
+            if visible_state_ids is not None and state_id not in visible_state_ids:
+                # The whole column is hidden, checkbox included
+                check.setVisible(False)
+            elif relation_keys is None:
+                check.setVisible(True)
+            else:
+                rel = AssociateAgentStateUseCase.find_association(
+                    narrative_map, agent_id, state_id)
+                check.setVisible(
+                    rel is not None
+                    and ('state_agent_rel', rel.id) in relation_keys)
+
+    def set_journey_filter_active(self, active: bool) -> None:
+        """Enable/disable the journey filter and refresh the matrix
+        (TSK29, FN029)."""
+        self.journey_filter_active = active
+        self.apply_journey_filter()
 
     # ------------------------------------------------------------------
     # Cell edition (TSK09, SU008)

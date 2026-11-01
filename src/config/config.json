@@ -34,6 +34,7 @@
   "node_title_font_size_px": 14,
   "projects_default_dir": "~/PlanoscriptProjects",
   "info_bar_default_message": "",
+  "journey_list_all_label": "All journeys",
   "log_level": "DEBUG",
   "agents_view_cell_width": 120,
   "agents_view_cell_height": 80,

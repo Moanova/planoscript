@@ -68,12 +68,12 @@ menu:
           items:
             - name: JourneyList
               dynamic: true
-              description: Dynamic checkable list of the journeys of the narrative map; the checked item is the active journey. A checkable "All journeys" entry on top disables the journey filter (FN029, TSK27 design 31-10-2026)
+              description: Dynamic checkable list of the journeys of the narrative map. A checkable "All journeys" entry on top disables the journey filter (FN029, TSK29); when the filter is active the checked item is the active journey, when it is off "All journeys" is checked and no journey is checked
               behavior:
                 user_editable: true
                 checked_field: "checked"
                 default_checked: true
-              note: 'Implemented (TSK23) - Rebuilt on aboutToShow; clicking an item activates that journey (FN026, RG023). Replaces the former Display > Events submenu. The "All journeys" filter entry is designed (TSK27) but not yet implemented'
+              note: 'Implemented (TSK23 + TSK29) - Rebuilt on aboutToShow; clicking a journey activates it and the journey filter (FN026, RG023, FN029); clicking "All journeys" disables the filter. Replaces the former Display > Events submenu. Filter off by default on project opening (TSC decision 01-11-2026); filter state not persisted (RG041)'
         - name: Zoom
           items:
             - name: Zoom in

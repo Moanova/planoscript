@@ -40,6 +40,7 @@ from core.services.about_service import AboutService
 from core.services.change_log_service import ChangeLogService
 from core.services.arc_service import ArcService
 from core.services.layout_service import LayoutService
+from core.services.journey_filter_service import JourneyFilterService
 from usecases.project_management.create_project_usecase import CreateProjectUseCase
 from usecases.project_management.create_agent_usecase import CreateAgentUseCase
 from usecases.project_management.update_agent_usecase import UpdateAgentUseCase
@@ -248,6 +249,9 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message(f"Agent '{agent_lb}' associated")
         else:
             self.info_bar.show_message(f"Agent '{agent_lb}' dissociated")
+        # TSK29 (FN029/RG027): the association attachment changed -> the
+        # matrix cell may have become hidden under the journey filter
+        self._refresh_journey_filter()
 
     def _focus_state_in_agents_view(self, state_id):
         """Show a state in the agents view, focused (TSK10, RG067).
@@ -256,6 +260,17 @@ class MainWindow(QMainWindow):
         The focus is temporary: no modification flag, no persistence
         (RG067).
         """
+        # TSK29 (FN029, conception §6): when the journey filter hides the
+        # target state, switch to "All journeys" first so the focus is
+        # actually visible, then apply it
+        if (isinstance(self.workspace, EventsWorkspace)
+                and self.workspace.journey_filter_active):
+            component_ids = JourneyFilterService.visible_component_ids(
+                self._current_narrative_map(),
+                self._current_narrative_map().get_active_journey(),
+                True)
+            if component_ids is not None and state_id not in component_ids[0]:
+                self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Agents")
         # _on_tab_changed has refreshed the matrix: apply the focus on
         # the rebuilt columns
@@ -274,6 +289,17 @@ class MainWindow(QMainWindow):
             None)
         if state is None:
             return
+        # TSK29 (FN029, conception §6): when the journey filter hides the
+        # target state node, switch to "All journeys" first so the focus
+        # is actually visible
+        if (isinstance(self.workspace, EventsWorkspace)
+                and self.workspace.journey_filter_active):
+            component_ids = JourneyFilterService.visible_component_ids(
+                project.narrative_map[0],
+                project.narrative_map[0].get_active_journey(),
+                True)
+            if component_ids is not None and state_id not in component_ids[0]:
+                self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Events")
         if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus([state_id])
@@ -299,6 +325,18 @@ class MainWindow(QMainWindow):
             self.info_bar.show_message(
                 f"Agent '{agent.lb}' has no associated state")
             return
+        # TSK29 (FN029, conception §6): under an active journey filter,
+        # switch to "All journeys" first when some target state is hidden,
+        # so the focus is actually visible
+        if (isinstance(self.workspace, EventsWorkspace)
+                and self.workspace.journey_filter_active):
+            component_ids = JourneyFilterService.visible_component_ids(
+                narrative_map, narrative_map.get_active_journey(), True)
+            if component_ids is not None:
+                hidden = [sid for sid in state_ids
+                          if sid not in component_ids[0]]
+                if hidden:
+                    self._set_journey_filter_active(False)
         self.tab_bar.setCurrentTab("Events")
         if isinstance(self.workspace, EventsWorkspace):
             self.workspace.set_focus(state_ids)
@@ -695,6 +733,10 @@ class MainWindow(QMainWindow):
             self.workspace.workspace_modified.connect(self._on_workspace_modified)
             # Update menu state when selection changes (enables/disables Edit/Delete)
             self.workspace.scene.selectionChanged.connect(self._update_menu_state)
+        # TSK29 (FN029/RG041): the journey filter state is a view state,
+        # not persisted -> reset to "All journeys" on each project opening
+        if hasattr(self, 'agents_page') and self.agents_page is not None:
+            self.agents_page.journey_filter_active = False
 
 
     def _create_initial_state_visual(self):
@@ -982,6 +1024,15 @@ class MainWindow(QMainWindow):
             self.workspace.create_node_from_data(result)
             self._update_menu_state()
             self.node_count += 1
+            # TSK29 (FN029, conception §6): a freshly created component is
+            # orphan until its first relation -> hidden under an active
+            # journey filter; report it in the info bar (no automatic
+            # filter switch: the filter is an explicit user choice)
+            if (isinstance(self.workspace, EventsWorkspace)
+                    and self.workspace.journey_filter_active):
+                self.info_bar.show_message(
+                    f"{component_type} created: it will be visible once a "
+                    "relation is attached to it (journey filter active)")
             # TSK08: a state column may have appeared -> refresh the
             # agents view matrix
             self._refresh_agents_view()
@@ -1109,6 +1160,10 @@ class MainWindow(QMainWindow):
                     'arc': arc,
                     'relation_type': relation_type
                 })
+            # TSK29 (FN029/RG052): the new arc is attached to the active
+            # journey on creation -> the relation and its two components
+            # just became visible under an active filter
+            self._refresh_journey_filter()
             self.info_bar.show_message("State-Event relation created")
             # TSK13: the agent badge of the events state node and the
             # event badges of the agents-view state card may have changed
@@ -1400,6 +1455,9 @@ class MainWindow(QMainWindow):
         result = self.delete_journey_usecase.execute(journey)
         if result and result.get('success'):
             self.info_bar.show_message(f"Journey deleted: {journey.lb}")
+            # TSK29 (FN029): orphan nodes moved to the default journey
+            # (RG066) -> recompute the filter visibility
+            self._refresh_journey_filter()
         else:
             self.info_bar.show_message("Cannot delete journey")
         self._update_menu_state()
@@ -1418,26 +1476,63 @@ class MainWindow(QMainWindow):
         return dialog.get_selected_journey()
 
     def _rebuild_journey_list_menu(self):
-        """Rebuild the "Display > Journey > JourneyList" dynamic menu (TSK23):
-        one checkable action per journey, checked for the active journey."""
+        """Rebuild the "Display > Journey > JourneyList" dynamic menu (TSK23,
+        TSK29): a checkable "All journeys" entry on top (checked = journey
+        filter disabled, FN029), then one checkable action per journey,
+        checked for the active journey when the filter is active."""
         self.journey_list_menu.clear()
         narrative_map = self._current_narrative_map()
         if narrative_map is None:
             return
         active = narrative_map.get_active_journey()
+        filter_active = bool(
+            isinstance(self.workspace, EventsWorkspace)
+            and self.workspace.journey_filter_active)
+        all_action = self.journey_list_menu.addAction(
+            _get_config("journey_list_all_label", "All journeys"))
+        all_action.setCheckable(True)
+        all_action.setChecked(not filter_active)
+        all_action.triggered.connect(
+            lambda checked=False: self._set_journey_filter_active(False))
+        self.journey_list_menu.addSeparator()
         for journey in narrative_map.journey:
             action = self.journey_list_menu.addAction(journey.lb)
             action.setCheckable(True)
-            action.setChecked(active is not None and journey.id == active.id)
+            action.setChecked(
+                filter_active and active is not None and journey.id == active.id)
             action.triggered.connect(
                 lambda checked=False, j=journey: self._activate_journey(j))
 
     def _activate_journey(self, journey):
-        """Activate a journey from the JourneyList menu (TSK23, FN026)."""
+        """Activate a journey from the JourneyList menu (TSK23, FN026).
+        TSK29 (FN029): checking a journey also activates the journey
+        filter, and the display is recomputed."""
         result = self.activate_journey_usecase.execute(journey)
         if result and result.get('success'):
+            self._set_journey_filter_active(True)
             self.info_bar.show_message(f"Active journey: {journey.lb}")
         self._update_menu_state()
+
+    def _set_journey_filter_active(self, active: bool):
+        """Enable/disable the journey display filter in both views and
+        refresh them (TSK29, FN029/RG042).
+
+        The filter is a purely visual state: it is not persisted (RG041)
+        and does not mark the project as modified.
+        """
+        if isinstance(self.workspace, EventsWorkspace):
+            self.workspace.journey_filter_active = active
+        if hasattr(self, 'agents_page') and self.agents_page is not None:
+            self.agents_page.journey_filter_active = active
+        self._refresh_journey_filter()
+
+    def _refresh_journey_filter(self):
+        """Recompute the journey filter visibility in both views without
+        changing the filter state (TSK29, FN029)."""
+        if isinstance(self.workspace, EventsWorkspace):
+            self.workspace.apply_journey_filter()
+        if hasattr(self, 'agents_page') and self.agents_page is not None:
+            self.agents_page.apply_journey_filter()
 
     def _delete_agent_with_confirmation(self, agent):
         """Delete an agent with confirmation (RG064: the confirmation
@@ -1689,6 +1784,9 @@ class MainWindow(QMainWindow):
         # TSK08: a state column may have disappeared or associations may
         # have been cascaded (RG065) -> refresh the agents view matrix
         self._refresh_agents_view()
+        # TSK29 (FN029): arcs and associations were deleted -> recompute
+        # the journey filter visibility (a component may be orphan now)
+        self._refresh_journey_filter()
         self._update_menu_state()
 
     def _confirm_component_deletion(self, entity, entity_type,
@@ -1773,6 +1871,8 @@ class MainWindow(QMainWindow):
         # The state column disappeared and associations may have been
         # cascaded (RG065) -> refresh the agents view matrix
         self._refresh_agents_view()
+        # TSK29 (FN029): recompute the journey filter visibility
+        self._refresh_journey_filter()
         self._update_menu_state()
 
 
@@ -1859,6 +1959,9 @@ class MainWindow(QMainWindow):
 
         self.project_service.set_modified(True)
         self.info_bar.show_message("Relation updated")
+        # TSK29 (FN029/RG027): the journey attachment of the relation
+        # changed -> recompute the filter visibility
+        self._refresh_journey_filter()
         self._update_menu_state()
 
 
@@ -1891,6 +1994,9 @@ class MainWindow(QMainWindow):
         # Mark project as modified and update menu state
         self.project_service.set_modified(True)
         self.info_bar.show_message("Relation deleted")
+        # TSK29 (FN029): a component may have become orphan -> recompute
+        # the journey filter visibility
+        self._refresh_journey_filter()
         # TSK13: the agent badge of the events state node and the
         # event badges of the agents-view state card may have changed
         self._refresh_all_state_badges()

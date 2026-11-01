@@ -1,7 +1,7 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 22
-- **Date** : 31-10-2026
+- **Version** : 24
+- **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
 ---
@@ -39,7 +39,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
-- (aucune tâche en cours)
+- [ ] TSK29 — Implémentation du filtre d'affichage par parcours (FN029/RG042, SU006) → #TSK27 — conception `docs/conception/journey_filter.md` (amendée 01-11-2026 : **filtre désactivé par défaut** à l'ouverture d'un projet, décision TSC ; état toujours non persisté RG041) : `JourneyFilterService` (visibilité dérivée RG026) + `EventsWorkspace.apply_journey_filter()` + `AgentsWorkspace` filtrée comme Events (colonnes états du parcours actif + associations rattachées, lignes agents toutes visibles) + entrée cochable « All journeys » en tête de `Display›Journey›JourneyList` (cochée = filtre off ; cocher un parcours active ce parcours et le filtre) + comportements d'édition sous filtre (message barre d'info à la création d'un composant orphelin, recalcul à la création/suppression de relation, RG067 bascule « All journeys » avant focus sur élément masqué) — implémenté 01-11-2026 : pytest 199 passed (+9 `tests/test_visualization/test_journey_filter.py`), py_compile OK, script offscreen `tests/test_visualization/offscreen_tsk29_journey_filter.py` à valider en GUI (libGL absent du sandbox) — FN029 « Implémenté » FR/EN, 05_menu, 04_interface — fiche `tasks/TSK29_journey_filter_implementation.md`
 
 ## Done
 

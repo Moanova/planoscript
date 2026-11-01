@@ -1,7 +1,7 @@
 # Conception — Filtre d'affichage par parcours (FN029, RG042, SU006)
 
-- **Date** : 31-10-2026
-- **Statut** : conception **validée TSC 31-10-2026** (décisions en §3/§5)
+- **Date** : 31-10-2026 (amendée 01-11-2026 : filtre désactivé par défaut, §3)
+- **Statut** : conception **validée TSC 31-10-2026** (décisions en §3/§5) ; implémentation TSK29
 - **Contexte** : EPC05 (SU005/SU006), fondations en place (TSK22–TSK25) ;
   rattachement des relations aux parcours via `Journey_node`
   (`docs/conception/journey_attachment.md`)
@@ -39,10 +39,13 @@ un état purement visuel de la scène.
 
 - **État** : `journey_filter_active: bool` + parcours actif existant
   (`NarrativeMap.active_journey_id`, RG022/RG023). Valeur par défaut à
-  l'ouverture d'un projet : **filtre actif** (cohérent avec SU006 : « un
-  filtre de parcours permet d'afficher soit tous les parcours, soit le
-  parcours sélectionné » — le parcours actif est le mode de travail par
-  défaut, le mode « tout afficher » sert à auditer la carte complète).
+  l'ouverture d'un projet : **filtre désactivé** (« tous les parcours »,
+  décision TSC 01-11-2026 : en début de construction, l'appartenance des
+  composants aux parcours n'est pas encore claire — il faut pouvoir
+  construire la carte librement ; le filtre se coche quand l'utilisateur
+  veut se concentrer sur le parcours actif). Le mode « tout afficher »
+  reste donc le mode de démarrage, le filtre actif sert à se concentrer
+  sur le parcours sélectionné (SU006).
 - **Persistance** : **non persisté entre les sessions**, comme le zoom et
   la position des scrollbars (RG041 : ces états de visualisation ne sont pas
   des données métier). Stocké en mémoire uniquement (attribut de

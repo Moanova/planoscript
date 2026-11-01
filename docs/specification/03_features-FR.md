@@ -327,8 +327,9 @@
     - Le cas échéant, la bascule d'un parcours à l'autre met à jour instantanément l'affichage : seules les relations rattachées au parcours actif (sélectionné) et les composants auxquels elles donnent appartenance (RG026) sont représentés ; les relations rattachées aux autres parcours, les composants auxquels elles donnent appartenance et les composants orphelins (sans aucune relation) ne sont visibles que lorsque le filtre est désactivé.
     - Le filtrage ne marque pas la carte comme modifiée.
     - Point d'entrée : entrée cochable « All journeys » en tête de « Display › Journey › JourneyList » (cochée = filtre désactivé) ; cocher un parcours active ce parcours et le filtre (TSK27).
-    - L'état du filtre n'est pas persisté entre les sessions (état de visualisation, comme le zoom et les scrollbars, RG041 — conception `docs/conception/journey_filter.md` §3).
-- **État** : Conçu (TSK27, 31-10-2026) — note de conception `docs/conception/journey_filter.md` ; implémentation à venir.
+    - L'état du filtre n'est pas persisté entre les sessions (état de visualisation, comme le zoom et les scrollbars, RG041 — conception `docs/conception/journey_filter.md` §3). Valeur par défaut à l'ouverture d'un projet : **filtre désactivé** (« tous les parcours », décision TSC 01-11-2026).
+    - La vue agents est filtrée comme la vue Events (décision TSC 31-10-2026) : sous filtre actif, seules les colonnes des états appartenant au parcours actif et les associations rattachées à ce parcours sont affichées ; les lignes (agents) restent toutes visibles.
+- **État** : Implémenté (TSK29, 01-11-2026) — conception `docs/conception/journey_filter.md` ; `JourneyFilterService` + `apply_journey_filter()` vue Events et vue agents.
 
 ---
 

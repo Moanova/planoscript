@@ -327,8 +327,9 @@
   - Where applicable, switching from one journey to another instantly updates the display: only the relations attached to the active (selected) journey and the components to which they give membership (RG026) are represented; the relations attached to other journeys, the components to which they give membership and orphan components (with no relation) are visible only when the filter is disabled.
   - Filtering does not mark the map as modified.
   - Entry point: checkable "All journeys" entry at the top of "Display › Journey › JourneyList" (checked = filter off); checking a journey activates that journey and the filter (TSK27).
-  - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3).
-- **Status** : Designed (TSK27, 31-10-2026) — design note `docs/conception/journey_filter.md` ; implementation to come.
+  - The filter state is not persisted between sessions (view state, like zoom and scrollbars, RG041 — design `docs/conception/journey_filter.md` §3). Default on project opening: **filter disabled** ("all journeys", TSC decision 01-11-2026).
+  - The agents view is filtered like the events view (TSC decision 31-10-2026): under an active filter, only the columns of the states belonging to the active journey and the associations attached to it are displayed; the rows (agents) all stay visible.
+- **Status** : Implemented (TSK29, 01-11-2026) — design `docs/conception/journey_filter.md` ; `JourneyFilterService` + `apply_journey_filter()` in the events and agents views.
 
 ---
 
