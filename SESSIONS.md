@@ -1262,3 +1262,30 @@ proposée : TSK29 = implémentation du filtre FN029.
   restitution ou non des agents/associations dans l'export.
 - Hors périmètre acté : export technique réimport, vue événements, lecture
   par relations d'agents.
+
+
+## 01-11-2026 — TSK31 (suite) : propositions de restitution TSC + retour critique
+
+- Proposition TSC : aperçu centré sur les **états** depuis l'état initial,
+  dans l'ordre de succession ; par état (sauf initial) : événements
+  prédécesseurs + agents associés ; par composant : libellé, content, type
+  (état/agent), note en infobulle au survol ; sommaire des parcours en liens
+  hypertexte (un seul lien si filtre FN029 actif) ; section agents (niveau
+  projet) avant/après le déroulé, le déroulé ne portant que les libellés avec
+  lien vers la fiche agent ; troisième section pour les composants orphelins.
+- **Retour critique consigné dans `docs/conception/export.md` §4** :
+  - faisable tel quel côté modèle (appartenance parcours dérivée RG026) ;
+  - **ne pas utiliser `sequence_order`** (max+1 à la création, jamais
+    maintenu — point ouvert TSK22) : recalculer l'ordre par DFS depuis
+    l'état initial sur les arcs du parcours ;
+  - **cycles longs possibles** (RG058 ne bloque que les cycles de longueur 2)
+    → mémoriser les états déjà visités ;
+  - restituer les composants pendants (événement sans état successeur,
+    état en fin de branche) ;
+  - « description » n'existe pas dans le modèle → c'est la **`note`**
+    (vocabulaire TSK26) ; infobulle in-app = `anchorAt` + QToolTip custom,
+    HTML = `title` natif ;
+  - liens cliquables dans l'aperçu readOnly à décider (texte pur vs clic =
+    pilotage du filtre FN029) ;
+  - export fichier = carte complète (indépendant du filtre RG041), aperçu =
+    filtre actif.
