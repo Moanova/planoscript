@@ -1240,3 +1240,25 @@ proposée : TSK29 = implémentation du filtre FN029.
   (périmètre MVP = export de lecture « par parcours » HTML autonome ;
   export technique réimport et vue « par événements » hors MVP ; point
   d'entrée `Files > Export Map` stub). Enchaînée pour la prochaine séance.
+
+
+## 01-11-2026 — TSK31 (conception export SU007) : cadrage, note initialisée
+
+- `docs/conception/export.md` créée (TSK31 Doing). **Décisions actées TSC** :
+  1. troisième espace de travail « Export » dédié, **lecture seule**, aucune
+     interaction — la génération de l'aperçu ne touche jamais à `set_modified` ;
+  2. **régénération à la bascule sur l'onglet Export** (et non en temps réel à
+     chaque modification) — résout le point « temps réel » et les soucis de
+     scroll/scintillement ;
+  3. aperçu **dynamique selon le filtre FN029** : filtre actif → parcours
+     actif ; « All journeys » → tous les parcours ;
+  4. à consigner : le code suppose 2 espaces de travail (`tab_bar.currentTab()`
+     testé à 6 endroits pour la logique Agents) → à généraliser à 3 onglets à
+     l'implémentation.
+- **Point ouvert principal** : contenu de l'aperçu — texte de lecture rendu
+  (recommandé) vs HTML brut ; l'export HTML dossier reste produit à la
+  demande via `Files > Export Map` (stub). Autres points ouverts : nommage
+  du dossier, déroulement par parcours (composants multi-parcours, orphelins),
+  restitution ou non des agents/associations dans l'export.
+- Hors périmètre acté : export technique réimport, vue événements, lecture
+  par relations d'agents.

@@ -44,3 +44,4 @@ couvrant :
 ## Journal
 
 - 01-11-2026 : tâche créée et passée en Doing (décision TSC 01-11-2026, enchaînée après validation de TSK29).
+- 01-11-2026 : cadrage en séance — note `docs/conception/export.md` initialisée. Décisions actées : troisième espace de travail « Export » en **lecture seule** (aucune interaction, ne touche jamais à `set_modified`) ; **régénération à la bascule sur l'onglet** (pas de temps réel) ; code « 2 espaces de travail » à mettre à jour (`currentTab()` testé à 6 endroits) ; aperçu **dynamique selon le filtre de parcours** (filtre actif → parcours actif, « All journeys » → tous les parcours). Point ouvert principal : contenu de l'aperçu (texte de lecture rendu vs HTML brut — recommandation : texte rendu pour l'aperçu, HTML à la demande via `Files > Export Map`).
