@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 30
+- **Version** : 32
 - **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -26,7 +26,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## To do
 
-- [ ] TSK33 — Implémentation de l'aperçu d'export (SU010/FN033) : 3e onglet « Export » en lecture seule (ExportWorkspace + export_service.build_reading_text sur RG069), généralisation du code 2 → 3 espaces de travail (currentTab() testé à 6 endroits dans main_window.py + _on_tab_changed), régénération à la bascule sur l'onglet + signal de modification si onglet actif, aperçu dynamique selon FN029, liens inertes, restitution centrée états (orphelins + événements pendants avec marqueur), ne touche jamais à set_modified, tests — → #TSK32 — fiche `tasks/TSK33_export_preview.md` — créée 01-11-2026 (décision TSC)
+- [ ] TSK34 — Revue de code (dette technique, à traiter ultérieurement) : normalisation des modifications du modèle — audit des appels directs hors use cases (main_window → ArcService, connection.py écriture directe dans le modèle), création des use cases manquants (ex. suppression composant/relation), suppression du code mort `narrative_map.set_modified` (connection.py:849-850), exploitation du hook `ProjectService.on_modified` mis en place par TSK33 — fiche `tasks/TSK34_code_review.md` — créée 01-11-2026 (décision TSC)
 - [ ] TSK14 — Barre latérale gauche de contrôle (création des agents, des états, des événements et des relations) → #TSK11
 
 - [ ] TSK30 — Barre latérale de filtres (parcours, type d'états, types d'agents) — panneau latéral droit « Journey Filter » envisagé dans la conception `docs/conception/journey_filter.md` §5bis, à concevoir séparément (sélection de parcours à afficher, filtres par type) → #TSK29 — à traiter ultérieurement (décision TSC 01-11-2026)
@@ -43,6 +43,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
+- [ ] TSK33 — Implémentation de l'aperçu d'export (SU010/FN033) : 3e onglet « Export » en lecture seule (ExportWorkspace + export_service.build_reading_text sur RG069), généralisation du code 2 → 3 espaces de travail (currentTab() testé à 6 endroits dans main_window.py + _on_tab_changed), régénération à la bascule sur l'onglet + signal de modification si onglet actif, aperçu dynamique selon FN029, liens inertes, restitution centrée états (orphelins + événements pendants avec marqueur), ne touche jamais à set_modified, tests — → #TSK32 — fiche `tasks/TSK33_export_preview.md` — créée 01-11-2026 (décision TSC), passée en Doing 01-11-2026, En revue 01-11-2026 (kanban v32) — implémenté : hook `ProjectService.on_modified` + signal `map_modified`, `ExportService.build_reading_text`/`build_note_index` (RG069), `ExportWorkspace` (QTextBrowser readOnly, liens inertes, infobulle anchorAt+QToolTip), 3e onglet « Export » + branche `_on_tab_changed` + régénération à la bascule et si onglet actif, dynamique selon FN029, stubs menu View (Events/Agents/Export) — tests `test_export_service.py` (+9) — pytest 226 passed, py_compile OK — script offscreen à valider en GUI (libGL absent du sandbox) — TSK34 créée (revue de code)
 - [ ] TSK31 — Conception de l'export de la carte narrative et de l'aperçu d'export (SU007/SU010) — décisions actées consignées dans `docs/conception/export.md` ; specs rédigées : SU010 + FN033 (FR/EN), 04_interface, 05_menu, 99_mvp_scope mis à jour — fiche `tasks/TSK31_export_conception.md` — créée et passée en Doing 01-11-2026, En revue 01-11-2026 (kanban v30) — validation embarquée avec TSK32
 - [ ] TSK32 — Ordre de succession réel des parcours : révision de la sémantique de `Journey_node.sequence_order` (RG069 : DFS depuis l'état initial sur les arcs du parcours, branches par id d'arc croissant, mémoïsation (type, id) pour les cycles longs, repli déterministe pour les nœuds non atteignables) — pas de second champ, clé JSON conservée, recalcul au chargement — `JourneySequenceService` + recalcul aux 10 points de modification du graphe — RG069 + 07_data_model FR/EN — tests `test_sequence_order.py` (+18) — pytest 217 passed, py_compile OK — correctif `delete_journey_nodes_for_arcs` (ids d'arcs séparés par type, RG056 extended) — prerequisite de l'implémentation de l'aperçu d'export (TSK31 suite) — fiche `tasks/TSK32_sequence_order.md` — créée 01-11-2026, Doing 01-11-2026, En revue 01-11-2026 (kanban v29)
 

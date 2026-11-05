@@ -19,6 +19,10 @@ class ProjectService:
     def __init__(self):
         self._current_project: Project = None
         self._is_modified = False
+        # Optional observer hook (TSK33): callable invoked on every
+        # set_modified(True). Keeps core Qt-free: the UI layer registers a
+        # callback here and re-emits it as a Qt signal.
+        self.on_modified = None
 
 
     def create_project(self) -> Project:
@@ -105,3 +109,5 @@ class ProjectService:
 
     def set_modified(self, modified: bool) -> None:
         self._is_modified = modified
+        if modified and callable(self.on_modified):
+            self.on_modified()

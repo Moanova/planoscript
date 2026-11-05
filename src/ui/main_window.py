@@ -19,11 +19,12 @@ from PySide6.QtWidgets import (
     QMenuBar, QMenu, QLabel,
     QMessageBox, QGridLayout, QFileDialog, QStackedWidget
 )
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, Signal
 from PySide6.QtGui import QCloseEvent
 
 from ui.views.events_workspace import EventsWorkspace
 from ui.views.agents_workspace import AgentsWorkspace
+from ui.views.export_workspace import ExportWorkspace
 from ui.widgets.tab_bar import TabBar
 from ui.nodes.connection import Connection
 from ui.nodes.state_node import StateNode
@@ -78,6 +79,10 @@ logger = logging.getLogger(__name__)
 class MainWindow(QMainWindow):
     """Main Application Window"""
 
+    # TSK33: emitted when the model is marked modified (hook on ProjectService);
+    # used to regenerate the export preview when its tab is active
+    map_modified = Signal()
+
     # ---------------------------------------------------------------------
     # Environment setup
     # ---------------------------------------------------------------------
@@ -92,6 +97,10 @@ class MainWindow(QMainWindow):
 
         # Dependencies initialization
         self.project_service = ProjectService()
+        # TSK33: model modification hook (core stays Qt-free); re-emitted as a
+        # Qt signal so the export preview regenerates when its tab is active
+        self.project_service.on_modified = lambda: self.map_modified.emit()
+        self.map_modified.connect(self._on_map_modified)
         self.create_project_usecase = CreateProjectUseCase(self.project_service)
         self.load_project_usecase = LoadProjectUseCase(self.project_service)
         self.save_project_usecase = SaveProjectUseCase(self.project_service)
@@ -146,7 +155,7 @@ class MainWindow(QMainWindow):
         self.middle_layout.setSpacing(0)
         main_layout.addWidget(self.middle_section, 1)
 
-        self.tab_bar = TabBar(["Events", "Agents"])
+        self.tab_bar = TabBar(["Events", "Agents", "Export"])
         self.tab_bar.hide()
         self.tab_bar.currentChanged.connect(self._on_tab_changed)
         self.middle_layout.addWidget(self.tab_bar)
@@ -183,6 +192,10 @@ class MainWindow(QMainWindow):
         # menu activation in the agents view
         self.agents_page.cardSelectionChanged.connect(self._update_menu_state)
         self.pages.addWidget(self.agents_page)
+
+        # Export preview workspace page (TSK33, SU010/FN033): read-only
+        self.export_page = ExportWorkspace()
+        self.pages.addWidget(self.export_page)
 
         self.pages.setCurrentWidget(self.welcome_page)
 
@@ -228,6 +241,29 @@ class MainWindow(QMainWindow):
         elif tab_name == "Agents":
             self.pages.setCurrentWidget(self.agents_page)
             self._refresh_agents_view()
+        elif tab_name == "Export":
+            # TSK33: regenerate the preview on tab activation (not in background)
+            self.pages.setCurrentWidget(self.export_page)
+            self._refresh_export_preview()
+
+    def _on_map_modified(self):
+        """TSK33: regenerate the export preview on model change, only when its
+        tab is active (the regeneration on tab activation is the safety net)."""
+        if self.tab_bar.currentTab() == "Export":
+            self._refresh_export_preview()
+
+    def _refresh_export_preview(self):
+        """TSK33 (SU010/FN033): regenerate the export preview for the current
+        journey filter state (FN029): active filter -> active journey only,
+        "All journeys" -> all journeys. Never marks anything as modified."""
+        if not self.project_opened:
+            return
+        project = self.project_service.current_project
+        narrative_map = project.narrative_map[0]
+        journey = None
+        if getattr(self.workspace, 'journey_filter_active', False):
+            journey = narrative_map.get_active_journey()
+        self.export_page.refresh_preview(narrative_map, journey, agents=project.agent)
 
     def _on_matrix_association_changed(self, state_id, agent_lb, associated):
         """Handle a matrix cell edition (TSK09, SU008).
@@ -385,6 +421,10 @@ class MainWindow(QMainWindow):
         # MVP : events view only + the agent-relations view will be reworked at a later stage of development
         self.view_menu = self.project_menu.addMenu("View")
         self.menu_actions['view_events'] = self.view_menu.addAction("Events", lambda: None)
+        # TSK33: align the View menu with the tab bar (stubs, views are active
+        # via the tab bar, not via this menu — 05_menu-EN.yaml)
+        self.menu_actions['view_agents'] = self.view_menu.addAction("Agents", lambda: None)
+        self.menu_actions['view_export'] = self.view_menu.addAction("Export", lambda: None)
         #self.menu_actions['view_relations'] = self.view_menu.addAction("Relations", lambda: None)
 
         self.components_menu = self.project_menu.addMenu("Components...")
@@ -1492,6 +1532,9 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'agents_page') and self.agents_page is not None:
             self.agents_page.journey_filter_active = active
         self._refresh_journey_filter()
+        # TSK33: the export preview is dynamic according to the filter (FN029)
+        if self.tab_bar.currentTab() == "Export":
+            self._refresh_export_preview()
 
     def _refresh_journey_filter(self):
         """Recompute the journey filter visibility in both views without

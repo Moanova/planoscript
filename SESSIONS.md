@@ -1396,3 +1396,35 @@ proposée : TSK29 = implémentation du filtre FN029.
 - Vérifications : YAML 05_menu-EN.yaml valide ; aucune modification de code sur
   cette étape (docs uniquement). TSK32 commitée et poussée sur dev (8f85993).
 - Non fait : pas de commit/push de cette étape (pas de demande explicite).
+
+
+## 01-11-2026 — TSK33 implémentée : aperçu d'export, 3e onglet « Export » (kanban v31 → v32)
+
+- **TSK33 passée en Doing (v31) puis En revue (v32)**. TSK34 créée en To do (revue de
+  code / dette technique : appels directs hors use cases, code mort
+  `connection.py:849-850`, normalisation via le hook `on_modified`).
+- **Détection des modifications (décision TSC : solution C)** : hook `on_modified`
+  (callable pur Python) sur `ProjectService.set_modified` — couvre 100 % des chemins
+  qui lèvent le flag (19 use cases + handlers main_window + workspace_modified) sans
+  introduire Qt dans core. MainWindow le traduit en signal Qt `map_modified` ;
+  l'aperçu n'est régénéré en direct que si l'onglet Export est actif (la régénération
+  à la bascule reste le filet de sécurité).
+- **Menus** : édition laissée active en onglet Export ; menu View aligné avec 3 stubs
+  (Events/Agents/Export, `lambda: None`, pattern existant) — conforme à 05_menu.
+- **Implémenté** : `ExportService.build_reading_text` / `build_note_index` (HTML 4
+  subset échappé ; sommaire des parcours ; déroulé centré états dans l'ordre RG069,
+  états uniques, prédécesseurs + agents annotés du parcours ; associations
+  restreintes au parcours actif sous filtre FN029 ; événements pendants en fin avec
+  marqueur ; sections agents et orphelins) ; `ExportWorkspace` (QTextBrowser readOnly,
+  `setOpenLinks(False)` liens inertes, infobulle note via `anchorAt` + QToolTip) ;
+  `main_window.py` : 3e onglet, branche `_on_tab_changed("Export")`,
+  `_refresh_export_preview` (dynamique selon FN029), hook filtre. Les 6
+  `currentTab() == "Agents"` restent corrects tels quels (comparaison explicite ;
+  le 3e onglet hérite du comportement Events) — vérifié un par un.
+- **Tests** : `tests/test_journeys/test_export_service.py` (+9). Vérifications :
+  py_compile OK, `pytest tests/ -q --ignore=tests/test_application` → **226 passed**.
+- **Problème rencontré** : libGL absent du sandbox (pas de sudo) → le script
+  offscreen UI (`/tmp/offscreen_tsk33_export_preview.py`, jetable, non committé) n'a
+  pas pu tourner ici ; à valider en GUI avec les tests interactifs TSC (même situation
+  que TSK29). Choix actés : label d'onglet « Export » en dur comme les labels existants.
+- Commit + push sur dev sur demande explicite TSC.
