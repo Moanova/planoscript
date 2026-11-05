@@ -265,3 +265,27 @@
     - La vue agents (matrice agents × états) fait partie du MVP et sera implémentée en tant que second espace de travail.
     - La navigation croisée entre vues est reportée en priorité P2 ; le contrat de focus est néanmoins spécifié dès la conception pour éviter toute refonte ultérieure.
     - Les relations entre agents sont exclues : la vue agents ne représente que les associations agent-état.
+
+## SU010 : Visualiser l'aperçu d'export d'une carte narrative
+
+- **Description** : En tant qu'auteur, je peux visualiser dans l'application un aperçu de lecture de ma carte narrative, tel qu'il sera restitué à l'export, afin de valider mon récit avant de le partager.
+- **Complément** :
+    - L'aperçu est présenté dans un troisième espace de travail « Export », affiché dans la barre d'onglets à côté des onglets « Events » et « Agents ».
+    - L'aperçu est strictement en lecture seule : aucune interaction n'est possible sur son contenu, et les liens affichés sont inertes (aucun clic ne modifie l'état de l'application, notamment le filtre de parcours FN029).
+    - L'aperçu est dynamique selon le filtre de parcours (FN029) : si un parcours est filtré, l'aperçu ne restitue que ce parcours ; si le filtre est désactivé (« All journeys »), l'aperçu restitue tous les parcours de la carte.
+    - L'aperçu est régénéré à chaque bascule sur l'onglet « Export » (et après chaque modification du modèle lorsque l'onglet est déjà actif) ; il n'est jamais régénéré en arrière-plan.
+    - La restitution est centrée sur les états, depuis l'état initial, dans l'ordre de succession réel de chaque parcours (RG069) : chaque état n'est listé qu'une seule fois ; pour chaque état (sauf l'état initial), ses événements prédécesseurs et ses agents associés sont listés, annotés de leur parcours.
+    - Pour chaque composant restitué : libellé en titre de paragraphe et contenu (`content`) en corps de texte (libellé seul si le contenu est vide), le type (état : Initial/Action/Relation/Final ; agent : Sujet/Objet), et la note (`note`) en infobulle au survol.
+    - Un sommaire des parcours est affiché en tête (un seul parcours lorsque le filtre est actif) ; une section détaille les agents du projet ; une section liste les composants orphelins.
+    - Les événements pendants (arc entrant sans arc sortant) sont ignorés dans le déroulé et listés en fin de déroulé avec un marqueur.
+    - La visualisation de l'aperçu ne marque ni la carte narrative ni le projet comme modifiés.
+- **Critères d'acceptation** :
+    - L'utilisateur peut basculer vers l'espace de travail « Export » via la barre d'onglets.
+    - L'aperçu reflète le filtre de parcours actif : un parcours filtré → aperçu de ce seul parcours ; « All journeys » → tous les parcours.
+    - L'aperçu est régénéré à chaque activation de l'onglet « Export » et après chaque modification du modèle lorsque l'onglet est actif.
+    - Les composants apparaissent dans l'ordre de succession réel (RG069), chaque état une seule fois, avec ses événements prédécesseurs et ses agents associés annotés de leur parcours.
+    - Aucune interaction sur l'aperçu ne modifie l'état de l'application ; la visualisation de l'aperçu ne marque ni la carte ni le projet comme modifiés.
+- **Périmètre MVP** :
+    - L'aperçu d'export fait partie du MVP (troisième espace de travail, en lecture seule).
+    - L'export de lecture sur fichier (FN013, SU007, menu « Files › Export Map ») est une fonctionnalité distincte, indépendante du filtre de parcours (carte complète).
+    - La lecture « par événements » et l'export technique pour réimport restent hors périmètre MVP (SU007).

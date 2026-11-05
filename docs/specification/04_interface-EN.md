@@ -64,6 +64,7 @@
     - **View**:
       - Events - Not implemented (the view is activated via the tab bar, not via this menu)
       - Agents - Not implemented (the view is activated via the tab bar; SU009; the Relations and Chapters entries are leftovers removed from the MVP)
+      - Export - Not implemented (the preview is activated via the "Export" tab of the tab bar; SU010/FN033, design TSK31, implementation TSK33)
     - **Components...**:
       - **Agent**:
         - New... - Functional, behavior depends on the active view (FN031, TSK13 + TSC review 28-10-2026):
@@ -169,6 +170,7 @@
 - **Elements**:
   - "Events" tab - **Active by default**
   - "Agents" tab - **Functional** (second workspace, agents × states matrix - SU009, TSK07–TSK15)
+  - "Export" tab - Designed, not implemented (TSK31 → TSK33): read-only reading preview of the narrative map (SU010/FN033)
   - The "Relations" and "Chapters" tabs are leftovers from an earlier version: they are not part of the MVP and are removed from the specification.
 
 - **Tab Style**:
@@ -387,7 +389,7 @@
 ### Partially Implemented
 - [ ] Components bar (exists but not integrated)
 - [ ] Journeys bar (exists but not integrated)
-- [ ] Tab bar (both "Events" and "Agents" tabs are active)
+- [ ] Tab bar ("Events" and "Agents" tabs are active; "Export" tab designed — SU010/FN033, TSK33)
 - [ ] Zoom bar (exists but not connected)
 - [ ] Time Reference nodes (class not implemented)
 - [ ] Spatial Reference nodes (class not implemented)
@@ -402,7 +404,8 @@
 - [ ] Copy/Paste/Cut
 - [ ] Undo/Redo
 - [ ] Modification history
-- [ ] Map Export/Import
+- [ ] Export preview ("Export" tab, read-only — SU010/FN033, TSK33)
+- [ ] Map file export (Files › Export Map — FN013/SU007) and map import
 - [ ] Recent projects
 - [ ] Deletion of relations (State/Event node deletion is functional via the context menus with the SU003 confirmation — TSK13 + TSC review 28-10-2026)
 

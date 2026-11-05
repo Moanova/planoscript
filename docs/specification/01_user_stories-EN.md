@@ -265,3 +265,27 @@
     - The agents view (agents × states matrix) is part of the MVP and will be implemented as a second workspace.
     - Cross-view navigation is postponed to priority P2; the focus contract is nevertheless specified at design time to avoid any later rework.
     - Relations between agents are excluded: the agents view only represents agent-state associations.
+
+## SU010 : Preview the export of a narrative map
+
+- **Description** : As an author, I can view in the application a reading preview of my narrative map, as it will be rendered at export, in order to validate my story before sharing it.
+- **Details** :
+    - The preview is presented in a third workspace "Export", displayed in the tab bar next to the "Events" and "Agents" tabs.
+    - The preview is strictly read-only: no interaction is possible on its content, and the displayed links are inert (no click changes the application state, in particular the journey filter FN029).
+    - The preview is dynamic according to the journey filter (FN029): if a journey is filtered, the preview only renders that journey; if the filter is disabled ("All journeys"), the preview renders all the journeys of the map.
+    - The preview is regenerated on each switch to the "Export" tab (and after each model change when the tab is already active); it is never regenerated in the background.
+    - The rendering is centered on states, from the initial state, in the real succession order of each journey (RG069): each state is listed only once; for each state (except the initial one), its predecessor events and associated agents are listed, annotated with their journey.
+    - For each rendered component: label as paragraph title and content (`content`) as body text (label only if the content is empty), the type (state: Initial/Action/Relation/Final; agent: Subject/Object), and the note (`note`) as a tooltip on hover.
+    - A summary of the journeys is displayed at the top (a single journey when the filter is active); a section details the project agents; a section lists orphan components.
+    - Pending events (incoming arc without outgoing arc) are skipped in the flow and listed at the end of the flow with a marker.
+    - Viewing the preview marks neither the narrative map nor the project as modified.
+- **Acceptance criteria** :
+    - The user can switch to the "Export" workspace via the tab bar.
+    - The preview reflects the active journey filter: one filtered journey → preview of that journey only; "All journeys" → all journeys.
+    - The preview is regenerated on each activation of the "Export" tab and after each model change when the tab is active.
+    - Components appear in the real succession order (RG069), each state only once, with its predecessor events and associated agents annotated with their journey.
+    - No interaction on the preview changes the application state; viewing the preview marks neither the map nor the project as modified.
+- **MVP scope** :
+    - The export preview is part of the MVP (third workspace, read-only).
+    - The file reading export (FN013, SU007, menu "Files › Export Map") is a separate feature, independent of the journey filter (whole map).
+    - The "by events" reading and the technical re-import export remain outside the MVP (SU007).

@@ -373,6 +373,21 @@
     - The navigation does not mark the map or the project as modified.
 - **Status** : Implemented (TSK10: switching and focus in both directions; TSK13: state→events view navigation from the agents view).
 
+## FN033 : Export preview of the narrative map ("Export" workspace)
+
+- **Description** : Display in a third workspace "Export" a read-only reading preview of the current narrative map.
+- **References** : SU010, SU007; "Export" tab of the tab bar; journey filter FN029; RG069 (succession order); design `docs/conception/export.md` (TSK31).
+- **Expected behavior** :
+    - The "Export" tab is present in the tab bar next to "Events" and "Agents".
+    - The preview is read-only: no interaction on the content; displayed links are inert (no click changes the journey filter or regenerates anything).
+    - The preview is regenerated on each switch to the "Export" tab, and after each model change when the tab is already active; never in the background.
+    - The preview is dynamic according to FN029: active filter → active journey only; "All journeys" → all journeys.
+    - Rendering centered on states from the initial state, in the real succession order (RG069): states listed once; for each state (except the initial), predecessor events and associated agents, annotated with their journey (via Journey_node); label as title, `content` as body text (label only if empty), type displayed, `note` as tooltip on hover.
+    - Journey summary at the top (one link if the filter is active); detailed agents section; orphan components section; pending events listed at the end of the flow with a marker.
+    - The rendering is an HTML 4 subset displayed read-only (QTextBrowser); the tooltip on anchors uses a custom mechanism (anchorAt + QToolTip).
+    - Viewing the preview marks neither the map nor the project as modified.
+- **Status** : Designed (TSK31, TSC decisions 01-11-2026) — implementation planned (TSK33).
+
 ---
 
 # Outside MVP scope (postponed)

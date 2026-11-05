@@ -23,6 +23,7 @@ The MVP must verify that the graphical representation provides real value for st
 | Visualization   | Events view, grid, panning, scrolling                                 | SU006 |
 | Persistence     | Local saving of data and layout                                        | RG003 |
 | Export          | Local export for reading in a browser                                  | SU007 |
+| Export preview  | In-app reading preview in the "Export" tab (read-only)                 | SU010 |
 
 ## 4. Excluded from the MVP
 | Domain            | Excluded Features                                     | Rationale / Condition for Reintegration                             |

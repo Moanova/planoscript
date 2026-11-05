@@ -1370,3 +1370,29 @@ proposée : TSK29 = implémentation du filtre FN029.
 - **Non fait** : pas de commit/push (pas de demande explicite) ; TSK32 en attente
   de validation TSC pour passer en Terminé. Prochaine étape : implémentation de
   l'aperçu d'export (TSK31 suite).
+
+
+## 01-11-2026 — Clôture de TSK31 (conception export/aperçu) : SU010 + FN033 rédigées, TSK33 créée (kanban v30)
+
+- **TSK31 passée en En revue** (validation embarquée avec TSK32, décision TSC).
+  Spécifications rédigées : **SU010** « Visualiser l'aperçu d'export d'une carte
+  narrative » et **FN033** « Aperçu d'export (espace de travail « Export ») » en
+  FR/EN, sur la base des décisions actées de `docs/conception/export.md` §2/§4
+  (3e onglet readOnly, régénération à la bascule, dynamique selon FN029, liens
+  inertes, restitution centrée états sur RG069, note en infobulle, pendants avec
+  marqueur, jamais de set_modified). Mises à jour : `04_interface` FR/EN (onglet
+  « Export », entrée menu View › Export, checklist scindée aperçu/export fichier),
+  `05_menu-EN.yaml` (item View › Export), `99_mvp_scope` FR/EN (ligne Aperçu
+  d'export, réf SU010). SU010/FN033 étaient libres (SU001–SU009, FN001–FN032).
+- **TSK33 créée en To do** (→ #TSK32) : implémentation de l'aperçu d'export —
+  fiche `docs/project/tasks/TSK33_export_preview.md`. Y est consignée la
+  généralisation du code « 2 espaces de travail » → 3 onglets : `TabBar` +
+  `QStackedWidget` (`main_window.py:149,155`), `_on_tab_changed` (branche Export),
+  et les 6 tests `currentTab() == "Agents"` (`main_window.py:524, 1015, 1213, 1234,
+  1267, 1292`).
+- Points ouverts restants de la conception (export.md §5) : format du dossier HTML
+  exporté + dialogue `Files > Export Map` — rattachés à l'implémentation de FN013
+  (export fichier), tâche à part, hors aperçu in-app.
+- Vérifications : YAML 05_menu-EN.yaml valide ; aucune modification de code sur
+  cette étape (docs uniquement). TSK32 commitée et poussée sur dev (8f85993).
+- Non fait : pas de commit/push de cette étape (pas de demande explicite).

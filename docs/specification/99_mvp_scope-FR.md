@@ -23,6 +23,7 @@ Le MVP doit permettre de vérifier que la représentation graphique apporte une 
 | Visualisation   | Vue Parcours, grille, déplacement, défilement                          | SU006 |
 | Persistance     | Sauvegarde locale des données et de la mise en page                    | RG003 |
 | Export          | Export local pour lecture dans un navigateur                           | SU007 |
+| Aperçu d'export | Aperçu de lecture in-app dans l'onglet « Export » (lecture seule)      | SU010 |
 
 ## 4. Exclus du MVP
 | Domaine           | Fonctionnalités exclues                               | Motif / condition de réintégration                                    |

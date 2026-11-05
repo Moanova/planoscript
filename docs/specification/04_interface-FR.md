@@ -64,6 +64,7 @@
     - **Vue** :
       - Events — Non implémenté (la vue est active via la barre d'onglets, pas via ce menu)
       - Agents — Non implémenté (la vue est active via la barre d'onglets ; SU009 ; les entrées Relations et Chapitres sont des reliquats retirés du MVP)
+      - Export — Non implémenté (l'aperçu est actif via l'onglet « Export » de la barre d'onglets ; SU010/FN033, conception TSK31, implémentation TSK33)
     - **Composants...** :
       - **Agent** :
         - Nouveau... — Fonctionnel, comportement selon la vue active (FN031, TSK13 + revue TSC 28-10-2026) :
@@ -169,6 +170,7 @@
 - **Éléments** :
   - Onglet « Events » — **Actif par défaut**
   - Onglet « Agents » — **Fonctionnel** (second espace de travail, matrice agents × états — SU009, TSK07–TSK15)
+  - Onglet « Export » — Conçu, non implémenté (TSK31 → TSK33) : aperçu de lecture de la carte narrative en lecture seule (SU010/FN033)
   - Les onglets « Relations » et « Chapitres » sont des reliquats d'une version antérieure : ils ne font pas partie du MVP et sont retirés de la spécification.
 
 - **Style des onglets** :
@@ -402,7 +404,8 @@
 - [ ] Copier/Coller/Couper
 - [ ] Annuler/Rétablir
 - [ ] Historique des modifications
-- [ ] Export/Import de carte
+- [ ] Aperçu d'export (onglet « Export », lecture seule — SU010/FN033, TSK33)
+- [ ] Export de carte sur fichier (menu Files › Export Map — FN013/SU007) et import de carte
 - [ ] Projets récents
 - [ ] Suppression de relations (la suppression de nœuds État/Événement est fonctionnelle via les menus contextuels avec confirmation SU003 — TSK13 + revue TSC 28-10-2026)
 
