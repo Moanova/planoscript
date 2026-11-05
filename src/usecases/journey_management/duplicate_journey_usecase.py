@@ -19,6 +19,7 @@ from typing import Optional, Dict
 
 from core.models.data_model import Journey, Journey_node, NarrativeMap
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,8 @@ class DuplicateJourneyUseCase:
             )
             narrative_map.journey_node.append(copy)
             copied_nodes.append(copy)
+
+        JourneySequenceService.recompute_all(narrative_map)  # RG069
 
         # RG023 (revised 10-30-2026): the copy does not become the active journey
         self.project_service.set_modified(True)

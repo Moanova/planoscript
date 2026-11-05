@@ -1,7 +1,7 @@
 # TSK32 — Ordre de succession réel des parcours (révision de `Journey_node.sequence_order`)
 
 - **Épic** : EPC05 (gestion des parcours) — prerequisite de l'aperçu d'export (TSK31 suite)
-- **Statut** : To do (créée 01-11-2026, décision TSC)
+- **Statut** : En revue (01-11-2026)
 - **Date de création** : 01-11-2026
 - **Dépendances** : TSK22–TSK29 Done (fondations parcours + filtre en place)
 - **Consommée par** : la future tâche d'implémentation de l'aperçu d'export (TSK31 suite)
@@ -35,8 +35,43 @@ par parcours.
 
 ## Livrable
 
-- RG (FR/EN) + `07_data_model` FR/EN mis à jour ; recalcul dans
-  `ArcService` + use cases attach/detach + load ; tests unitaires.
+- RG069 (FR/EN) + `07_data_model` FR/EN mis à jour ; `JourneySequenceService`
+  + recalcul dans `ArcService` + use cases attach/detach/cascades/duplication/suppression
+  + load ; tests unitaires.
+
+## Journal
+
+- 01-11-2026 : tâche passée en Doing (décision TSC). Plan d'implémentation validé :
+  RG069 (DFS depuis l'état initial sur les arcs du parcours, branches par id d'arc
+  croissant, mémoïsation des états visités pour les cycles longs) ; nœud
+  d'association = rang de l'état rattaché (1 pour l'état initial) ; repli
+  déterministe (id croissant, à partir de max+1) pour les nœuds non atteignables
+  depuis l'état initial ; recalcul global (tous les parcours) à chaque point de
+  modification du graphe.
+- 01-11-2026 : implémentation — RG069 FR/EN + `07_data_model` FR/EN (description
+  `sequence_order`) ; nouveau `core/services/journey_sequence_service.py`
+  (`recompute_all` / `recompute_journey`, DFS depuis l'état initial, mémoïsation
+  des composants visités par (type, id), repli par (type de relation, id)) ;
+  `Journey_node.for_relation` passe à `sequence_order=0` (placeholder) ;
+  recalcul branché aux 10 points : `ArcService.attach_to_active_journey`,
+  `ArcService.delete_journey_nodes_for_arcs`, attach/detach use cases,
+  `DissociateAgentStateUseCase`, `RemoveStateAssociationsUseCase`,
+  `DeleteAgentUseCase`, `DeleteJourneyUseCase` (nœuds basculés), `DuplicateJourneyUseCase`,
+  `ProjectService.load_project` (valeurs legacy recalculées au chargement, sans
+  toucher à `_is_modified`). Tests `tests/test_journeys/test_sequence_order.py`
+  (+18 : chaîne linéaire, embranchement déterministe, arc partagé multi-parcours,
+  cycle long, rang des associations, repli nœuds non atteignables, recalcul à chaque
+  point de modification, idempotence, round-trip JSON + chargement legacy).
+  Vérifications : py_compile OK, `pytest tests/ -q --ignore=tests/test_application`
+  → 217 passed (199 existants + 18 nouveaux ; `test_application` exclu, pywinauto
+  Windows-only non installable ici).
+- 01-11-2026 : correctif constaté par les tests — les ids d'arcs étant uniques par
+  type seulement, `ArcService.delete_journey_nodes_for_arcs` mélangeait les ids des
+  deux listes d'arcs (suppression d'un arc `Event_to_state` id n supprimait aussi le
+  nœud de l'arc `State_to_event` id n) : signature passée à deux sets
+  (`deleted_stes_ids`, `deleted_e2s_ids`) ; même séparation par type dans
+  `JourneySequenceService` (`stes_ids` / `e2s_ids`) et mémoïsation `visited` par
+  (type, id). Kanban v29 : tâche passée en En revue.
 
 ## Journal
 

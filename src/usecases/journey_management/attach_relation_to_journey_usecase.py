@@ -21,6 +21,7 @@ from core.models.data_model import (
     State_to_event, Event_to_state, State_agent_rel,
 )
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,7 @@ class AttachRelationToJourneyUseCase:
 
         node = Journey_node.for_relation(narrative_map, journey.id, arc_or_association)
         narrative_map.journey_node.append(node)
+        JourneySequenceService.recompute_all(narrative_map)  # RG069
         if self.project_service:
             self.project_service.set_modified(True)
 

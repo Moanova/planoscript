@@ -205,6 +205,10 @@
 - **Description**: Deleting a state or an event triggers the cascading deletion of all state-event edges that reference it, then of all journey nodes that reference the deleted edges.
 - **Classification**: Journey Logic and Membership.
 
+## RG069
+- **Description**: The `sequence_order` field of a journey node (Journey_node) materializes the actual position of the relation it references within its journey's sequence. It is computed per journey, depth-first from the initial state (RG031), following only the arcs attached to that journey (those referenced by the journey's nodes): each arc visited in journey order receives an increasing rank (1, 2, 3...). At a branch, branches are ordered deterministically by ascending arc id. Long cycles (allowed: RG058 only forbids cycles of length 2) are handled by memoizing already visited components. A node carrying an agent-state association (state_agent_rel_id) takes the rank of the state the association is attached to: the rank of that state's incoming arc in the journey, and 1 for the initial state. Nodes unreachable from the initial state (incoherent map, RG031) are ranked after the others, by ascending relation id, starting from the highest rank reached. Recomputation happens at every graph change (arc creation or deletion, attach/detach RG027, deletion cascades, journey duplication or deletion) and when the project is loaded; this field is never manually editable. The JSON key `sequence_order` is kept (backward compatible: legacy values are recomputed at load).
+- **Classification**: Journey Logic and Membership.
+
 ---
 
 ## 4. Visualization and Interaction

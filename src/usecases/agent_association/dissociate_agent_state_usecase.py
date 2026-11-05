@@ -15,6 +15,7 @@ from typing import Optional, Dict
 
 from core.models.data_model import Agent, State
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 from usecases.agent_association.associate_agent_state_usecase import (
     AssociateAgentStateUseCase
 )
@@ -71,6 +72,7 @@ class DissociateAgentStateUseCase:
             node for node in narrative_map.journey_node
             if node.state_agent_rel_id != existing.id
         ]
+        JourneySequenceService.recompute_all(narrative_map)  # RG069
         self.project_service.set_modified(True)
 
         logger.info("Agent %s dissociated from state %s", agent.id, state.id)

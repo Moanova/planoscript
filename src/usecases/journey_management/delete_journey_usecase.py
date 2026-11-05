@@ -23,6 +23,7 @@ from typing import Optional, Dict, List
 
 from core.models.data_model import Journey, Journey_node, NarrativeMap
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ class DeleteJourneyUseCase:
                 switched_nodes.append(node)
 
         narrative_map.journey.remove(journey)
+        JourneySequenceService.recompute_all(narrative_map)  # RG069 (switched nodes)
 
         # FN027 (revised 10-30-2026): if the deleted journey was active,
         # the default journey becomes the active one

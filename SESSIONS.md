@@ -1327,3 +1327,46 @@ proposée : TSK29 = implémentation du filtre FN029.
 - `sequence_order` : confirmé à traiter dans TSK32 (To do), avant
   l'implémentation de l'aperçu d'export.
 - Note `docs/conception/export.md` §4 finalisée ; fiche TSK31 journalisée.
+
+
+## 01-11-2026 — TSK32 implémentée : RG069, ordre de succession réel des parcours (kanban v28 → v29)
+
+- **TSK32 passée en Doing (v28) puis En revue (v29)**. Plan validé par TSC :
+  RG069 (DFS depuis l'état initial sur les arcs du parcours, branches par id
+  d'arc croissant, mémoïsation des composants visités pour les cycles longs) ;
+  nœud d'association = rang de l'état rattaché (1 pour l'état initial) ; repli
+  déterministe (par type de relation puis id, à partir de max+1) pour les nœuds
+  non atteignables depuis l'état initial ; **recalcul global (tous les parcours)
+  à chaque point de modification du graphe**.
+- **Specs** : RG069 ajoutée FR/EN (`02_business_rules`), description de
+  `sequence_order` mise à jour FR/EN (`07_data_model`).
+- **Code** : nouveau `src/core/services/journey_sequence_service.py`
+  (`recompute_all` / `recompute_journey`) ; `Journey_node.for_relation` passe à
+  `sequence_order=0` (placeholder, recalculé juste après) ; recalcul branché aux
+  10 points de modification : `ArcService.attach_to_active_journey`,
+  `ArcService.delete_journey_nodes_for_arcs`, use cases attach/detach RG027,
+  `DissociateAgentStateUseCase`, `RemoveStateAssociationsUseCase`,
+  `DeleteAgentUseCase`, `DeleteJourneyUseCase` (nœuds basculés vers le default),
+  `DuplicateJourneyUseCase`, `ProjectService.load_project` (valeurs legacy
+  recalculées au chargement, `_is_modified` inchangé).
+- **Correctif** (démontré par les nouveaux tests) : les ids d'arcs étant uniques
+  par type seulement, `delete_journey_nodes_for_arcs` mélangeait les ids des deux
+  listes d'arcs — signature passée à deux sets (`deleted_stes_ids`,
+  `deleted_e2s_ids`) ; même séparation par type dans `JourneySequenceService`
+  (`stes_ids`/`e2s_ids`) et mémoïsation `visited` keyed par (type, id).
+- **Tests** : `tests/test_journeys/test_sequence_order.py` (+18) — chaîne
+  linéaire, embranchement déterministe, arc partagé multi-parcours, cycle long,
+  rang des associations, repli non atteignables, recalcul à chaque point de
+  modification, idempotence, round-trip JSON + chargement legacy.
+- **Vérifications** : py_compile OK sur tous les fichiers modifiés ;
+  `QT_QPA_PLATFORM=offscreen python -m pytest tests/ -q --ignore=tests/test_application`
+  → **217 passed** (199 existants + 18 nouveaux ; `test_application` exclu car
+  pywinauto est Windows-only et non installable dans le sandbox Linux).
+- **Problèmes rencontrés** : aucun bloquant. Bug de collision d'ids d'arcs
+  (par type) corrigé au passage dans `arc_service.py` et le nouveau service.
+- **Choix actés** : recalcul global à chaque point (décision TSC) ; rang de
+  l'état pour les associations ; repli déterministe pour les nœuds non
+  atteignables ; pas de second champ, clé JSON `sequence_order` conservée.
+- **Non fait** : pas de commit/push (pas de demande explicite) ; TSK32 en attente
+  de validation TSC pour passer en Terminé. Prochaine étape : implémentation de
+  l'aperçu d'export (TSK31 suite).

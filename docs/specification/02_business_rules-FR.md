@@ -205,6 +205,10 @@
 - **Description** : La suppression d'un état ou d'un évènement entraîne la suppression en cascade de tous les arcs état-évènement qui le référencent, puis de tous les nœuds de parcours qui référencent les arcs supprimés.
 - **Classification** : Logique des parcours et appartenance.
 
+## RG069
+- **Description** : Le champ `sequence_order` d'un noeud de parcours (Journey_node) matérialise la position réelle de la relation qu'il référence dans la séquence de son parcours. Il est calculé par parcours, en profondeur depuis l'état initial (RG031), en ne suivant que les arcs rattachés à ce parcours (ceux référencés par les noeuds de ce parcours) : chaque arc visité dans l'ordre de parcours reçoit un rang croissant (1, 2, 3...). À un embranchement, les branches sont ordonnées de façon déterministe par identifiant d'arc croissant. Les cycles longs (autorisés : RG058 n'interdit que les cycles de longueur 2) sont gérés par mémoïsation des composants déjà visités. Un noeud portant une association agent-état (state_agent_rel_id) prend le rang de l'état auquel l'association est rattachée : le rang de l'arc entrant de cet état dans le parcours, et 1 pour l'état initial. Les noeuds non atteignables depuis l'état initial (carte non cohérente, RG031) sont rangés après les autres, par identifiant de relation croissant, à partir du rang maximal atteint. Le recalcul est effectué à chaque modification du graphe (création ou suppression d'arc, rattachement/détachement RG027, cascades de suppression, duplication ou suppression de parcours) et au chargement du projet ; ce champ n'est jamais modifiable manuellement. La clé JSON `sequence_order` est conservée (rétrocompatible : les anciennes valeurs sont recalculées au chargement).
+- **Classification** : Logique des parcours et appartenance.
+
 ---
 
 ## 4. Visualisation et interaction

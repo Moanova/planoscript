@@ -345,7 +345,7 @@
             },
             "sequence_order": {
                "type": "integer",
-               "description": "Position ordinale dans la sequence du parcours"
+               "description": "Position r\u00e9elle de la relation dans la s\u00e9quence du parcours (RG069) : rang calcul\u00e9 par parcours en profondeur depuis l'\u00e9tat initial, recalcul\u00e9 \u00e0 chaque modification du graphe et au chargement du projet"
             },
             "state_to_event_id": {
                "type": "integer",

@@ -17,6 +17,7 @@ from typing import Optional, Dict
 
 from core.models.data_model import Agent
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ class DeleteAgentUseCase:
                     node for node in narrative_map.journey_node
                     if node.state_agent_rel_id not in removed_ids
                 ]
+                JourneySequenceService.recompute_all(narrative_map)  # RG069
 
         project.agent = [a for a in project.agent if a is not entity]
         self.project_service.set_modified(True)

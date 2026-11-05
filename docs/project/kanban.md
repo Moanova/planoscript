@@ -1,6 +1,6 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 27
+- **Version** : 29
 - **Date** : 01-11-2026
 - **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
 
@@ -30,8 +30,6 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [ ] TSK30 — Barre latérale de filtres (parcours, type d'états, types d'agents) — panneau latéral droit « Journey Filter » envisagé dans la conception `docs/conception/journey_filter.md` §5bis, à concevoir séparément (sélection de parcours à afficher, filtres par type) → #TSK29 — à traiter ultérieurement (décision TSC 01-11-2026)
 
-- [ ] TSK32 — Ordre de succession réel des parcours : révision de la sémantique de `Journey_node.sequence_order` (recalcul par parcours en profondeur depuis l'état initial, aux points de modification du graphe : create_arc, delete_related_arcs, attach/detach RG027, cascades, chargement) — pas de second champ, clé JSON conservée — RG + 07_data_model FR/EN + tests — prerequisite de l'implémentation de l'aperçu d'export (TSK31 suite) — fiche `tasks/TSK32_sequence_order.md` — créée 01-11-2026 (décision TSC)
-
 - [ ] SU006 — Zoom de l'espace de visualisation
 - [ ] Post-MVP — Contrôle de cohérence de la carte narrative (signaler les branches non terminées : événements sans état successeur) — décision TSC 01-11-2026, hors TSK31 ; les aperçus/exports restent possibles à tout stade d'avancement (pas de contrainte de modélisation)
 - [ ] SU007 — Export de lecture « par événements »
@@ -42,8 +40,10 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 - [ ] TSK31 — Conception de l'export de la carte narrative (SU007 : export de lecture « par événements » et/ou export technique pour réimport) — périmètre, format(s), contenu exporté, point d'entrée UI (menu Files > Export Map, actuellement stub) — fiche `tasks/TSK31_export_conception.md` — créée et passée en Doing 01-11-2026 (décision TSC)
 
+
 ## En revue
 
+- [ ] TSK32 — Ordre de succession réel des parcours : révision de la sémantique de `Journey_node.sequence_order` (RG069 : DFS depuis l'état initial sur les arcs du parcours, branches par id d'arc croissant, mémoïsation (type, id) pour les cycles longs, repli déterministe pour les nœuds non atteignables) — pas de second champ, clé JSON conservée, recalcul au chargement — `JourneySequenceService` + recalcul aux 10 points de modification du graphe — RG069 + 07_data_model FR/EN — tests `test_sequence_order.py` (+18) — pytest 217 passed, py_compile OK — correctif `delete_journey_nodes_for_arcs` (ids d'arcs séparés par type, RG056 extended) — prerequisite de l'implémentation de l'aperçu d'export (TSK31 suite) — fiche `tasks/TSK32_sequence_order.md` — créée 01-11-2026, Doing 01-11-2026, En revue 01-11-2026 (kanban v29)
 
 ## Done
 

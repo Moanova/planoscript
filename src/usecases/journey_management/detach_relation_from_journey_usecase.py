@@ -20,6 +20,7 @@ from core.models.data_model import (
     State_to_event, Event_to_state, State_agent_rel,
 )
 from core.services.project_service import ProjectService
+from core.services.journey_sequence_service import JourneySequenceService
 from usecases.journey_management.attach_relation_to_journey_usecase import (
     AttachRelationToJourneyUseCase,
 )
@@ -69,6 +70,7 @@ class DetachRelationFromJourneyUseCase:
             }
 
         narrative_map.journey_node.remove(node)
+        JourneySequenceService.recompute_all(narrative_map)  # RG069
         if self.project_service:
             self.project_service.set_modified(True)
 

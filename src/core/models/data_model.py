@@ -294,7 +294,7 @@ class Journey_node:
     """
     id: int
     journey_id: int  # Reference to Journey.id
-    sequence_order: int  # Position in the journey sequence
+    sequence_order: int  # Real rank in the journey sequence (RG069); recomputed by JourneySequenceService
     # TSK26: state_to_event_id first — a map always starts from the initial
     # state, so the outgoing arc is listed before the incoming one
     state_to_event_id: Optional[int] = None  # Outgoing arc (State_to_event.id); None for final state
@@ -339,7 +339,9 @@ class Journey_node:
         The arc/association type selects the referenced field:
         State_to_event -> state_to_event_id, Event_to_state -> event_to_state_id,
         State_agent_rel -> state_agent_rel_id.
-        sequence_order defaults to the next position in the journey.
+        sequence_order is a placeholder (0): the real rank is computed by
+        JourneySequenceService.recompute_all right after the node is appended
+        (RG069).
         """
         from core.models.data_model import State_to_event, Event_to_state, State_agent_rel
         kwargs = {'id': narrative_map.get_next_id('journey_node'),
@@ -353,9 +355,6 @@ class Journey_node:
             kwargs['state_agent_rel_id'] = relation.id
         else:
             raise TypeError(f"Unsupported relation type: {type(relation)}")
-        existing = [n.sequence_order for n in narrative_map.journey_node
-                    if n.journey_id == journey_id]
-        kwargs['sequence_order'] = (max(existing) + 1) if existing else 1
         return cls(**kwargs)
 
 

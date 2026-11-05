@@ -345,7 +345,7 @@
             },
             "sequence_order": {
                "type": "integer",
-               "description": "Ordinal position in the journey sequence"
+               "description": "Actual position of the relation in the journey sequence (RG069): rank computed per journey, depth-first from the initial state, recomputed at every graph change and at project load"
             },
             "state_to_event_id": {
                "type": "integer",

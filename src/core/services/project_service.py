@@ -53,6 +53,10 @@ class ProjectService:
             with open(file_path, 'r', encoding='utf-8') as f:
                 project_dict = json.load(f)
                 self._current_project = Project.from_dict(project_dict)
+                # RG069: recompute legacy sequence_order values at load
+                from core.services.journey_sequence_service import JourneySequenceService
+                for narrative_map in self._current_project.narrative_map:
+                    JourneySequenceService.recompute_all(narrative_map)
                 self._current_project.file_path = file_path
                 self._is_modified = False
                 return True
