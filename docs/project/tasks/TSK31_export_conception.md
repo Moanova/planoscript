@@ -1,7 +1,7 @@
 # TSK31 — Conception de l'export de la carte narrative (SU007)
 
 - **Épic** : SU007 (export de carte) — tâche de conception
-- **Statut** : En revue (01-11-2026) — validation embarquée avec TSK32
+- **Statut** : Terminée — validée TSC 01-11-2026 (kanban v33, validation embarquée avec TSK32)
 - **Date de création** : 01-11-2026
 - **Dépendances** : aucune bloquante (TSK22–TSK29 Done : modèle parcours en place, utile pour la vue parcours de l'export)
 
@@ -68,3 +68,5 @@ couvrant :
   readOnly, filtre vs export fichier.
  Décisions actées : troisième espace de travail « Export » en **lecture seule** (aucune interaction, ne touche jamais à `set_modified`) ; **régénération à la bascule sur l'onglet** (pas de temps réel) ; code « 2 espaces de travail » à mettre à jour (`currentTab()` testé à 6 endroits) ; aperçu **dynamique selon le filtre de parcours** (filtre actif → parcours actif, « All journeys » → tous les parcours). Point ouvert principal : contenu de l'aperçu (texte de lecture rendu vs HTML brut — recommandation : texte rendu pour l'aperçu, HTML à la demande via `Files > Export Map`).
 - 01-11-2026 (clôture de la conception, kanban v30) : rédaction des spécifications — **SU010** (aperçu d'export) et **FN033** (FR/EN), mises à jour de `04_interface` (onglet « Export », menu View, checklist), `05_menu-EN.yaml` (entrée View › Export), `99_mvp_scope` (ligne Aperçu d'export). Création de **TSK33** (To do, → #TSK32) pour l'implémentation de l'aperçu ; la généralisation du code 2 → 3 espaces de travail y est consignée. TSK31 passe en En revue ; validation embarquée avec TSK32. Points ouverts restants (export.md §5) : format du dossier HTML exporté et dialogue `Files > Export Map` — rattachés à l'implémentation de FN013, hors aperçu in-app.
+- 01-11-2026 : **validée TSC**, passée en Terminé (kanban v33, validation embarquée
+  avec TSK32). La suite (aperçu d'export) est réalisée par TSK33 (En revue).

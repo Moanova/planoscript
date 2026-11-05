@@ -1,7 +1,7 @@
 # TSK32 — Ordre de succession réel des parcours (révision de `Journey_node.sequence_order`)
 
 - **Épic** : EPC05 (gestion des parcours) — prerequisite de l'aperçu d'export (TSK31 suite)
-- **Statut** : En revue (01-11-2026)
+- **Statut** : Terminée — validée TSC 01-11-2026 (kanban v33, validation embarquée avec TSK31)
 - **Date de création** : 01-11-2026
 - **Dépendances** : TSK22–TSK29 Done (fondations parcours + filtre en place)
 - **Consommée par** : la future tâche d'implémentation de l'aperçu d'export (TSK31 suite)
@@ -77,3 +77,5 @@ par parcours.
 
 - 01-11-2026 : tâche créée en To do (décision TSC 01-11-2026) — à traiter
   avant l'implémentation de l'aperçu d'export (TSK31 suite).
+- 01-11-2026 : **validée TSC**, passée en Terminé (kanban v33, validation embarquée
+  avec TSK31). Consommée par TSK33 (aperçu d'export, En revue).

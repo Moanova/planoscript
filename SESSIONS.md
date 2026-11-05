@@ -1444,3 +1444,54 @@ proposée : TSK29 = implémentation du filtre FN029.
   précisée. Fiche TSK33 journalisée.
 - Vérifications : config.json valide, py_compile OK, pytest 226 passed. Validation
   visuelle finale en GUI (libGL absent du sandbox).
+
+
+## 01-11-2026 — Fin de séance : TSK31 et TSK32 validées (Terminé, kanban v33)
+
+### Travaux de la séance (résumé)
+- **TSK32 (Terminé, validée TSC)** : RG069 — ordre de succession réel de
+  `Journey_node.sequence_order` (DFS depuis l'état initial, branches par id d'arc,
+  mémoïsation (type, id), repli déterministe, recalcul global aux 10 points de
+  modification + au chargement). `JourneySequenceService` + correctif
+  `delete_journey_nodes_for_arcs` (ids d'arcs par type). +18 tests, 217 passed.
+  Commit 8f85993.
+- **TSK31 (Terminé, validée TSC)** : conception export/aperçu clôturée — SU010 +
+  FN033 rédigées (FR/EN), 04_interface / 05_menu / 99_mvp_scope mis à jour.
+  Commit 82f85fe.
+- **TSK33 (En revue)** : aperçu d'export implémenté — 3e onglet « Export » readOnly
+  (`ExportWorkspace` + `ExportService.build_reading_text` sur RG069), hook
+  `ProjectService.on_modified` → signal `map_modified` (régénération en direct si
+  onglet actif, sinon à la bascule), dynamique selon FN029, stubs menu View
+  Events/Agents/Export. +9 tests, 226 passed. Commit 3eb5516.
+- **Correctifs tests interactifs TSK33** (commit 41bcbd1) : fond blanc → stylesheet
+  thème sombre (BG_PRIMARY/TEXT_PRIMARY + nouvelle clé `link_color` dans
+  config.json) ; liens du sommaire → navigation interne passive par ancres
+  `#journey-*`/`#agent-*` (liens toujours inertes pour l'état de l'app, FN033
+  précisée).
+
+### État en fin de séance
+- Kanban v33 : TSK31, TSK32 en **Terminé** (validées TSC, embarquées) ; TSK33 en
+  **En revue** (tests interactifs GUI en cours côté TSC) ; TSK34 en To do (revue de
+  code / dette technique).
+- Dépôt : dev à jour (4 commits poussés : 8f85993, 82f85fe, 3eb5516, 41bcbd1 + ce
+  commit de clôture v33).
+- Suite de tests : 226 passed (`pytest tests/ -q --ignore=tests/test_application`) ;
+  py_compile OK.
+
+### Problèmes rencontrés
+- libGL absent du sandbox (pas de sudo) : les scripts offscreen Qt ne tournent pas
+  ici → validation visuelle de l'aperçu Export en GUI par TSC (idem TSK29).
+- Bug préexistant découvert et corrigé : collision d'ids d'arcs par type dans
+  `delete_journey_nodes_for_arcs` (RG056 extended).
+- Push transitoirement rejeté une fois (réseau), réussi au second essai.
+
+### Choix actés
+- RG069 : DFS depuis l'état initial, branches par id d'arc croissant, repli
+  déterministe, nœud d'association = rang de son état (1 pour l'initial), recalcul
+  global à chaque point de modification, clé JSON conservée.
+- Aperçu Export : 3e onglet readOnly, liens inertes pour l'état de l'app +
+  navigation interne passive par ancre, régénération à la bascule + si onglet actif
+  (hook `on_modified`, core Qt-free), dynamique selon FN029, jamais de
+  set_modified. Édition active dans l'onglet Export. Menu View stubbé (3 entrées).
+- Export fichier FN013 (`Files > Export Map`) : hors périmètre de TSK33, tâche à
+  part (points ouverts export.md §5).
