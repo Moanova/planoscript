@@ -18,6 +18,7 @@
   "event_color": "#D19A66",
   "anchor_color": "#F0F0F0",
   "hover_color": "#F0F0F0",
+  "link_color": "#E5C07B",
   "connection_color": "#CCCCCC",
   "badge_bg_color": "#E5C07B",
   "badge_border_color": "#F0F0F0",

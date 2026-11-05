@@ -101,3 +101,16 @@ aux décisions actées de la conception (`docs/conception/export.md`, TSK31,
     offscreen UI (`/tmp/offscreen_tsk33_export_preview.py`, non committé) n'a pas pu
     tourner ici ; à valider en GUI avec les tests interactifs TSC (même situation
     que TSK29).
+- 01-11-2026 (retours tests interactifs TSC) : deux correctifs —
+  1. **fond blanc** : `APP_STYLESHEET` force le texte blanc sur tout QWidget, et le
+     QTextBrowser gardait son fond blanc par défaut → texte invisible. Corrigé :
+     stylesheet explicite fond `BG_PRIMARY` + texte `TEXT_PRIMARY` + liens
+     `link_color` (nouvelle clé config.json, fallback `#E5C07B`), comme les vues
+     Events/Agents ;
+  2. **liens du sommaire** : `setOpenLinks(False)` bloquait aussi le scroll interne.
+     Corrigé : `anchorClicked` → `scrollToAnchor` pour les ancres internes
+     `#journey-*`/`#agent-*` (navigation passive, RG041) ; les liens restent inertes
+     pour l'état de l'app (décision TSK31 maintenue — aucun clic ne modifie le
+     filtre ni ne régénère) ; les ancres `#note-*` restent des infobulles au survol.
+     FN033 FR/EN précisée en ce sens. Vérifications : config.json valide, py_compile
+     OK, pytest 226 passed.

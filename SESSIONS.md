@@ -1428,3 +1428,19 @@ proposée : TSK29 = implémentation du filtre FN029.
   pas pu tourner ici ; à valider en GUI avec les tests interactifs TSC (même situation
   que TSK29). Choix actés : label d'onglet « Export » en dur comme les labels existants.
 - Commit + push sur dev sur demande explicite TSC.
+
+
+## 01-11-2026 — TSK33 : correctifs issus des tests interactifs (fond blanc, liens du sommaire)
+
+- **Fond blanc de la vue Export** : cause = APP_STYLESHEET (QApplication) met
+  color #FFFFFF sur tout QWidget ; le QTextBrowser gardait son fond blanc par
+  défaut -> texte invisible. Correctif : stylesheet explicite sur ExportWorkspace
+  (fond BG_PRIMARY, texte TEXT_PRIMARY, liens link_color — nouvelle clé
+  src/config/config.json, fallback #E5C07B), comme les vues Events/Agents.
+- **Liens du sommaire inertes** : setOpenLinks(False) bloquait aussi la navigation
+  interne. Correctif : anchorClicked -> scrollToAnchor pour #journey-* /
+  #agent-* (navigation passive, RG041) ; liens toujours inertes pour l'état de
+  l'app (décision TSK31 maintenue) ; #note-* = infobulle au survol. FN033 FR/EN
+  précisée. Fiche TSK33 journalisée.
+- Vérifications : config.json valide, py_compile OK, pytest 226 passed. Validation
+  visuelle finale en GUI (libGL absent du sandbox).

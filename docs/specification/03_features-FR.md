@@ -379,7 +379,7 @@
 - **Références** : SU010, SU007 ; onglet « Export » de la barre d'onglets ; filtre de parcours FN029 ; RG069 (ordre de succession) ; conception `docs/conception/export.md` (TSK31).
 - **Comportement attendu** :
     - L'onglet « Export » est présent dans la barre d'onglets à côté de « Events » et « Agents ».
-    - L'aperçu est en lecture seule : aucune interaction sur le contenu ; les liens affichés sont inertes (aucun clic ne modifie le filtre de parcours ni ne régénère quoi que ce soit).
+    - L'aperçu est en lecture seule : aucune interaction sur le contenu ; les liens affichés sont inertes pour l'état de l'application (aucun clic ne modifie le filtre de parcours ni ne régénère quoi que ce soit) ; les ancres internes (« #journey-* », « #agent-* ») assurent une navigation passive (défilement vers la section visée, RG041).
     - L'aperçu est régénéré à chaque bascule sur l'onglet « Export », et après chaque modification du modèle lorsque l'onglet est déjà actif ; jamais en arrière-plan.
     - L'aperçu est dynamique selon FN029 : filtre actif → parcours actif seul ; « All journeys » → tous les parcours.
     - Restitution centrée sur les états depuis l'état initial, dans l'ordre de succession réel (RG069) : états listés une seule fois ; pour chaque état (sauf l'initial), événements prédécesseurs et agents associés, annotés de leur parcours (via les Journey_node) ; libellé en titre, `content` en corps de texte (libellé seul si vide), type affiché, `note` en infobulle au survol.

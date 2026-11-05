@@ -379,7 +379,7 @@
 - **References** : SU010, SU007; "Export" tab of the tab bar; journey filter FN029; RG069 (succession order); design `docs/conception/export.md` (TSK31).
 - **Expected behavior** :
     - The "Export" tab is present in the tab bar next to "Events" and "Agents".
-    - The preview is read-only: no interaction on the content; displayed links are inert (no click changes the journey filter or regenerates anything).
+    - The preview is read-only: no interaction on the content; displayed links are inert for the application state (no click changes the journey filter or regenerates anything); internal anchors ("#journey-*", "#agent-*") provide passive navigation (scroll to the target section, RG041).
     - The preview is regenerated on each switch to the "Export" tab, and after each model change when the tab is already active; never in the background.
     - The preview is dynamic according to FN029: active filter → active journey only; "All journeys" → all journeys.
     - Rendering centered on states from the initial state, in the real succession order (RG069): states listed once; for each state (except the initial), predecessor events and associated agents, annotated with their journey (via Journey_node); label as title, `content` as body text (label only if empty), type displayed, `note` as tooltip on hover.
