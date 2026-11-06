@@ -21,13 +21,15 @@ la carte comme modifiée.
 
 La visibilité est **dérivée du modèle** (RG026), jamais stockée :
 
-- **Filtre actif (parcours J actif)** :
-  - visibles : les relations (arcs `State_to_event`/`Event_to_state` et
-    associations `State_agent_rel`) possédant un `Journey_node` dans J ;
-  - visibles : les composants (State/Event) auxquels au moins une de ces
-    relations donne appartenance (dérivation RG026) ;
+- **Filtre actif (parcours J actif)** (amendement TSK35 06-11-2026) :
+  - visibles : les arcs (`State_to_event`/`Event_to_state`) possédant un
+    `Journey_node` dans J, et les associations `State_agent_rel` de J
+    **dont l'état est visible** ;
+  - visibles : les composants (State/Event) auxquels au moins un de leurs
+    arcs donne appartenance (dérivation RG026 révisée : arcs seuls ; une
+    association ne fait pas appartenir son état au parcours) ;
   - masqués : relations des autres parcours, composants n'appartenant qu'à
-    d'autres parcours, et **composants orphelins** (sans aucune relation).
+    d'autres parcours, et **composants orphelins** (sans aucun arc).
 - **Filtre désactivé (« tous les parcours »)** : tout est visible, y compris
   les orphelins.
 

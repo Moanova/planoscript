@@ -1495,3 +1495,109 @@ proposée : TSK29 = implémentation du filtre FN029.
   set_modified. Édition active dans l'onglet Export. Menu View stubbé (3 entrées).
 - Export fichier FN013 (`Files > Export Map`) : hors périmètre de TSK33, tâche à
   part (points ouverts export.md §5).
+
+---
+
+## 2026-11-06 — Séance d'analyse et reconception : préparation du projet « hyperscript »
+
+### Travaux
+- Analyse approfondie des deux cas de test avec les fichiers de projet réels
+  (`testCase01.json` persona Jen Yen, `testCase02.json` persona Tom Son, copies
+  de travail dans `/workspace/analyse/`, hors dépôt) : chargement via
+  `Project.from_dict`, reconstruction du graphe, exécution réelle des filtres
+  (`JourneyFilterService`), de la séquence (RG069) et de l'export
+  (`ExportService`).
+- Constats cas n°1 : pattern préfixe/suffixe commun + parcours par alternative
+  viable ; nœud fantôme (`journey_node#22` → arc `s2e#5` supprimé), pollution
+  croisée des associations entre parcours, libellés dupliqués, J1/J2 fusionnés
+  dans un même `content`.
+- Constats cas n°2 : graphe linéaire propre ; relations uniquement en texte
+  libre, 4 agents/10 sans association, fin non marquée `Final`.
+
+### Choix actés
+- **Clôture de planoscript** après correction des derniers bugs, puis nouveau
+  projet **« hyperscript »** ayant pour point de départ la note de
+  reconception rédigée en séance : `docs/conception/hyperscript_preconception-FR.md`.
+- **Sémantique actée** : Bloc narratif { Début ; Scène ; Branch ; Condition ;
+  Fin } / Narrative block { Start ; Scene ; Branch ; Condition ; End } ;
+  Transition ; Participation ; Relation (typée) ; Agent { Personnage ;
+  Artefact } / { Character ; Artefact } ; Parcours / Journey (« Version »
+  retenu comme alternative).
+- **Modèle acté** : un seul objet bloc à `typ` immuable choisi à la création ;
+  versions rattachées aux **blocs** (transitions/participations/relations
+  dérivées) ; Condition = bloc 1→1 portant la condition structurée
+  (choix/artefact/compétence/flag) ; Branch = degré sortant ≥ 2 avec promotion
+  auto unidirectionnelle ; Fin sans successeur ; Début unique pouvant bifurquer
+  ; Relation agent-agent dirigée, typée, **ancrée à un bloc** (historique =
+  ancres ordonnées par rang) ; 3e espace de travail « Relations » ; axe
+  épisodes délégué aux N cartes par projet.
+- Note préparatoire : modèle de données, invariants, vues, export, constats,
+  suspens (Version vs Parcours, libellé FR de Branch, typage des Relations,
+  N cartes dans le MVP, migration, contrôle de cohérence, exports).
+
+### Problèmes rencontrés (à corriger avant clôture de planoscript)
+- `Connection.delete_arc_or_association` (`src/ui/nodes/connection.py:811-850`)
+  supprime un arc sans nettoyer les `Journey_node` ni recalculer RG069 → nœud
+  fantôme constaté dans `testCase01.json` (dette TSK34).
+- Bug latent export : `_esc(rel.agent_id)` (`export_service.py`) plante si
+  l'agent n'est pas dans la liste passée à `build_reading_text`.
+
+### État en fin de séance
+- Aucun commit effectué (pas d'instruction explicite) : 2 fichiers ajoutés
+  non commités dans le dépôt (`docs/conception/hyperscript_preconception-FR.md`,
+  cette entrée de SESSIONS.md) ; branche `dev` sinon inchangée.
+- Kanban non modifié (pas de tâche TSK ouverte pour cette séance d'analyse).
+
+
+---
+
+## 2026-11-06 — Session 2 : corrections pré-clôture (TSK35)
+
+### Travaux
+- TSK35 (kanban v34→v35, fiche `docs/project/tasks/TSK35_pre_cloture_corrections.md`) :
+  deux corrections implémentées à la demande de TSC après test utilisateur des
+  deux cas de test.
+- **Correction 1 — filtre parcours (RG026 révisée)** : l'appartenance d'un
+  composant à un parcours est désormais dérivée des **arcs seuls**
+  (`JourneyFilterService._arc_component_ids`) ; une association agent-état
+  n'est visible sous le filtre que si son état y est visible. RG026 révisée
+  FR/EN, RG066 précisée, FN029 FR/EN et `docs/conception/journey_filter.md`
+  amendés. Tests `test_journey_filter.py` mis à jour + test de régression.
+- **Correction 2 — cascade RG056** : `ArcService.delete_relation` (relation +
+  `Journey_node` référençant + recompute RG069) appelé par
+  `Connection.delete_arc_or_association` (écriture directe modèle et
+  `set_modified` mort retirés) ; `ArcService.prune_orphan_journey_nodes`
+  appelé au chargement (`ProjectService.load_project`). Tests
+  `tests/test_relations/test_relation_deletion_cascade.py` (+5).
+
+### Vérifications
+- py_compile OK sur les 6 fichiers modifiés/ajoutés.
+- `QT_QPA_PLATFORM=offscreen python -m pytest tests/ -q --ignore=tests/test_application`
+  → **232 passed** (226 + 6 nouveaux). (pytest installé dans le sandbox ;
+  `tests/test_application` ignoré faute de pywinauto/GUI, comme d'habitude.)
+- Rejeu sur `testCase01.json` : filtre « Premier parcours » → Ett 00, Ett 01P1,
+  Ett 02P1, Ett 99 seuls ; « Troisième » → Ett 00, Ett 01P3, Ett 03P2, Ett 04P2,
+  Ett 05P2, Ett 99 ; « Second » inchangé ; nœud orphelin `node#22` purgé au
+  chargement.
+
+### Choix actés
+- RG026 révisée : arcs seuls pour l'appartenance ; associations visibles ssi
+  leur état est visible (résout la pollution constatée et anticipe la
+  dérivation « l'association suit son bloc » du projet hyperscript).
+
+### Problèmes rencontrés
+- Bug préexistant non traité ici (hors périmètre des 2 corrections) : bug
+  latent export `_esc(rel.agent_id)` (`export_service.py`) si agent absent de
+  la liste passée — toujours à corriger avant clôture.
+
+### État en fin de session
+- Aucun commit (TSC fera une vérification ultime d'abord). Fichiers modifiés
+  non commités : `src/core/services/journey_filter_service.py`,
+  `src/core/services/arc_service.py`, `src/core/services/project_service.py`,
+  `src/ui/nodes/connection.py`, `tests/test_visualization/test_journey_filter.py`,
+  `tests/test_relations/test_relation_deletion_cascade.py` (nouveau),
+  `docs/specification/02_business_rules-FR.md`, `02_business_rules-EN.md`,
+  `03_features-FR.md`, `03_features-EN.md`, `docs/conception/journey_filter.md`,
+  `docs/conception/hyperscript_preconception-FR.md`, `docs/project/kanban.md`,
+  `docs/project/tasks/TSK35_pre_cloture_corrections.md` (nouveau), `SESSIONS.md`.
+- Kanban v35 : TSK35 en **En revue** (en attente de validation TSC).

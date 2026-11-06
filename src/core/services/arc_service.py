@@ -223,6 +223,70 @@ class ArcService:
         JourneySequenceService.recompute_all(narrative_map)  # RG069
 
     @staticmethod
+    def delete_relation(narrative_map: 'NarrativeMap',
+                        relation_type, relation_id: int) -> bool:
+        """Delete one relation (arc or agent-state association) and every
+        Journey_node referencing it (RG056 extended), then recompute the
+        journey sequence (RG069).
+
+        Args:
+            narrative_map: The narrative map containing the relation
+            relation_type: RelationType of the relation
+            relation_id: Id of the relation (unique per relation type)
+
+        Returns:
+            True if the relation was deleted, False for an unknown type
+        """
+        from core.models.view_model import RelationType
+        if relation_type == RelationType.STATE_AGENT_REL:
+            narrative_map.state_agent_rel = [
+                r for r in narrative_map.state_agent_rel if r.id != relation_id
+            ]
+            field = 'state_agent_rel_id'
+        elif relation_type == RelationType.EVENT_TO_STATE:
+            narrative_map.event_to_state = [
+                a for a in narrative_map.event_to_state if a.id != relation_id
+            ]
+            field = 'event_to_state_id'
+        elif relation_type == RelationType.STATE_TO_EVENT:
+            narrative_map.state_to_event = [
+                a for a in narrative_map.state_to_event if a.id != relation_id
+            ]
+            field = 'state_to_event_id'
+        else:
+            return False
+        narrative_map.journey_node = [
+            node for node in narrative_map.journey_node
+            if getattr(node, field) != relation_id
+        ]
+        from core.services.journey_sequence_service import JourneySequenceService
+        JourneySequenceService.recompute_all(narrative_map)  # RG069
+        return True
+
+    @staticmethod
+    def prune_orphan_journey_nodes(narrative_map: 'NarrativeMap') -> int:
+        """Remove every Journey_node referencing a relation that no longer
+        exists (RG056 extended; repairs projects saved by older versions).
+
+        Returns the number of removed nodes.
+        """
+        stes_ids = {a.id for a in narrative_map.state_to_event}
+        e2s_ids = {a.id for a in narrative_map.event_to_state}
+        sar_ids = {r.id for r in narrative_map.state_agent_rel}
+        before = len(narrative_map.journey_node)
+        narrative_map.journey_node = [
+            node for node in narrative_map.journey_node
+            if (node.state_to_event_id is None or node.state_to_event_id in stes_ids)
+            and (node.event_to_state_id is None or node.event_to_state_id in e2s_ids)
+            and (node.state_agent_rel_id is None or node.state_agent_rel_id in sar_ids)
+        ]
+        removed = before - len(narrative_map.journey_node)
+        if removed:
+            from core.services.journey_sequence_service import JourneySequenceService
+            JourneySequenceService.recompute_all(narrative_map)  # RG069
+        return removed
+
+    @staticmethod
     def delete_related_arcs(
         narrative_map: 'NarrativeMap',
         entity_id: int,

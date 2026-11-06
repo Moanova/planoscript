@@ -57,9 +57,13 @@ class ProjectService:
             with open(file_path, 'r', encoding='utf-8') as f:
                 project_dict = json.load(f)
                 self._current_project = Project.from_dict(project_dict)
+                # TSK35/RG056 extended: drop journey nodes referencing deleted
+                # relations (repairs projects saved by older versions), then
                 # RG069: recompute legacy sequence_order values at load
+                from core.services.arc_service import ArcService
                 from core.services.journey_sequence_service import JourneySequenceService
                 for narrative_map in self._current_project.narrative_map:
+                    ArcService.prune_orphan_journey_nodes(narrative_map)
                     JourneySequenceService.recompute_all(narrative_map)
                 self._current_project.file_path = file_path
                 self._is_modified = False

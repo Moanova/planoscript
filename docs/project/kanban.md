@@ -1,8 +1,8 @@
 # Planoscript ::: Suivi de projet (Kanban)
 
-- **Version** : 33
-- **Date** : 01-11-2026
-- **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing.
+- **Version** : 35
+- **Date** : 06-11-2026
+- **Description** : Suivi de l'avancement des tâches du projet. Les chantiers majeurs sont des **épics** (EPCnn) découpés en **tâches** (TSKnn). Le détail de chaque tâche (analyse, décisions, journal des travaux) est consigné dans un fichier markdown dédié du sous-dossier `tasks/`, nommé d'après le code de la tâche. Le fichier de détail est créé au passage de la tâche en Doing. v34 : TSK35 ouverte (corrections pré-clôture, décision TSC 06-11-2026).
 
 ---
 
@@ -43,6 +43,7 @@ EPC05 : TSK22 → TSK23 / TSK24 → TSK25
 
 ## En revue
 
+- [ ] TSK35 — Corrections pré-clôture (bugs constatés en test utilisateur sur les projets des deux cas de test), **implémentée 06-11-2026** : (1) **filtre parcours** — appartenance des composants dérivée des **arcs seuls**, les associations agent-état ne sont visibles que si leur état est visible (`JourneyFilterService` + RG026 révisée FR/EN + RG066 précisée + FN029 FR/EN + `journey_filter.md`) ; vérifié sur testCase01 : filtre « Premier parcours » → Ett 00/01P1/02P1/99 seuls, « Troisième » → Ett 00/01P3/03P2/04P2/05P2/99, « Second » inchangé ; (2) **cascade RG056** — `Connection.delete_arc_or_association` passe par `ArcService.delete_relation` (suppression des `Journey_node` + recompute RG069, `set_modified` mort retiré) + purge au chargement via `ArcService.prune_orphan_journey_nodes` (`ProjectService.load_project`) — nœud fantôme node#22 de testCase01 purgé au chargement — tests `test_relation_deletion_cascade.py` (+5) + `test_journey_filter.py` (RG026 révisée + régression, +1) — pytest 232 passed, py_compile OK — fiche `tasks/TSK35_pre_cloture_corrections.md` — créée 06-11-2026, Doing 06-11-2026, En revue 06-11-2026 (kanban v35), en attente de validation TSC
 - [ ] TSK33 — Implémentation de l'aperçu d'export (SU010/FN033) : 3e onglet « Export » en lecture seule (ExportWorkspace + export_service.build_reading_text sur RG069), généralisation du code 2 → 3 espaces de travail (currentTab() testé à 6 endroits dans main_window.py + _on_tab_changed), régénération à la bascule sur l'onglet + signal de modification si onglet actif, aperçu dynamique selon FN029, liens inertes, restitution centrée états (orphelins + événements pendants avec marqueur), ne touche jamais à set_modified, tests — → #TSK32 — fiche `tasks/TSK33_export_preview.md` — créée 01-11-2026 (décision TSC), passée en Doing 01-11-2026, En revue 01-11-2026 (kanban v32) — implémenté : hook `ProjectService.on_modified` + signal `map_modified`, `ExportService.build_reading_text`/`build_note_index` (RG069), `ExportWorkspace` (QTextBrowser readOnly, liens inertes, infobulle anchorAt+QToolTip), 3e onglet « Export » + branche `_on_tab_changed` + régénération à la bascule et si onglet actif, dynamique selon FN029, stubs menu View (Events/Agents/Export) — tests `test_export_service.py` (+9) — pytest 226 passed, py_compile OK — script offscreen à valider en GUI (libGL absent du sandbox) — TSK34 créée (revue de code)
 
 ## Done

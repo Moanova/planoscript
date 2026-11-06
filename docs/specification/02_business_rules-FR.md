@@ -178,7 +178,7 @@
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG026
-- **Description** : Une relation (arc état-événement ou association agent-état) appartient aux parcours des noeuds de parcours (Journey_node) qui la référencent : de 1 à n parcours. L'appartenance d'un composant (état ou événement) à un parcours est dérivée : le composant appartient à un parcours si et seulement si au moins une de ses relations y est rattachée. Un composant sans aucune relation (orphelin) n'appartient à aucun parcours et n'est visible que lorsque le filtre par parcours est désactivé (FN029).
+- **Description** : Une relation (arc état-événement ou association agent-état) appartient aux parcours des noeuds de parcours (Journey_node) qui la référencent : de 1 à n parcours. L'appartenance d'un composant (état ou événement) à un parcours est dérivée des arcs seuls (révision TSK35 06-11-2026) : le composant appartient à un parcours si et seulement si au moins un de ses arcs y est rattaché. Une association agent-état ne fait pas appartenir son état au parcours : sous le filtre, elle n'est visible que si son état y appartient déjà. Un composant sans aucun arc (orphelin) n'appartient à aucun parcours et n'est visible que lorsque le filtre par parcours est désactivé (FN029).
 - **Classification** : Logique des parcours et appartenance.
 
 ## RG027
@@ -280,7 +280,7 @@
 - **Classification** : Structure des cartes narratives.
 
 ## RG066
-- **Description** : Toute association agent-état appartient à au moins un parcours à tout moment. À sa création, elle est rattachée au parcours actuellement activé (ou au parcours par défaut si aucun parcours n'est activé), via un noeud de parcours référençant l'association (Journey_node.state_agent_rel_id). Si la suppression d'un parcours la rend orpheline de tout parcours, elle est automatiquement basculée vers le parcours par défaut. Le fait qu'un même couple d'agents se rencontre dans plusieurs parcours est modélisé par des états distincts, chacun rattaché au parcours concerné. Le filtrage de l'affichage par parcours s'applique aux associations agent-état comme aux autres relations.
+- **Description** : Toute association agent-état appartient à au moins un parcours à tout moment. À sa création, elle est rattachée au parcours actuellement activé (ou au parcours par défaut si aucun parcours n'est activé), via un noeud de parcours référençant l'association (Journey_node.state_agent_rel_id). Si la suppression d'un parcours la rend orpheline de tout parcours, elle est automatiquement basculée vers le parcours par défaut. Le fait qu'un même couple d'agents se rencontre dans plusieurs parcours est modélisé par des états distincts, chacun rattaché au parcours concerné. Le filtrage de l'affichage par parcours s'applique aussi aux associations agent-état, qui ne sont visibles que lorsque leur état appartient au parcours filtré (RG026 révisée TSK35).
 - **Classification** : Structure des cartes narratives.
 
 ## RG068

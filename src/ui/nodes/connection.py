@@ -812,7 +812,9 @@ class Connection(QGraphicsPathItem):
         """
         Delete the business relation entity associated with this connection.
 
-        Removes the entity from the narrative map's relation list.
+        Delegates to ArcService.delete_relation: removes the entity from the
+        narrative map's relation list and every Journey_node referencing it
+        (RG056 extended), then recomputes the journey sequence (RG069).
 
         Args:
             narrative_map: The NarrativeMap containing the relation
@@ -826,26 +828,11 @@ class Connection(QGraphicsPathItem):
         if not self.layout.relation_id:
             return False
 
-        relation_id = self.layout.relation_id
-        relation_type = self.layout.relation_type
-
-        if relation_type == RelationType.STATE_AGENT_REL:
-            narrative_map.state_agent_rel = [
-                rel for rel in narrative_map.state_agent_rel if rel.id != relation_id
-            ]
-        elif relation_type == RelationType.EVENT_TO_STATE:
-            narrative_map.event_to_state = [
-                rel for rel in narrative_map.event_to_state if rel.id != relation_id
-            ]
-        elif relation_type == RelationType.STATE_TO_EVENT:
-            narrative_map.state_to_event = [
-                rel for rel in narrative_map.state_to_event if rel.id != relation_id
-            ]
-        else:
+        from core.services.arc_service import ArcService
+        if not ArcService.delete_relation(
+                narrative_map, self.layout.relation_type, self.layout.relation_id):
             return False
 
         self.arc_or_association = None
         self.layout.relation_id = None
-        if hasattr(narrative_map, 'set_modified'):
-            narrative_map.set_modified(True)
         return True

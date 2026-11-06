@@ -178,7 +178,7 @@
 - **Classification**: Journey Logic and Membership.
 
 ## RG026
-- **Description** : A relationship (state-event arc or agent-state association) belongs to the journeys of the journey nodes (Journey_node) that reference it: from 1 to n journeys. A component's (state or event) membership in a journey is derived: the component belongs to a journey if and only if at least one of its relationships is attached to it. A component with no relationship (orphan) belongs to no journey and is visible only when the journey filter is disabled (FN029).
+- **Description** : A relationship (state-event arc or agent-state association) belongs to the journeys of the journey nodes (Journey_node) that reference it: from 1 to n journeys. A component's (state or event) membership in a journey is derived from arcs only (revised TSK35 06-11-2026): the component belongs to a journey if and only if at least one of its arcs is attached to it. An agent-state association does not make its state belong to the journey: under the filter, it is visible only if its state already belongs to it. A component with no arc (orphan) belongs to no journey and is visible only when the journey filter is disabled (FN029).
 - **Classification** : Journey Logic and Membership.
 
 ## RG027
@@ -279,7 +279,7 @@
 - **Classification**: Narrative Map Structure.
 
 ## RG066
-- **Description**: Every agent-state association belongs to at least one journey at all times. When created, it is attached to the currently active journey (or to the default journey if no journey is active), via a journey node referencing the association (Journey_node.state_agent_rel_id). If deleting a journey leaves it orphaned from every journey, it is automatically moved to the default journey. The same pair of agents meeting in several journeys is modeled by distinct states, each attached to the relevant journey. Filtering the display by journey applies to agent-state associations as to other relationships.
+- **Description**: Every agent-state association belongs to at least one journey at all times. When created, it is attached to the currently active journey (or to the default journey if no journey is active), via a journey node referencing the association (Journey_node.state_agent_rel_id). If deleting a journey leaves it orphaned from every journey, it is automatically moved to the default journey. The same pair of agents meeting in several journeys is modeled by distinct states, each attached to the relevant journey. Filtering the display by journey also applies to agent-state associations, which are visible only when their state belongs to the filtered journey (revised RG026, TSK35).
 - **Classification**: Narrative Map Structure.
 
 ## RG068
