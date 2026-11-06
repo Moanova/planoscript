@@ -140,7 +140,7 @@ relations uniquement en texte libre (notes d'agents), 4 agents sur 10 sans
 aucune association, fin du récit non marquée `Final`. Besoins : relations
 agent-agent typées (fait/rumeur) séquencées sur le récit → d'où le modèle §3.
 
-**Bug latent export** (à corriger avant clôture) : `ExportService`
+**Bug latent export** (reporté à la clôture, dette TSK34) : `ExportService`
 (`src/core/services/export_service.py:~187`) — `_esc(rel.agent_id)` plante
 avec un `int` si l'agent n'est pas dans la liste passée à `build_reading_text`.
 

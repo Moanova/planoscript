@@ -58,3 +58,6 @@
   Ett 00/01P1/02P1/99, J3 → Ett 00/01P3/03P2/04P2/05P2/99, J2 inchangé ;
   nœud orphelin node#22 purgé au chargement. En revue, en attente de
   validation TSC (test GUI du filtre sur testCase01).
+- 06-11-2026 : **validée TSC** — test GUI sur poste TSC : le filtre de
+  parcours fonctionne comme attendu (vue Events et vue Agents sur
+  testCase01). Passée en **Terminé** (kanban v36). Projet planoscript clôturé.

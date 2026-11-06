@@ -1601,3 +1601,25 @@ proposée : TSK29 = implémentation du filtre FN029.
   `docs/conception/hyperscript_preconception-FR.md`, `docs/project/kanban.md`,
   `docs/project/tasks/TSK35_pre_cloture_corrections.md` (nouveau), `SESSIONS.md`.
 - Kanban v35 : TSK35 en **En revue** (en attente de validation TSC).
+
+
+---
+
+## 2026-11-06 — Session 3 : validation TSC de TSK35 et clôture du projet planoscript
+
+### Validation
+- TSC a vérifié sur son poste : le filtre de parcours fonctionne comme attendu
+  (vue Events et vue Agents, projet testCase01). **TSK35 validée TSC** →
+  passée en **Terminé** (kanban v36). Fiche TSK35 mise à jour.
+
+### Décision
+- **Clôture du projet planoscript** à l'issue de cette ultime séance.
+  Le prochain projet, **hyperscript**, partira de la note de reconception
+  `docs/conception/hyperscript_preconception-FR.md` (sémantique actée, modèle
+  à blocs, relations agent-agent ancrées, points en suspens listés).
+
+### État en fin de session
+- Dernier commit poussé sur `dev` (voir historique). Dette restante documentée
+  : TSK34 (revue de code, dont bug latent export `_esc(rel.agent_id)` reporté
+  dans la note préparatoire hyperscript §7).
+- Rendez-vous pour la première séance de travail du projet hyperscript.
